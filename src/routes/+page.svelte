@@ -1,20 +1,58 @@
+<script lang="ts">
+  import Card from '$lib/card.svelte'
+
+  let titles = [
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+  ]
+  let hidden = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ]
+
+  let removedTitle = ''
+
+  function removeAtIndex(items: any[], index: number): any[] {
+    return [
+      ...items.slice(0, index),
+      ...items.slice(index + 1),
+    ]
+  }
+
+  function addAtIndex(items: any[], index: number, item: any): any[] {
+    return [
+      ...items.slice(0, index),
+      item,
+      ...items.slice(index),
+    ]
+  }
+
+</script>
+
 <div
-    class="container m-4 flex flex-row gap-4"
+  class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
 >
-    <div class="flex flex-col w-40 border-2 gap-2">
-        <div class="p-2">Title</div>
-        <div>Text</div>
+  {#each titles as title, index}
+    <div
+      draggable="true"
+      on:dragstart={() => {
+        removedTitle = title
+        setTimeout(() => titles = removeAtIndex(titles, index))
+        // titles = removeAtIndex(titles, index)
+      }}
+      on:dragend={() => {
+        setTimeout(() => titles = addAtIndex(titles, index, removedTitle))
+      }}
+    >
+      <Card title="{title}"/>
     </div>
-    <div class="flex flex-col w-40 border-2">
-        <div>Title</div>
-        <div>Text</div>
-    </div>
-    <div class="flex flex-col w-40 border-2">
-        <div>Title</div>
-        <div>Text</div>
-    </div>
-    <div class="flex flex-col w-40 border-2">
-        <div>Title</div>
-        <div>Text</div>
-    </div>
+  {/each}
 </div>
