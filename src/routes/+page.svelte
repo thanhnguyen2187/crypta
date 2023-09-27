@@ -1,5 +1,6 @@
 <script lang="ts">
   import Card from '$lib/card.svelte'
+  import autoAnimate from '@formkit/auto-animate'
 
   let titles = [
     'One',
@@ -39,11 +40,13 @@
 
 <div
   class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
+  use:autoAnimate
 >
   {#each titles as title, index}
     <div
       draggable="true"
       on:dragstart={() => {
+        // TODO: investigate why dragging the last element just doesn't work
         removedTitle = title
         setTimeout(() => titles = removeAtIndex(titles, index))
         // titles = removeAtIndex(titles, index)

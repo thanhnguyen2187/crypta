@@ -24,5 +24,8 @@
     "vite": "^4.4.2",
     "vitest": "^0.34.0"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@formkit/auto-animate": "^0.8.0"
+  }
 }
