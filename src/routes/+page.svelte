@@ -20,6 +20,7 @@
   ]
 
   let removedTitle = ''
+  let dropped = true
 
   function removeAtIndex(items: any[], index: number): any[] {
     return [
@@ -36,23 +37,42 @@
     ]
   }
 
+  function replaceAtIndex(items: any[], index: number, item: any): any[] {
+    return [
+      ...items.slice(0, index),
+      item,
+      ...items.slice(index + 1),
+    ]
+  }
+
 </script>
 
 <div
   class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
-  use:autoAnimate
 >
   {#each titles as title, index}
     <div
       draggable="true"
+      class="cursor-grab"
       on:dragstart={() => {
-        // TODO: investigate why dragging the last element just doesn't work
+        console.log(`Dragstart index ${index}`)
         removedTitle = title
-        setTimeout(() => titles = removeAtIndex(titles, index))
-        // titles = removeAtIndex(titles, index)
+        setTimeout(() => {titles = replaceAtIndex(titles, index, '')})
+        dropped = false
+        // setTimeout(() => {titles = removeAtIndex(titles, index)})
       }}
+      on:dragover|preventDefault={() => {}}
       on:dragend={() => {
-        setTimeout(() => titles = addAtIndex(titles, index, removedTitle))
+        console.log(`Dragend index ${index}`)
+        if (!dropped) {
+          setTimeout(() => {titles = replaceAtIndex(titles, index, removedTitle)})
+          dropped = true
+        }
+      }}
+      on:drop|preventDefault={() => {
+        console.log(`Drop index ${index}`)
+        // dropped = true
+        // setTimeout(() => {titles = addAtIndex(titles, index, removedTitle)})
       }}
     >
       <Card title="{title}"/>

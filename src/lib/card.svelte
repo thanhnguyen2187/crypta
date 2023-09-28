@@ -3,8 +3,8 @@
   import IconLockIon from '../svg/icon-lock-ion-24.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
 
-  export let title = 'Sample title'
-  export let content = 'Sample content'
+  export let title = 'Clojure'
+  export let content = '(println "Hello world")'
   export let invisible = false
 </script>
 
@@ -38,7 +38,7 @@
       #tag-1 #tag-2
     </div>
     <div>
-      Another
+      Other buttons
     </div>
   </div>
 </div>
