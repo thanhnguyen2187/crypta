@@ -19,7 +19,8 @@
     false,
   ]
 
-  let removedTitle = ''
+  let draggedTitle = ''
+  let draggedIndex = -1
   let dropped = true
 
   function removeAtIndex(items: any[], index: number): any[] {
@@ -56,23 +57,27 @@
       class="cursor-grab"
       on:dragstart={() => {
         console.log(`Dragstart index ${index}`)
-        removedTitle = title
-        setTimeout(() => {titles = replaceAtIndex(titles, index, '')})
+        draggedTitle = title
+        draggedIndex = index
         dropped = false
+        setTimeout(() => {titles = replaceAtIndex(titles, index, '')})
         // setTimeout(() => {titles = removeAtIndex(titles, index)})
       }}
       on:dragover|preventDefault={() => {}}
       on:dragend={() => {
         console.log(`Dragend index ${index}`)
         if (!dropped) {
-          setTimeout(() => {titles = replaceAtIndex(titles, index, removedTitle)})
           dropped = true
+          setTimeout(() => {titles = replaceAtIndex(titles, index, draggedTitle)})
         }
       }}
       on:drop|preventDefault={() => {
         console.log(`Drop index ${index}`)
-        // dropped = true
-        // setTimeout(() => {titles = addAtIndex(titles, index, removedTitle)})
+        dropped = true
+        setTimeout(() => {
+          titles = addAtIndex(titles, index, draggedTitle)
+          // titles = removeAtIndex(titles, draggedIndex)
+        })
       }}
     >
       <Card title="{title}"/>
