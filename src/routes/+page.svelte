@@ -48,7 +48,6 @@
       draggable="true"
       class="cursor-grab"
       on:dragstart={() => {
-        console.log(`Dragstart index ${index}`)
         draggedTitle = title
         draggedIndex = index
         dropped = false
@@ -60,7 +59,6 @@
       }}
       on:dragover|preventDefault={() => {}}
       on:dragend={() => {
-        console.log(`Dragend index ${index}`)
         if (!dropped) {
           titles = addAtIndex(titles, draggedIndex, draggedTitle)
           titles = removeAtIndex(titles, titles.length - 1)
@@ -68,7 +66,6 @@
         }
       }}
       on:drop|preventDefault={() => {
-        console.log(`Drop index ${index}`)
         dropped = true
         setTimeout(() => {
           titles = addAtIndex(titles, index, draggedTitle)
