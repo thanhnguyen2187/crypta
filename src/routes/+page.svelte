@@ -43,7 +43,7 @@
   class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
   use:autoAnimate
 >
-  {#each titles as title, index}
+  {#each titles as title, index (title.toString())}
     <div
       draggable="true"
       class="cursor-grab"
