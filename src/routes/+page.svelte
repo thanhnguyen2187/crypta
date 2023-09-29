@@ -37,19 +37,11 @@
       ...items.slice(index),
     ]
   }
-
-  function replaceAtIndex(items: any[], index: number, item: any): any[] {
-    return [
-      ...items.slice(0, index),
-      item,
-      ...items.slice(index + 1),
-    ]
-  }
-
 </script>
 
 <div
   class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
+  use:autoAnimate
 >
   {#each titles as title, index}
     <div
@@ -60,15 +52,17 @@
         draggedTitle = title
         draggedIndex = index
         dropped = false
-        setTimeout(() => {titles = replaceAtIndex(titles, index, '')})
-        // setTimeout(() => {titles = removeAtIndex(titles, index)})
+        setTimeout(() => {
+          titles = removeAtIndex(titles, index)
+          titles.push('')
+          titles = titles
+        })
       }}
       on:dragover|preventDefault={() => {}}
       on:dragend={() => {
         console.log(`Dragend index ${index}`)
         if (!dropped) {
           dropped = true
-          setTimeout(() => {titles = replaceAtIndex(titles, index, draggedTitle)})
         }
       }}
       on:drop|preventDefault={() => {
@@ -76,7 +70,7 @@
         dropped = true
         setTimeout(() => {
           titles = addAtIndex(titles, index, draggedTitle)
-          // titles = removeAtIndex(titles, draggedIndex)
+          titles = removeAtIndex(titles, titles.length - 1)
         })
       }}
     >
