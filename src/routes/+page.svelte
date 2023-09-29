@@ -62,6 +62,8 @@
       on:dragend={() => {
         console.log(`Dragend index ${index}`)
         if (!dropped) {
+          titles = addAtIndex(titles, draggedIndex, draggedTitle)
+          titles = removeAtIndex(titles, titles.length - 1)
           dropped = true
         }
       }}
