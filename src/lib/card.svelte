@@ -5,6 +5,7 @@
   import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
   import type { CardState } from '$lib/card'
   import { fade } from 'svelte/transition'
+  import { toasterText } from '$lib/store'
 
   export let title = 'Clojure'
   export let content = '(println "Hello world")'
@@ -16,6 +17,10 @@
   async function copyToClipboard(text: string) {
     try {
       await navigator.clipboard.writeText(text)
+      toasterText.set('Copied successfully')
+      setTimeout(() => {
+        toasterText.set(null)
+      }, 1500)
     } catch (err) {
       console.error('Failed to copy: ', err);
     }

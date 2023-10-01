@@ -1,6 +1,7 @@
 <script lang="ts">
   import Card from '$lib/card.svelte'
   import CardPlaceHolding from '$lib/card-placeholding.svelte'
+  import Toaster from '$lib/toaster.svelte'
   import { sampleCards } from '$lib/card'
   import autoAnimate from '@formkit/auto-animate'
 
@@ -42,11 +43,28 @@
     ]
     return items
   }
+
+  async function handleNewPaste(e: KeyboardEvent) {
+    if (e.ctrlKey && e.key === 'v') {
+      const text = await navigator.clipboard.readText()
+      cards.push({
+        id: (cards.length + 1).toString(),
+        title: 'untitled',
+        state: 'default',
+        content: text,
+        encrypted: false,
+        language: 'plaintext',
+      })
+      cards = cards
+    }
+  }
 </script>
 
 <div
   class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
   use:autoAnimate
+  tabindex="-1"
+  on:keydown={handleNewPaste}
 >
   {#each cards as card, index (card.id)}
     <div
@@ -113,3 +131,5 @@
     <CardPlaceHolding/>
   </div>
 </div>
+
+<Toaster/>
