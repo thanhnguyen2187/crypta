@@ -12,6 +12,14 @@
   export let state: CardState = 'default'
   export let contentState: 'default' | 'hoveredOn' | 'focused' = 'default'
   export let removalCallback: () => {}
+
+  async function copyToClipboard(text: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  }
 </script>
 
 <style>
@@ -56,26 +64,27 @@
   </div>
   <div
     class="flex flex-col relative"
+    on:mouseover={() => {contentState = 'hoveredOn'}}
+    on:mouseleave={() => {contentState = 'default'}}
   >
-    <div
-      class:invisible={contentState === 'default'}
-      class="absolute right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
-    >
-      {language}
-    </div>
-    <div
-      class:invisible={contentState === 'default'}
-      class:border-black={contentState === 'focused'}
-      class="absolute right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
-    >
-      <IconCopyIon/>
-    </div>
+    {#if contentState === 'hoveredOn'}
+      <div
+        transition:fade
+        class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
+      >
+        {language}
+      </div>
+      <div
+        transition:fade
+        class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
+        on:click={copyToClipboard(content)}
+      >
+        <IconCopyIon/>
+      </div>
+    {/if}
     <textarea
       rows="5"
       class="m-2 border-2 px-1 overflow-scroll font-mono whitespace-pre"
-      on:mouseover={() => {contentState = 'hoveredOn'}}
-      on:mouseleave={() => {contentState = 'default'}}
-      on:focusin={() => {contentState = 'focused'}}
     >{content}</textarea>
   </div>
   <div
