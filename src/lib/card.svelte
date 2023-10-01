@@ -2,6 +2,8 @@
   import IconExpandIon from '../svg/icon-expand-ion-24.svelte'
   import IconLockIon from '../svg/icon-lock-ion-24.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
+  import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
+  import IconClipboardIon from '../svg/icon-clipboard-ion-24.svelte'
 
   export let title = 'Clojure'
   export let content = '(println "Hello world")'
@@ -37,8 +39,11 @@
     <div>
       #tag-1 #tag-2
     </div>
-    <div>
-      Other buttons
+    <div
+      class="flex gap-1 mr-1"
+    >
+      <IconClipboardIon/>
+      <IconCopyIon/>
     </div>
   </div>
 </div>
