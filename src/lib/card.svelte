@@ -10,7 +10,8 @@
   export let content = '(println "Hello world")'
   export let language = ''
   export let state: CardState = 'default'
-  export let contentState: 'default' | 'hoveredOn' = 'default'
+  export let contentState: 'default' | 'hoveredOn' | 'focused' = 'default'
+  export let removalCallback: () => {}
 </script>
 
 <style>
@@ -40,37 +41,41 @@
   <div
     class="flex justify-between"
   >
-    <input class="m-2 px-1 border-2 rounded-xl" value="{title}"/>
-    <div class="mr-3 my-3 gap-1 flex">
-      <div class="cursor-pointer"><IconExpandIon/></div>
-      <div class="cursor-pointer"><IconLockIon/></div>
-      <div class="cursor-pointer"><IconTrashIon/></div>
+    <input
+      class="m-2 px-2 border-2 rounded-xl w-2/3"
+      value="{title}"
+    />
+    <div class="mr-2 my-3 gap-1 flex">
+      <button class="cursor-pointer"><IconExpandIon/></button>
+      <button class="cursor-pointer"><IconLockIon/></button>
+      <button
+        class="cursor-pointer"
+        on:click={() => {removalCallback()}}
+      ><IconTrashIon/></button>
     </div>
   </div>
   <div
     class="flex flex-col relative"
   >
-    {#if contentState === 'hoveredOn'}
-      <div
-        transition:fade
-        on:mouseover={() => {}}
-        on:mouseleave={() => {}}
-        class="absolute right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
-      >
-        {language}
-      </div>
-      <div
-        transition:fade
-        class="absolute right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
-      >
-        <IconCopyIon/>
-      </div>
-    {/if}
+    <div
+      class:invisible={contentState === 'default'}
+      class="absolute right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
+    >
+      {language}
+    </div>
+    <div
+      class:invisible={contentState === 'default'}
+      class:border-black={contentState === 'focused'}
+      class="absolute right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
+    >
+      <IconCopyIon/>
+    </div>
     <textarea
       rows="5"
       class="m-2 border-2 px-1 overflow-scroll font-mono whitespace-pre"
       on:mouseover={() => {contentState = 'hoveredOn'}}
       on:mouseleave={() => {contentState = 'default'}}
+      on:focusin={() => {contentState = 'focused'}}
     >{content}</textarea>
   </div>
   <div

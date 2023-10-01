@@ -21,7 +21,8 @@
   class="flex flex-col w-80 border-2 rounded-2xl bg-gray-100 relative"
 >
   <div
-    class="absolute left-0 right-0 top-0 bottom-0 m-auto w-40 h-40"
+    class="absolute left-0 right-0 top-0 bottom-0 m-auto opacity-25"
+    style="width: 128px; height: 128px;"
   >
     <IconAdd/>
   </div>

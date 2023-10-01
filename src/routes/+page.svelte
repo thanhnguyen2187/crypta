@@ -16,14 +16,6 @@
     ]
   }
 
-  function addAtIndex(items: any[], index: number, item: any): any[] {
-    return [
-      ...items.slice(0, index),
-      item,
-      ...items.slice(index),
-    ]
-  }
-
   /*
   * Take an item at one index and put it in another index.
   *
@@ -87,10 +79,12 @@
         state="{card.state}"
         content="{card.content}"
         language="{card.language}"
+        removalCallback="{() => {cards = removeAtIndex(cards, index)}}"
       />
     </div>
   {/each}
   <div
+    class="cursor-pointer"
     on:dragover|preventDefault={() => {}}
     on:drop={() => {
       dropped = true
@@ -98,6 +92,18 @@
       const newCard = {
         ...cards[draggedIndex],
         id: (cards.length + 1).toString(),
+        state: 'default',
+      }
+      cards.push(newCard)
+      cards = cards
+    }}
+    on:click={() => {
+      const newCard = {
+        id: (cards.length + 1).toString(),
+        title: 'untitled',
+        language: 'plaintext',
+        content: '',
+        encrypted: false,
         state: 'default',
       }
       cards.push(newCard)
