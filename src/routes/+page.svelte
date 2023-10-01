@@ -1,24 +1,10 @@
 <script lang="ts">
   import Card from '$lib/card.svelte'
+  import CardPlaceHolding from '$lib/card-placeholding.svelte'
+  import { sampleCards } from '$lib/card'
   import autoAnimate from '@formkit/auto-animate'
 
-  let titles = [
-    'One',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-    'Six',
-  ]
-  let hidden = [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ]
-
+  let cards = sampleCards
   let draggedTitle = ''
   let draggedIndex = -1
   let dropped = true
@@ -37,43 +23,87 @@
       ...items.slice(index),
     ]
   }
+
+  /*
+  * Take an item at one index and put it in another index.
+  *
+  * @param index1 the "moving" item's index
+  * @param index2 the "pivot" item's index
+  * @example
+  * inject(['a', 'b', 'c', 'd', 'e'], 1, 3)
+  * // first, we move `b` out of the place
+  * // ['a', 'c', 'd', 'e']
+  * // then we insert `b` to the place after `d`
+  * // ['a', 'c', 'd', 'b', 'e']
+  * */
+  function inject(items: any[], index1: number, index2: number): any[] {
+    if (index1 == index2) {
+      return items
+    }
+
+    items = items.slice()
+    const item = items.splice(index1, 1)[0]
+    items = [
+      ...items.slice(0, index2),
+      item,
+      ...items.slice(index2),
+    ]
+    return items
+  }
 </script>
 
 <div
   class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
   use:autoAnimate
 >
-  {#each titles as title, index (title.toString())}
+  {#each cards as card, index (card.id)}
     <div
       draggable="true"
       class="cursor-grab"
       on:dragstart={() => {
-        draggedTitle = title
         draggedIndex = index
         dropped = false
         setTimeout(() => {
-          titles = removeAtIndex(titles, index)
-          titles.push('')
-          titles = titles
+          cards[index].state = 'draggedOut'
         })
       }}
       on:dragover|preventDefault={() => {}}
       on:dragend={() => {
         if (!dropped) {
-          titles = addAtIndex(titles, draggedIndex, draggedTitle)
-          titles = removeAtIndex(titles, titles.length - 1)
+          cards[index].state = 'default'
           dropped = true
         }
       }}
-      on:drop|preventDefault={() => {
+      on:drop={() => {
         dropped = true
         setTimeout(() => {
-          titles = addAtIndex(titles, index, draggedTitle)
-          titles = removeAtIndex(titles, titles.length - 1)
+          cards[draggedIndex].state = 'default'
+          cards = inject(cards, draggedIndex, index)
         })
       }}
     >
-      <Card title="{title}"/>
+      <Card
+        title="{card.title}"
+        state="{card.state}"
+        content="{card.content}"
+        language="{card.language}"
+      />
     </div>
   {/each}
+  <div
+    on:dragover|preventDefault={() => {}}
+    on:drop={() => {
+      dropped = true
+      cards[draggedIndex].state = 'default'
+      const newCard = {
+        ...cards[draggedIndex],
+        id: (cards.length + 1).toString(),
+        state: 'default',
+      }
+      cards.push(newCard)
+      cards = cards
+    }}
+  >
+    <CardPlaceHolding/>
+  </div>
 </div>
