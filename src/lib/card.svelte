@@ -3,9 +3,9 @@
   import IconLockIon from '../svg/icon-lock-ion-24.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
   import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
-  import type { CardState } from '$lib/card'
+  import type { CardState } from './card.ts'
   import { fade } from 'svelte/transition'
-  import { toasterText } from '$lib/store'
+  import { toasterText } from './store.ts'
 
   export let title = 'Clojure'
   export let content = '(println "Hello world")'
@@ -74,13 +74,13 @@
   >
     {#if contentState === 'hoveredOn'}
       <div
-        transition:fade
+        transition:fade={{duration: 400}}
         class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
       >
         {language}
       </div>
       <div
-        transition:fade
+        transition:fade={{duration: 400}}
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
         on:click={copyToClipboard(content)}
       >
