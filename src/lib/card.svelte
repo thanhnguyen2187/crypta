@@ -11,7 +11,7 @@
   export let content = '(println "Hello world")'
   export let language = ''
   export let state: CardState = 'default'
-  export let contentState: 'default' | 'hoveredOn' | 'focused' = 'default'
+  export let contentState: 'default' | 'hoveredOn' = 'default'
   export let removalCallback: () => {}
 
   async function copyToClipboard(text: string) {
@@ -35,16 +35,6 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-
-  .striped {
-    background: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      #ccc 10px,
-      #ccc 20px
-    )
-  }
 </style>
 
 <div
@@ -59,33 +49,37 @@
       value="{title}"
     />
     <div class="mr-2 my-3 gap-1 flex">
-      <button class="cursor-pointer"><IconExpandIon/></button>
-      <button class="cursor-pointer"><IconLockIon/></button>
-      <button
-        class="cursor-pointer"
-        on:click={() => {removalCallback()}}
-      ><IconTrashIon/></button>
+      <button><IconExpandIon/></button>
+      <button><IconLockIon/></button>
+      <button on:click={() => {removalCallback()}}><IconTrashIon/></button>
     </div>
   </div>
   <div
     class="flex flex-col relative"
+    role="group"
     on:mouseover={() => {contentState = 'hoveredOn'}}
     on:mouseleave={() => {contentState = 'default'}}
   >
-    {#if contentState === 'hoveredOn'}
+    {#if state === 'beingHoverOver'}
       <div
+        class="absolute h-40 border border-gray"
+        style="left: -0.65em"
+      ></div>
+    {/if}
+    {#if contentState === 'hoveredOn'}
+      <button
         transition:fade={{duration: 400}}
         class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
       >
         {language}
-      </div>
-      <div
+      </button>
+      <button
         transition:fade={{duration: 400}}
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
         on:click={copyToClipboard(content)}
       >
         <IconCopyIon/>
-      </div>
+      </button>
     {/if}
     <textarea
       rows="5"
