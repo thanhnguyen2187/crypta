@@ -2,6 +2,7 @@
   import IconClipboardIon from '../svg/icon-clipboard-ion-24.svelte'
   import IconAdd from '../svg/icon-add-ion-256.svelte'
   import IconAddCircle from '../svg/icon-add-circle-ion-128.svelte'
+  import IconExpandIon from '../svg/icon-expand-ion-24.svelte';
 
   export let title = 'Sample Clojure'
   export let content = '(println "Hello world")'
@@ -31,6 +32,7 @@
   >
     <input class="m-2 px-1 border-2 rounded-xl invisible" value="{title}" disabled="disabled"/>
     <div class="mr-3 my-3 gap-1 flex">
+      <button><IconExpandIon/></button>
     </div>
   </div>
   <div
@@ -50,6 +52,7 @@
     class="flex justify-between m-2 invisible"
   >
     <div>
+      #tag-1
     </div>
     <div
       class="flex gap-1 mr-1"
