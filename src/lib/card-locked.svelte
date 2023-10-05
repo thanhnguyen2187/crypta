@@ -65,6 +65,7 @@
         class="m-2 px-2 border-2 rounded-xl"
         placeholder="Input password here"
         type="password"
+        autofocus
         bind:value={password}
         on:focusout={() => {attempted = false}}
         on:keydown={(e) => {
