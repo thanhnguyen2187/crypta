@@ -1,3 +1,6 @@
+import { writable } from 'svelte/store'
+import { inject, replace } from '$lib/array-manipluation'
+
 export type Snippet = {
   id: string
   name: string
@@ -68,3 +71,25 @@ windows:
     state: 'default',
   },
 ]
+
+export const cardStore = writable<Card[]>(sampleCards)
+
+export function updateCardState(index: number, state: CardState): void {
+  cardStore.update(
+    (cards: Card[]): Card[] => {
+      const newCard = {
+        ...cards[index],
+        state,
+      }
+      return replace(cards, index, newCard)
+    }
+  )
+}
+
+export function injectCard(index1: number, index2: number): void {
+  cardStore.update(
+    (cards: Card[]): Card[] => {
+      return inject(cards, index1, index2)
+    }
+  )
+}
