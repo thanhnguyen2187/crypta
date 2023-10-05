@@ -43,3 +43,10 @@ export function insert<T>(items: T[], index: number, item: T): T[] {
   ]
 }
 
+export function append<T>(items: T[], item: T): T[] {
+  return [
+    ...items,
+    item,
+  ]
+}
+

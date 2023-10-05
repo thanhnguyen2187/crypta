@@ -2,9 +2,9 @@
   import Card from './card.svelte'
   import CardPlaceHolding from './card-placeholding.svelte'
   import CardLocked from './card-locked.svelte'
-  import { cardStore, updateCardState } from './card.ts'
+  import { addNewCard, duplicateCard, updateCardState, cardStore, removeCard } from './card.ts'
   import autoAnimate from '@formkit/auto-animate'
-  import { injectCard } from '$lib/card.js'
+  import { injectCard, newEmptyCard } from '$lib/card.js'
 
   let cards = $cardStore
 
@@ -60,7 +60,7 @@
         state="{card.state}"
         content="{card.content}"
         language="{card.language}"
-        removalCallback="{() => {}}"
+        removalCallback="{() => removeCard(index)}"
       />
     </div>
   {/each}
@@ -69,26 +69,12 @@
     on:dragover|preventDefault={() => {}}
     on:drop={() => {
       dropped = true
-      cards[draggedIndex].state = 'default'
-      const newCard = {
-        ...cards[draggedIndex],
-        id: (cards.length + 1).toString(),
-        state: 'default',
-      }
-      cards.push(newCard)
-      cards = cards
+      updateCardState(draggedIndex, 'default')
+      const newCard = duplicateCard($cardStore[draggedIndex])
+      addNewCard(newCard)
     }}
     on:click={() => {
-      const newCard = {
-        id: (cards.length + 1).toString(),
-        title: 'untitled',
-        language: 'plaintext',
-        content: '',
-        encrypted: false,
-        state: 'default',
-      }
-      cards.push(newCard)
-      cards = cards
+      addNewCard(newEmptyCard())
     }}
   >
     <CardPlaceHolding/>

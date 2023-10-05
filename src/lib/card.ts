@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import { inject, replace } from '$lib/array-manipluation'
+import { append, inject, remove, replace } from '$lib/array-manipluation'
 
 export type Snippet = {
   id: string
@@ -74,14 +74,35 @@ windows:
 
 export const cardStore = writable<Card[]>(sampleCards)
 
+/* Return precisely 6 random characters.
+ * */
+function generateId(): string {
+  return Math.random().toString(36).slice(2, 8)
+}
+
+export function newEmptyCard(): Card {
+  return {
+    id: generateId(),
+    title: 'Untitled',
+    language: 'plaintext',
+    content: '',
+    encrypted: false,
+    state: 'default',
+  }
+}
+
+export function duplicateCard(card: Card) {
+  return {
+    ...card,
+    id: generateId(),
+  }
+}
+
 export function updateCardState(index: number, state: CardState): void {
   cardStore.update(
     (cards: Card[]): Card[] => {
-      const newCard = {
-        ...cards[index],
-        state,
-      }
-      return replace(cards, index, newCard)
+      cards[index].state = state
+      return cards
     }
   )
 }
@@ -90,6 +111,24 @@ export function injectCard(index1: number, index2: number): void {
   cardStore.update(
     (cards: Card[]): Card[] => {
       return inject(cards, index1, index2)
+    }
+  )
+}
+
+export function addNewCard(card: Card): void {
+  cardStore.update(
+    (cards: Card[]): Card[] => {
+      cards.push(card)
+      return cards
+    }
+  )
+}
+
+export function removeCard(index: number): void {
+  cardStore.update(
+    (cards: Card[]): Card[] => {
+      cards.splice(index, 1)
+      return cards
     }
   )
 }
