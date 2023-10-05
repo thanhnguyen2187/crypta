@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store'
-import type { Card } from '$lib/card';
+
+type SectionState = 'public' | 'private'
 
 export const toasterText = writable<string | null>(null)
-export const cards = writable<Card[]>([])
+export const sectionState = writable<SectionState>('public')

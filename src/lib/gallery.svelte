@@ -1,12 +1,10 @@
 <script lang="ts">
   import Card from './card.svelte'
-  import CardPlaceHolding from './card-placeholding.svelte'
   import CardLocked from './card-locked.svelte'
+  import CardPlaceHolding from './card-placeholding.svelte'
   import { addNewCard, duplicateCard, updateCardState, cardStore, removeCard } from './card.ts'
   import autoAnimate from '@formkit/auto-animate'
   import { injectCard, newEmptyCard } from '$lib/card.js'
-
-  let cards = $cardStore
 
   let draggedIndex = -1
   let dropped = true
@@ -14,15 +12,9 @@
   async function handleNewPaste(e: KeyboardEvent) {
     if (e.ctrlKey && e.key === 'v') {
       const text = await navigator.clipboard.readText()
-      cards.push({
-        id: (cards.length + 1).toString(),
-        title: 'untitled',
-        state: 'default',
-        content: text,
-        encrypted: false,
-        language: 'plaintext',
-      })
-      cards = cards
+      const card = newEmptyCard()
+      card.content = text
+      addNewCard(card)
     }
   }
 </script>
@@ -79,4 +71,5 @@
   >
     <CardPlaceHolding/>
   </div>
+  <CardLocked/>
 </div>
