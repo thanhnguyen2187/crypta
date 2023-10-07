@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { fly } from 'svelte/transition'
+  import CardLocked from './card-locked.svelte'
 
 </script>
 
 <div
-  transition:fly={{x: '-100vw', y: 0}}
+  class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
+  tabindex="-1"
 >
-  Hello world
+  <CardLocked/>
+  <CardLocked/>
+  <CardLocked/>
 </div>

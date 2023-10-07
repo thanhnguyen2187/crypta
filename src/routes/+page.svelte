@@ -3,11 +3,13 @@
   import Gallery from '$lib/gallery.svelte'
   import GalleryPrivate from '$lib/gallery-private.svelte'
   import NextButton from '$lib/next-button.svelte'
+  import autoAnimate from '@formkit/auto-animate'
 
   import { sectionState } from '$lib/store'
 </script>
 
 <div
+  use:autoAnimate
   class="flex"
 >
   {#if $sectionState === 'public'}
@@ -15,7 +17,7 @@
   {:else}
     <GalleryPrivate/>
   {/if}
-  <Toaster/>
   <NextButton/>
+  <Toaster/>
 </div>
 
