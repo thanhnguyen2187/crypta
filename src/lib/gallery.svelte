@@ -5,6 +5,7 @@
   import { addNewCard, duplicateCard, updateCardState, cardStore, removeCard } from './card.ts'
   import autoAnimate from '@formkit/auto-animate'
   import { injectCard, newEmptyCard } from '$lib/card.js'
+  import { fly } from 'svelte/transition'
 
   let draggedIndex = -1
   let dropped = true
@@ -24,6 +25,7 @@
   use:autoAnimate
   tabindex="-1"
   on:keydown={handleNewPaste}
+  transition:fly={{x: '100vw', y: 0}}
 >
   {#each $cardStore as card, index (card.id)}
     <div
