@@ -1,5 +1,5 @@
-import { writable } from 'svelte/store'
-import { append, inject, remove, replace } from '$lib/array-manipluation'
+import { writable, derived } from 'svelte/store'
+import { append, inject, remove, replace } from '$lib/array-manipulation'
 
 export type Snippet = {
   id: string
@@ -70,9 +70,19 @@ windows:
     encrypted: false,
     state: 'default',
   },
+  {
+    id: 'a49d5',
+    title: 'Clojure snippet',
+    language: 'yaml',
+    content: String.raw`ah3aazgoyHveWLwI.KKnC35uG1OC6DF02tJbqQNR8UYKJ3eS04g2b1HDLZ8kh0pFCZFI=`,
+    encrypted: true,
+    state: 'default',
+  },
 ]
 
 export const cardStore = writable<Card[]>(sampleCards)
+export const unlockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => !card.encrypted))
+export const lockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => card.encrypted))
 
 /* Return precisely 6 random characters.
  * */

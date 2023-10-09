@@ -2,7 +2,7 @@
   import Card from './card.svelte'
   import CardLocked from './card-locked.svelte'
   import CardPlaceHolding from './card-placeholding.svelte'
-  import { addNewCard, duplicateCard, updateCardState, cardStore, removeCard } from './card.ts'
+  import { addNewCard, duplicateCard, updateCardState, unlockedCardStore, removeCard } from './card.ts'
   import autoAnimate from '@formkit/auto-animate'
   import { injectCard, newEmptyCard } from '$lib/card.js'
 
@@ -25,7 +25,7 @@
   tabindex="-1"
   on:keydown={handleNewPaste}
 >
-  {#each $cardStore as card, index (card.id)}
+  {#each $unlockedCardStore as card, index (card.id)}
     <div
       draggable="true"
       class="cursor-grab"
@@ -62,7 +62,7 @@
     on:drop={() => {
       dropped = true
       updateCardState(draggedIndex, 'default')
-      const newCard = duplicateCard($cardStore[draggedIndex])
+      const newCard = duplicateCard($unlockedCardStore[draggedIndex])
       addNewCard(newCard)
     }}
     on:click={() => {
