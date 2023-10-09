@@ -3,6 +3,8 @@
   import IconLockIon from '../svg/icon-lock-ion-24.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
   import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
+  import IconCheckbox from '../svg/icon-checkbox-ion-24.svelte'
+  import IconCheckmark from '../svg/icon-checkmark-ion-24.svelte'
   import type { CardState } from './card.ts'
   import { fade } from 'svelte/transition'
   import { toasterText } from './store.ts'
@@ -12,14 +14,17 @@
   export let language = ''
   export let state: CardState = 'default'
   export let contentState: 'default' | 'hoveredOn' = 'default'
+  export let copySuccess = false
   export let removalCallback: () => {}
 
   async function copyToClipboard(text: string) {
     try {
       await navigator.clipboard.writeText(text)
       toasterText.set('Copied successfully')
+      copySuccess = true
       setTimeout(() => {
         toasterText.set(null)
+        copySuccess = false
       }, 1500)
     } catch (err) {
       console.error('Failed to copy: ', err);
@@ -78,7 +83,11 @@
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
         on:click={copyToClipboard(content)}
       >
-        <IconCopyIon/>
+        {#if copySuccess}
+          <IconCheckmark/>
+        {:else}
+          <IconCopyIon/>
+        {/if}
       </button>
     {/if}
     <textarea
