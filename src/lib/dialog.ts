@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store'
 
-export type DialogState = 'hidden' | 'confirm'
+export type DialogState = 'hidden' | 'confirm' | 'password'
 
-export const dialogStore = writable<DialogState>('confirm')
+export const dialogStateStore = writable<DialogState>('hidden')
+export const dialogActionStore = writable<(() => void) | undefined>()

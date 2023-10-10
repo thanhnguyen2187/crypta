@@ -8,6 +8,7 @@
   import type { CardState } from './card.ts'
   import { fade } from 'svelte/transition'
   import { toasterText } from './store.ts'
+  import { dialogActionStore, dialogStateStore } from '$lib/dialog';
 
   export let title = 'Clojure'
   export let content = '(println "Hello world")'
@@ -15,7 +16,7 @@
   export let state: CardState = 'default'
   export let contentState: 'default' | 'hoveredOn' = 'default'
   export let copySuccess = false
-  export let removalCallback: () => {}
+  export let removalCallback: () => void
 
   async function copyToClipboard(text: string) {
     try {
@@ -29,6 +30,14 @@
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
+  }
+
+  function confirmRemoval() {
+    $dialogActionStore = () => {
+      removalCallback()
+      $dialogStateStore = 'hidden'
+    }
+    $dialogStateStore = 'confirm'
   }
 </script>
 
@@ -56,7 +65,7 @@
     <div class="mr-2 my-3 gap-1 flex">
       <button><IconExpandIon/></button>
       <button><IconLockIon/></button>
-      <button on:click={() => {removalCallback()}}><IconTrashIon/></button>
+      <button on:click={() => {confirmRemoval()}}><IconTrashIon/></button>
     </div>
   </div>
   <div

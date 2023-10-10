@@ -52,7 +52,9 @@
         state="{card.state}"
         content="{card.content}"
         language="{card.language}"
-        removalCallback="{() => removeCard(index)}"
+        removalCallback="{() => {
+          removeCard(index)
+        }}"
       />
     </div>
   {/each}
