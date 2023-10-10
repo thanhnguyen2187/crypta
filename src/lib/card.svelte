@@ -7,7 +7,7 @@
   import IconCheckmark from '../svg/icon-checkmark-ion-24.svelte'
   import type { CardState } from './card.ts'
   import { fade } from 'svelte/transition'
-  import { toasterText } from './store.ts'
+  import { showToaster, toasterTextStore } from './toaster.ts'
   import { dialogActionStore, dialogStateStore } from '$lib/dialog';
 
   export let title = 'Clojure'
@@ -21,12 +21,7 @@
   async function copyToClipboard(text: string) {
     try {
       await navigator.clipboard.writeText(text)
-      toasterText.set('Copied successfully')
-      copySuccess = true
-      setTimeout(() => {
-        toasterText.set(null)
-        copySuccess = false
-      }, 1500)
+      showToaster('Copied successfully!')
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
@@ -89,11 +84,7 @@
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
         on:click={copyToClipboard(content)}
       >
-        {#if copySuccess}
-          <IconCheckmark/>
-        {:else}
-          <IconCopyIon/>
-        {/if}
+        <IconCopyIon/>
       </button>
     {/if}
     <textarea

@@ -1,6 +1,5 @@
 <script lang="ts">
   import Card from './card.svelte'
-  import CardLocked from './card-locked.svelte'
   import CardPlaceHolding from './card-placeholding.svelte'
   import { addNewCard, duplicateCard, updateCardState, unlockedCardStore, removeCard } from './card.ts'
   import autoAnimate from '@formkit/auto-animate'

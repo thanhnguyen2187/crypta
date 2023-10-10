@@ -4,7 +4,7 @@
   import IconUnlock from '../svg/icon-unlock-ion-128.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
   import { aesGcmDecrypt, aesGcmEncrypt } from './encryption'
-  import { toasterText } from '$lib/store'
+  import { toasterTextStore } from './toaster.ts'
   import { dialogStateStore, dialogActionStore, dialogPasswordStore } from '$lib/dialog'
 
   let buttonState: 'default' | 'hovered' = 'default'
@@ -51,9 +51,9 @@
       $dialogActionStore = async () => {
         const decryptedText = await attemptUnlock(encryptedContent, $dialogPasswordStore)
         if (!decryptedText) {
-          toasterText.set(`Unable to decrypt text of snippet "${title}"`)
+          toasterTextStore.set(`Unable to decrypt text of snippet "${title}"`)
           setTimeout(() => {
-            toasterText.set(null)
+            toasterTextStore.set(null)
           }, 1500)
         } else {
           decryptedContent = decryptedText
@@ -86,9 +86,9 @@
           if (e.key === 'Enter') {
             const decryptedText = await attemptUnlock(encryptedContent, password)
             if (!decryptedText) {
-              toasterText.set(`Unable to decrypt text of snippet "${title}"`)
+              toasterTextStore.set(`Unable to decrypt text of snippet "${title}"`)
               setTimeout(() => {
-                toasterText.set(null)
+                toasterTextStore.set(null)
               }, 1500)
             } else {
               decryptedContent = decryptedText
