@@ -33,10 +33,7 @@
   }
 
   function confirmRemoval() {
-    $dialogActionStore = () => {
-      removalCallback()
-      $dialogStateStore = 'hidden'
-    }
+    $dialogActionStore = removalCallback
     $dialogStateStore = 'confirm'
   }
 </script>

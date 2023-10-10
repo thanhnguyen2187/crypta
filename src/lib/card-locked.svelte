@@ -5,6 +5,7 @@
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
   import { aesGcmDecrypt, aesGcmEncrypt } from './encryption'
   import { toasterText } from '$lib/store'
+  import { dialogStateStore, dialogActionStore, dialogPasswordStore } from '$lib/dialog'
 
   let buttonState: 'default' | 'hovered' = 'default'
   let attempted = false
@@ -44,7 +45,21 @@
     class="absolute cursor-pointer left-0 right-0 top-0 bottom-0 m-auto opacity-25 z-10"
     style="width: 128px; height: 128px;"
     on:mouseenter={() => {buttonState = 'hovered'}}
-    on:click={() => {attempted = true}}
+    on:click={() => {
+      // attempted = true
+      $dialogStateStore = 'password'
+      $dialogActionStore = async () => {
+        const decryptedText = await attemptUnlock(encryptedContent, $dialogPasswordStore)
+        if (!decryptedText) {
+          toasterText.set(`Unable to decrypt text of snippet "${title}"`)
+          setTimeout(() => {
+            toasterText.set(null)
+          }, 1500)
+        } else {
+          decryptedContent = decryptedText
+        }
+      }
+    }}
     on:mouseleave={() => {buttonState = 'default'}}
   >
     {#if buttonState === 'default'}
@@ -63,7 +78,10 @@
         type="password"
         autofocus
         bind:value={password}
-        on:focusout={() => {attempted = false}}
+        on:focusout={() => {
+          attempted = false
+          decryptedContent = ''
+        }}
         on:keydown={async (e) => {
           if (e.key === 'Enter') {
             const decryptedText = await attemptUnlock(encryptedContent, password)

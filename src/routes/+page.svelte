@@ -19,7 +19,7 @@
     <GalleryPrivate/>
   {/if}
   <NextButton/>
-  <Toaster/>
-  <Dialog/>
 </div>
 
+<Toaster/>
+<Dialog/>
