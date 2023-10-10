@@ -52,7 +52,7 @@
         content="{card.content}"
         language="{card.language}"
         removalCallback="{() => {
-          removeCard(index)
+          removeCard(card.id)
         }}"
       />
     </div>

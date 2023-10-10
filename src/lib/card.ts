@@ -134,9 +134,10 @@ export function addNewCard(card: Card): void {
   )
 }
 
-export function removeCard(index: number): void {
+export function removeCard(id: string): void {
   cardStore.update(
     (cards: Card[]): Card[] => {
+      const index = cards.findIndex(card => card.id === id)
       cards.splice(index, 1)
       return cards
     }
