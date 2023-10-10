@@ -3,12 +3,17 @@
   import IconLock from '../svg/icon-lock-ion-128.svelte'
   import IconUnlock from '../svg/icon-unlock-ion-128.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
-  import { aesGcmDecrypt, aesGcmEncrypt } from './encryption'
-  import { toasterTextStore } from './toaster.ts'
+  import IconExpandIon from '../svg/icon-expand-ion-24.svelte';
+  import IconLockIon from '../svg/icon-lock-ion-24.svelte';
+  import IconEye from '../svg/icon-eye-ion-24.svelte';
+  import IconEyeOff from '../svg/icon-eye-off-ion-24.svelte';
+  import { showToaster } from './toaster.ts'
   import { dialogStateStore, dialogActionStore, dialogPasswordStore } from '$lib/dialog'
+  import type { MouseState, ContentState } from './card-locked'
+  import { attemptUnlock } from './card-locked'
 
-  let buttonState: 'default' | 'hovered' = 'default'
-  let attempted = false
+  let mouseState: MouseState = 'default'
+  let contentState: ContentState = 'locked'
 
   export let removalCallback: () => void = () => {}
   export let title = 'Secret snippet'
@@ -18,14 +23,13 @@
   export let decryptedContent = ''
   export let password = ''
 
-  async function attemptUnlock(encryptedText: string, password: string): Promise<string | null> {
-    try {
-      const decryptedText = await aesGcmDecrypt(encryptedText, password)
-      return decryptedText
-    } catch (e) {
-      return null
-    }
+  let shouldShowUnlocked = false
+  let shouldShowLocked = true
+  $: {
+    shouldShowUnlocked = mouseState === 'hovered' || contentState === 'unlocked'
+    shouldShowLocked = mouseState === 'default' || contentState === 'locked'
   }
+
 </script>
 
 <style>
@@ -42,83 +46,67 @@
   class="flex flex-col w-80 border-2 rounded-2xl bg-gray-100 relative"
 >
   <div
-    class="absolute cursor-pointer left-0 right-0 top-0 bottom-0 m-auto opacity-25 z-10"
+    class="absolute left-0 right-0 top-0 bottom-0 m-auto opacity-25 z-10"
+    class:cursor-pointer={shouldShowLocked}
+    class:invisible={contentState === 'visible'}
     style="width: 128px; height: 128px;"
-    on:mouseenter={() => {buttonState = 'hovered'}}
-    on:click={() => {
-      // attempted = true
+    on:mouseenter={() => { mouseState = 'hovered' }}
+    on:click={async () => {
       $dialogStateStore = 'password'
       $dialogActionStore = async () => {
         const decryptedText = await attemptUnlock(encryptedContent, $dialogPasswordStore)
+        contentState = 'unlocked'
         if (!decryptedText) {
-          toasterTextStore.set(`Unable to decrypt text of snippet "${title}"`)
-          setTimeout(() => {
-            toasterTextStore.set(null)
-          }, 1500)
+          showToaster(`Unable to unlock snippet "${title}"`)
         } else {
+          showToaster(`Unlocked snippet "${title}"!`)
           decryptedContent = decryptedText
         }
       }
     }}
-    on:mouseleave={() => {buttonState = 'default'}}
+    on:mouseleave={() => { mouseState = 'default' }}
   >
-    {#if buttonState === 'default'}
+    {#if shouldShowUnlocked}
+      <IconUnlock/>
+    {:else if shouldShowLocked}
       <IconLock/>
     {:else}
-      <IconUnlock/>
     {/if}
   </div>
   <div
     class="flex justify-between"
   >
-    {#if attempted}
-      <input
-        class="m-2 px-2 border-2 rounded-xl"
-        placeholder="Input password here"
-        type="password"
-        autofocus
-        bind:value={password}
-        on:focusout={() => {
-          attempted = false
-          decryptedContent = ''
-        }}
-        on:keydown={async (e) => {
-          if (e.key === 'Enter') {
-            const decryptedText = await attemptUnlock(encryptedContent, password)
-            if (!decryptedText) {
-              toasterTextStore.set(`Unable to decrypt text of snippet "${title}"`)
-              setTimeout(() => {
-                toasterTextStore.set(null)
-              }, 1500)
-            } else {
-              decryptedContent = decryptedText
-            }
-          }
-        }}
-      />
-    {:else}
-      <input
-        class="m-2 px-2 border-2 rounded-xl"
-        value="{title}"
-      />
-    {/if}
-    <div class="mr-2 my-3 gap-1 flex">
-      <button
-        on:click={() => {removalCallback()}}
-        class="opacity-25"
-      >
-        <IconTrashIon/>
-      </button>
+    <input
+      class="m-2 px-2 border-2 rounded-xl w-2/3"
+      value="{title}"
+    />
+    <div class="mr-2 my-3 gap-1 flex opacity-25">
+      {#if contentState !== 'locked'}
+        <button><IconExpandIon/></button>
+        {#if contentState === 'visible'}
+          <button
+            on:click={() => contentState = 'unlocked'}
+          >
+            <IconEyeOff/>
+          </button>
+        {:else if contentState === 'unlocked'}
+          <button
+            on:click={() => contentState = 'visible'}
+          >
+            <IconEye/>
+          </button>
+        {/if}
+      {/if}
+      <button on:click={() => {removalCallback()}}><IconTrashIon/></button>
     </div>
   </div>
   <div
     class="flex flex-col relative"
   >
-    {#if decryptedContent}
+    {#if contentState === 'visible'}
       <textarea
         rows="5"
         class="m-2 border-2 px-1 overflow-scroll font-mono whitespace-pre"
-        disabled="disabled"
       >{decryptedContent}</textarea>
     {:else}
       <textarea
@@ -134,9 +122,10 @@
     <div>
     </div>
     <div
-      class="flex gap-1 mr-1 invisible"
+      class="flex gap-1 mr-1 opacity-25"
+      class:invisible={contentState === 'visible'}
     >
-      <IconClipboardIon/>
+        <button><IconClipboardIon/></button>
     </div>
   </div>
 </div>
