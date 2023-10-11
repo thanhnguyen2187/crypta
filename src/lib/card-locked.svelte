@@ -10,10 +10,13 @@
   import { showToaster } from './toaster.ts'
   import { dialogStateStore, dialogActionStore, dialogPasswordStore } from '$lib/dialog'
   import type { MouseState, ContentState } from './card-locked'
-  import { attemptUnlock } from './card-locked'
+  import { fade } from 'svelte/transition'
+  import { attemptDecrypt } from './card-locked'
+  import IconCopyIon from '../svg/icon-copy-ion-24.svelte';
 
   let mouseState: MouseState = 'default'
   let contentState: ContentState = 'locked'
+  let contentHoveredOn = false
 
   export let removalCallback: () => void = () => {}
   export let title = 'Secret snippet'
@@ -22,6 +25,26 @@
   export let encryptedContent = ''
   export let decryptedContent = ''
   export let password = ''
+
+  async function copyToClipboard(text: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+      showToaster('Copied successfully!')
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  }
+
+  async function attemptUnlock() {
+    const decryptedText = await attemptDecrypt(encryptedContent, $dialogPasswordStore)
+    if (!decryptedText) {
+      showToaster(`Unable to unlock snippet "${title}"`)
+    } else {
+      contentState = 'unlocked'
+      showToaster(`Unlocked snippet "${title}"!`)
+      decryptedContent = decryptedText
+    }
+  }
 
   let shouldShowUnlocked = false
   let shouldShowLocked = true
@@ -53,16 +76,7 @@
     on:mouseenter={() => { mouseState = 'hovered' }}
     on:click={async () => {
       $dialogStateStore = 'password'
-      $dialogActionStore = async () => {
-        const decryptedText = await attemptUnlock(encryptedContent, $dialogPasswordStore)
-        contentState = 'unlocked'
-        if (!decryptedText) {
-          showToaster(`Unable to unlock snippet "${title}"`)
-        } else {
-          showToaster(`Unlocked snippet "${title}"!`)
-          decryptedContent = decryptedText
-        }
-      }
+      $dialogActionStore = attemptUnlock
     }}
     on:mouseleave={() => { mouseState = 'default' }}
   >
@@ -102,7 +116,24 @@
   </div>
   <div
     class="flex flex-col relative"
+    on:mouseover={() => {contentHoveredOn = true}}
+    on:mouseleave={() => {contentHoveredOn = false}}
   >
+    {#if contentHoveredOn && contentState === 'visible'}
+      <button
+        transition:fade={{duration: 400}}
+        class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
+      >
+        {language}
+      </button>
+      <button
+        transition:fade={{duration: 400}}
+        class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
+        on:click={copyToClipboard(decryptedContent)}
+      >
+        <IconCopyIon/>
+      </button>
+    {/if}
     {#if contentState === 'visible'}
       <textarea
         rows="5"
@@ -122,10 +153,28 @@
     <div>
     </div>
     <div
-      class="flex gap-1 mr-1 opacity-25"
+      class="flex gap-1 opacity-25"
       class:invisible={contentState === 'visible'}
     >
-        <button><IconClipboardIon/></button>
+      <button
+        on:click={async () => {
+          switch (contentState) {
+            case 'locked':
+              $dialogStateStore = 'password'
+              $dialogActionStore = async () => {
+                await attemptUnlock()
+                if (contentState === 'unlocked') {
+                  await copyToClipboard(decryptedContent)
+                }
+              }
+              break
+            case 'unlocked':
+              await copyToClipboard(decryptedContent)
+          }
+        }}
+      >
+        <IconClipboardIon/>
+      </button>
     </div>
   </div>
 </div>

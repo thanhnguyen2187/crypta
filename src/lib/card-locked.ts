@@ -3,7 +3,7 @@ import { aesGcmDecrypt } from './encryption'
 export type ContentState = 'locked' | 'unlocked' | 'visible'
 export type MouseState = 'default' | 'hovered'
 
-export async function attemptUnlock(
+export async function attemptDecrypt(
   encryptedText: string,
   password: string,
 ): Promise<string | null> {

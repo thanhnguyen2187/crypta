@@ -73,7 +73,7 @@ windows:
   {
     id: 'a49d5',
     title: 'Clojure snippet',
-    language: 'yaml',
+    language: 'clojure',
     content: String.raw`ah3aazgoyHveWLwI.KKnC35uG1OC6DF02tJbqQNR8UYKJ3eS04g2b1HDLZ8kh0pFCZFI=`,
     encrypted: true,
     state: 'default',
