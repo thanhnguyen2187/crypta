@@ -1,13 +1,6 @@
 import { writable, derived } from 'svelte/store'
 import { append, inject, remove, replace } from '$lib/array-manipulation'
-
-export type Snippet = {
-  id: string
-  name: string
-  language: string
-  text: string
-  encrypted: boolean
-}
+import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/encryption';
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -145,4 +138,30 @@ export function removeCard(id: string): void {
       return cards
     }
   )
+}
+
+export function replaceCard(id: string, card: Card): void {
+  cardStore.update(
+    (cards: Card[]): Card[] => {
+      const index = cards.findIndex(card => card.id === id)
+      cards[index] = card
+      return cards
+    }
+  )
+}
+
+export async function toLockedCard(card: Card, password: string): Promise<Card> {
+  return {
+    ...card,
+    content: await aesGcmEncrypt(card.content, password),
+    encrypted: true,
+  }
+}
+
+export async function unlockCard(card: Card, password: string): Promise<Card> {
+  return {
+    ...card,
+    content: await aesGcmDecrypt(card.content, password),
+    encrypted: true,
+  }
 }

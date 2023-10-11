@@ -3,20 +3,21 @@
   import IconLockIon from '../svg/icon-lock-ion-24.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
   import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
-  import IconCheckbox from '../svg/icon-checkbox-ion-24.svelte'
-  import IconCheckmark from '../svg/icon-checkmark-ion-24.svelte'
   import type { CardState } from './card.ts'
   import { fade } from 'svelte/transition'
-  import { showToaster, toasterTextStore } from './toaster.ts'
-  import { dialogActionStore, dialogStateStore } from '$lib/dialog';
+  import { showToaster } from './toaster.ts'
+  import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog';
+  import { replaceCard, toLockedCard } from './card.ts';
 
+  export let id = ''
   export let title = 'Clojure'
   export let content = '(println "Hello world")'
   export let language = ''
   export let state: CardState = 'default'
   export let contentState: 'default' | 'hoveredOn' = 'default'
   export let copySuccess = false
-  export let removalCallback: () => void
+  export let removalCallback: () => void = () => {}
+  export let lockCallback: () => void = () => {}
 
   async function copyToClipboard(text: string) {
     try {
@@ -29,6 +30,11 @@
 
   function confirmRemoval() {
     $dialogActionStore = removalCallback
+    $dialogStateStore = 'confirm'
+  }
+
+  function confirmLocking() {
+    $dialogActionStore = lockCallback
     $dialogStateStore = 'confirm'
   }
 </script>
@@ -56,7 +62,25 @@
     />
     <div class="mr-2 my-3 gap-1 flex">
       <button><IconExpandIon/></button>
-      <button><IconLockIon/></button>
+      <button on:click={() => {
+        $dialogStateStore = 'password'
+        $dialogActionStore = async () => {
+          const lockedCard = await toLockedCard(
+            {
+              id,
+              content,
+              state,
+              language,
+              title,
+              encrypted: false,
+            },
+            $dialogPasswordStore,
+          )
+          replaceCard(id, lockedCard)
+        }
+      }}>
+        <IconLockIon/>
+      </button>
       <button on:click={() => {confirmRemoval()}}><IconTrashIon/></button>
     </div>
   </div>

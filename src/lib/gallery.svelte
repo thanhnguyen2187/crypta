@@ -1,9 +1,18 @@
 <script lang="ts">
   import Card from './card.svelte'
   import CardPlaceHolding from './card-placeholding.svelte'
-  import { addNewCard, duplicateCard, updateCardState, unlockedCardStore, removeCard } from './card.ts'
+  import {
+    addNewCard,
+    duplicateCard,
+    updateCardState,
+    unlockedCardStore,
+    removeCard,
+    replaceCard,
+    toLockedCard
+  } from './card.ts'
   import autoAnimate from '@formkit/auto-animate'
   import { injectCard, newEmptyCard } from '$lib/card.js'
+  import { dialogPasswordStore, dialogStateStore } from '$lib/dialog'
 
   let draggedId = ''
   let dropped = true
@@ -47,6 +56,7 @@
       }}
     >
       <Card
+        id="{card.id}"
         title="{card.title}"
         state="{card.state}"
         content="{card.content}"
