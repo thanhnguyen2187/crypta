@@ -5,7 +5,7 @@
   import autoAnimate from '@formkit/auto-animate'
   import { injectCard, newEmptyCard } from '$lib/card.js'
 
-  let draggedIndex = -1
+  let draggedId = ''
   let dropped = true
 
   async function handleNewPaste(e: KeyboardEvent) {
@@ -29,21 +29,21 @@
       draggable="true"
       class="cursor-grab"
       on:dragstart={() => {
-        draggedIndex = index
+        draggedId = card.id
         dropped = false
-        updateCardState(index, 'draggedOut')
+        updateCardState(draggedId, 'draggedOut')
       }}
       on:dragover|preventDefault={() => {}}
       on:dragend={() => {
         if (!dropped) {
-          updateCardState(index, 'default')
+          updateCardState(draggedId, 'default')
           dropped = true
         }
       }}
       on:drop={() => {
         dropped = true
-        injectCard(draggedIndex, index)
-        updateCardState(index, 'default')
+        updateCardState(draggedId, 'default')
+        injectCard(draggedId, card.id)
       }}
     >
       <Card
@@ -62,8 +62,8 @@
     on:dragover|preventDefault={() => {}}
     on:drop={() => {
       dropped = true
-      updateCardState(draggedIndex, 'default')
-      const newCard = duplicateCard($unlockedCardStore[draggedIndex])
+      updateCardState(draggedId, 'default')
+      const newCard = duplicateCard($unlockedCardStore[draggedId])
       addNewCard(newCard)
     }}
     on:click={() => {

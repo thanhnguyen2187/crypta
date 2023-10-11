@@ -108,18 +108,21 @@ export function duplicateCard(card: Card) {
   }
 }
 
-export function updateCardState(index: number, state: CardState): void {
+export function updateCardState(id: string, state: CardState): void {
   cardStore.update(
     (cards: Card[]): Card[] => {
+      const index = cards.findIndex(card => card.id === id)
       cards[index].state = state
       return cards
     }
   )
 }
 
-export function injectCard(index1: number, index2: number): void {
+export function injectCard(id1: string, id2: string): void {
   cardStore.update(
     (cards: Card[]): Card[] => {
+      const index1 = cards.findIndex(card => card.id === id1)
+      const index2 = cards.findIndex(card => card.id === id2)
       return inject(cards, index1, index2)
     }
   )
