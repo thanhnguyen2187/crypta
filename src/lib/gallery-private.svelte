@@ -14,6 +14,7 @@
       class="cursor-grab"
     >
       <CardLocked
+        id="{card.id}"
         title="{card.title}"
         state="{card.state}"
         encryptedContent="{card.content}"

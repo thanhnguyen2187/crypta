@@ -3,21 +3,25 @@
   import IconLock from '../svg/icon-lock-ion-128.svelte'
   import IconUnlock from '../svg/icon-unlock-ion-128.svelte'
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
-  import IconExpandIon from '../svg/icon-expand-ion-24.svelte';
-  import IconLockIon from '../svg/icon-lock-ion-24.svelte';
-  import IconEye from '../svg/icon-eye-ion-24.svelte';
-  import IconEyeOff from '../svg/icon-eye-off-ion-24.svelte';
+  import IconExpandIon from '../svg/icon-expand-ion-24.svelte'
+  import IconLockIon from '../svg/icon-lock-ion-24.svelte'
+  import IconEye from '../svg/icon-eye-ion-24.svelte'
+  import IconEyeOff from '../svg/icon-eye-off-ion-24.svelte'
+  import IconEnter from '../svg/icon-enter-ion-24.svelte'
+  import IconExit from '../svg/icon-exit-ion-24.svelte'
   import { showToaster } from './toaster.ts'
   import { dialogStateStore, dialogActionStore, dialogPasswordStore } from '$lib/dialog'
   import type { MouseState, ContentState } from './card-locked'
   import { fade } from 'svelte/transition'
   import { attemptDecrypt } from './card-locked'
-  import IconCopyIon from '../svg/icon-copy-ion-24.svelte';
+  import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
+  import { replaceCard, toUnlockedCard } from '$lib/card';
 
   let mouseState: MouseState = 'default'
   let contentState: ContentState = 'locked'
   let contentHoveredOn = false
 
+  export let id = ''
   export let removalCallback: () => void = () => {}
   export let title = 'Secret snippet'
   export let language = ''
@@ -153,9 +157,46 @@
     </div>
     <div
       class="flex gap-1 opacity-25"
-      class:invisible={contentState === 'visible'}
     >
       <button
+        style="transform: rotate(180deg)"
+        on:click={async () => {
+          switch (contentState) {
+            case 'locked':
+              $dialogStateStore = 'password'
+              $dialogActionStore = async () => {
+                await attemptUnlock()
+                if (contentState === 'unlocked') {
+                  const card = {
+                    id,
+                    title,
+                    language,
+                    content: decryptedContent,
+                    state: 'default',
+                    encrypted: false,
+                  }
+                  replaceCard(id, card)
+                }
+              }
+              break
+            case 'unlocked':
+              const card = {
+                id,
+                title,
+                language,
+                content: decryptedContent,
+                state: 'default',
+                encrypted: false,
+              }
+              replaceCard(id, card)
+              break
+          }
+        }}
+      >
+        <IconExit/>
+      </button>
+      <button
+        class:hidden={contentState === 'visible'}
         on:click={async () => {
           switch (contentState) {
             case 'locked':
@@ -169,6 +210,7 @@
               break
             case 'unlocked':
               await copyToClipboard(decryptedContent)
+              break
           }
         }}
       >

@@ -158,7 +158,7 @@ export async function toLockedCard(card: Card, password: string): Promise<Card> 
   }
 }
 
-export async function unlockCard(card: Card, password: string): Promise<Card> {
+export async function toUnlockedCard(card: Card, password: string): Promise<Card> {
   return {
     ...card,
     content: await aesGcmDecrypt(card.content, password),
