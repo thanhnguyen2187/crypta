@@ -11,8 +11,8 @@
     toLockedCard
   } from './card.ts'
   import autoAnimate from '@formkit/auto-animate'
-  import { injectCard, newEmptyCard } from '$lib/card.js'
-  import { dialogPasswordStore, dialogStateStore } from '$lib/dialog'
+  import { injectCard, newEmptyCard } from './card.js'
+  import { dialogActionStore, dialogStateStore, dialogPasswordStore } from './dialog'
 
   let draggedId = ''
   let dropped = true
@@ -63,6 +63,13 @@
         language="{card.language}"
         removalCallback="{() => {
           removeCard(card.id)
+        }}"
+        lockCallback="{() => {
+          $dialogStateStore = 'password'
+          $dialogActionStore = async () => {
+            const lockedCard = await toLockedCard(card, $dialogPasswordStore)
+            replaceCard(card.id, lockedCard)
+          }
         }}"
       />
     </div>

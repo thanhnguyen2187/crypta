@@ -15,7 +15,6 @@
   export let language = ''
   export let state: CardState = 'default'
   export let contentState: 'default' | 'hoveredOn' = 'default'
-  export let copySuccess = false
   export let removalCallback: () => void = () => {}
   export let lockCallback: () => void = () => {}
 
@@ -33,10 +32,6 @@
     $dialogStateStore = 'confirm'
   }
 
-  function confirmLocking() {
-    $dialogActionStore = lockCallback
-    $dialogStateStore = 'confirm'
-  }
 </script>
 
 <style>
@@ -62,23 +57,7 @@
     />
     <div class="mr-2 my-3 gap-1 flex">
       <button><IconExpandIon/></button>
-      <button on:click={() => {
-        $dialogStateStore = 'password'
-        $dialogActionStore = async () => {
-          const lockedCard = await toLockedCard(
-            {
-              id,
-              content,
-              state,
-              language,
-              title,
-              encrypted: false,
-            },
-            $dialogPasswordStore,
-          )
-          replaceCard(id, lockedCard)
-        }
-      }}>
+      <button on:click={() => {lockCallback()}}>
         <IconLockIon/>
       </button>
       <button on:click={() => {confirmRemoval()}}><IconTrashIon/></button>

@@ -2,6 +2,21 @@
   import { dialogPasswordStore, dialogStateStore } from '$lib/dialog'
   import { dialogActionStore } from '$lib/dialog'
   import { fade } from 'svelte/transition'
+
+  function handlePasswordKeyDown(e: KeyboardEvent) {
+    switch (e.key) {
+      case 'Enter':
+        const action = $dialogActionStore
+        action()
+        $dialogPasswordStore = ''
+        $dialogStateStore = 'hidden'
+        break
+      case 'Escape':
+        $dialogPasswordStore = ''
+        $dialogStateStore = 'hidden'
+        break
+    }
+  }
 </script>
 
 {#if $dialogStateStore !== 'hidden'}
@@ -64,14 +79,7 @@
       autofocus="autofocus"
       type="password"
       bind:value={$dialogPasswordStore}
-      on:keydown={(e) => {
-        if (e.key === 'Enter') {
-          const action = $dialogActionStore
-          action()
-          $dialogPasswordStore = ''
-          $dialogStateStore = 'hidden'
-        }
-      }}
+      on:keydown={handlePasswordKeyDown}
     />
   </div>
 {/if}

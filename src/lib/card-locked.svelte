@@ -21,7 +21,6 @@
   export let removalCallback: () => void = () => {}
   export let title = 'Secret snippet'
   export let language = ''
-  export let state = ''
   export let encryptedContent = ''
   export let decryptedContent = ''
   export let password = ''
