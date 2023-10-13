@@ -90,7 +90,7 @@
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
         on:click={copyToClipboard(card.content)}
       >
-        <IconClipboardIon/>
+        <IconCopyIon/>
       </button>
     {/if}
     <textarea

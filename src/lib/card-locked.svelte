@@ -10,24 +10,33 @@
   import IconEnter from '../svg/icon-enter-ion-24.svelte'
   import IconExit from '../svg/icon-exit-ion-24.svelte'
   import { showToaster } from './toaster.ts'
-  import { dialogStateStore, dialogActionStore, dialogPasswordStore } from '$lib/dialog'
+  import {
+    dialogStateStore,
+    dialogActionStore,
+    dialogPasswordStore,
+    getCurrentPassword,
+    promptPassword
+  } from '$lib/dialog'
   import type { MouseState, ContentState } from './card-locked'
   import { fade } from 'svelte/transition'
   import { attemptDecrypt } from './card-locked'
   import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
-  import { replaceCard, toUnlockedCard } from '$lib/card';
+  import { type Card, replaceCard, toUnlockedCard } from './card'
 
   let mouseState: MouseState = 'default'
   let contentState: ContentState = 'locked'
   let contentHoveredOn = false
+  let decryptedContent = ''
 
-  export let id = ''
+  export let card: Card = {
+    id: '',
+    title: '',
+    language: '',
+    content: '',
+    encrypted: false,
+    state: 'default',
+  }
   export let removalCallback: () => void = () => {}
-  export let title = 'Secret snippet'
-  export let language = ''
-  export let encryptedContent = ''
-  export let decryptedContent = ''
-  export let password = ''
 
   async function copyToClipboard(text: string) {
     try {
@@ -39,12 +48,12 @@
   }
 
   async function attemptUnlock() {
-    const decryptedText = await attemptDecrypt(encryptedContent, $dialogPasswordStore)
+    const decryptedText = await attemptDecrypt(card.content, getCurrentPassword())
     if (!decryptedText) {
-      showToaster(`Unable to unlock snippet "${title}"`)
+      showToaster(`Unable to unlock snippet "${card.title}"`)
     } else {
       contentState = 'unlocked'
-      showToaster(`Unlocked snippet "${title}"!`)
+      showToaster(`Unlocked snippet "${card.title}"!`)
       decryptedContent = decryptedText
     }
   }
@@ -78,8 +87,7 @@
     style="width: 128px; height: 128px;"
     on:mouseenter={() => { mouseState = 'hovered' }}
     on:click={async () => {
-      $dialogStateStore = 'password'
-      $dialogActionStore = attemptUnlock
+      promptPassword(attemptUnlock)
     }}
     on:mouseleave={() => { mouseState = 'default' }}
   >
@@ -95,7 +103,7 @@
   >
     <input
       class="m-2 px-2 border-2 rounded-xl w-2/3"
-      value="{title}"
+      value="{card.title}"
     />
     <div class="mr-2 my-3 gap-1 flex opacity-25">
       {#if contentState !== 'locked'}
@@ -127,7 +135,7 @@
         transition:fade={{duration: 400}}
         class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
       >
-        {language}
+        {card.language}
       </button>
       <button
         transition:fade={{duration: 400}}
@@ -167,28 +175,24 @@
               $dialogActionStore = async () => {
                 await attemptUnlock()
                 if (contentState === 'unlocked') {
-                  const card = {
-                    id,
-                    title,
-                    language,
+                  const unlockedCard = {
+                    ...card,
                     content: decryptedContent,
                     state: 'default',
                     encrypted: false,
                   }
-                  replaceCard(id, card)
+                  replaceCard(card.id, unlockedCard)
                 }
               }
               break
             case 'unlocked':
-              const card = {
-                id,
-                title,
-                language,
+              const unlockedCard = {
+                ...card,
                 content: decryptedContent,
                 state: 'default',
                 encrypted: false,
               }
-              replaceCard(id, card)
+              replaceCard(card.id, unlockedCard)
               break
           }
         }}
