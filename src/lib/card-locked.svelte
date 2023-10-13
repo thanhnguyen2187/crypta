@@ -186,6 +186,7 @@
               }
               break
             case 'unlocked':
+            case 'visible':
               const unlockedCard = {
                 ...card,
                 content: decryptedContent,
@@ -213,6 +214,7 @@
               }
               break
             case 'unlocked':
+            case 'visible':
               await copyToClipboard(decryptedContent)
               break
           }
