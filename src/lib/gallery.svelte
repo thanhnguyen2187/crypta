@@ -56,11 +56,7 @@
       }}
     >
       <Card
-        id="{card.id}"
-        title="{card.title}"
-        state="{card.state}"
-        content="{card.content}"
-        language="{card.language}"
+        card="{card}"
         removalCallback="{() => {
           removeCard(card.id)
         }}"

@@ -4,17 +4,20 @@
   import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
   import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
   import IconClipboardIon from '../svg/icon-clipboard-ion-24.svelte'
-  import type { CardState } from './card.ts'
+  import type { Card, CardState } from './card.ts'
   import { fade } from 'svelte/transition'
   import { showToaster } from './toaster.ts'
   import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog';
   import { replaceCard, toLockedCard } from './card.ts';
 
-  export let id = ''
-  export let title = 'Clojure'
-  export let content = '(println "Hello world")'
-  export let language = ''
-  export let state: CardState = 'default'
+  export let card: Card = {
+    id: '',
+    title: '',
+    content: '',
+    language: '',
+    state: 'default',
+    encrypted: false,
+  }
   export let contentState: 'default' | 'hoveredOn' = 'default'
   export let removalCallback: () => void = () => {}
   export let lockCallback: () => void = () => {}
@@ -32,7 +35,6 @@
     $dialogActionStore = removalCallback
     $dialogStateStore = 'confirm'
   }
-
 </script>
 
 <style>
@@ -47,14 +49,14 @@
 
 <div
   class="flex flex-col w-80 border-2 rounded-2xl transition-opacity"
-  class:opacity-50={state === 'draggedOut'}
+  class:opacity-50={card.state === 'draggedOut'}
 >
   <div
     class="flex justify-between"
   >
     <input
       class="m-2 px-2 border-2 rounded-xl w-2/3"
-      value="{title}"
+      value="{card.title}"
     />
     <div class="mr-2 my-3 gap-1 flex">
       <button><IconExpandIon/></button>
@@ -70,7 +72,7 @@
     on:mouseover={() => {contentState = 'hoveredOn'}}
     on:mouseleave={() => {contentState = 'default'}}
   >
-    {#if state === 'beingHoverOver'}
+    {#if card.state === 'beingHoverOver'}
       <div
         class="absolute h-40 border border-gray"
         style="left: -0.65em"
@@ -81,12 +83,12 @@
         transition:fade={{duration: 400}}
         class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
       >
-        {language}
+        {card.language}
       </button>
       <button
         transition:fade={{duration: 400}}
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
-        on:click={copyToClipboard(content)}
+        on:click={copyToClipboard(card.content)}
       >
         <IconClipboardIon/>
       </button>
@@ -94,7 +96,7 @@
     <textarea
       rows="5"
       class="m-2 border-2 px-1 overflow-scroll font-mono whitespace-pre"
-    >{content}</textarea>
+    >{card.content}</textarea>
   </div>
   <div
     class="flex justify-between m-2"
