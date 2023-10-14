@@ -301,6 +301,11 @@
   resolved "https://registry.yarnpkg.com/@types/pug/-/pug-2.0.7.tgz#ffb9239e4da7ea1af27070cad9343049e440993d"
   integrity sha512-I469DU0UXNC1aHepwirWhu9YKg5fkxohZD95Ey/5A7lovC+Siu+MCLffva87lnfThaOrw9Vb1DUN5t55oULAAw==
 
+"@types/wicg-file-system-access@^2023.10.1":
+  version "2023.10.1"
+  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2023.10.1.tgz#801b45072864471b1fca329cba67f3ba82bdccb2"
+  integrity sha512-oOOUU1CpbbqYI9xt71oKzFO00CbAZ+nQwXfcCOdY8TCsPs8vH0s8i5F2VzeqIEQhYYmvokinyibg4vQvQW8QIg==
+
 "@vitest/expect@0.34.5":
   version "0.34.5"
   resolved "https://registry.yarnpkg.com/@vitest/expect/-/expect-0.34.5.tgz#1f58829e746311162220d6580f72d6329efb9081"
