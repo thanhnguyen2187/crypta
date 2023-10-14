@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store'
 
-type Snippet = {
+export type Snippet = {
   id: string
   name: string
   language: string
@@ -67,7 +67,7 @@ export async function deleteSnippet(id: string, folderName: string = 'default') 
   await folderHandle.removeEntry(id)
 }
 
-async function snippetStore() {
+export async function snippetStore() {
   const snippets = await readSnippets()
   const store = writable(snippets)
   const {subscribe, set, update} = store

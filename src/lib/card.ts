@@ -1,6 +1,8 @@
 import { writable, derived } from 'svelte/store'
 import { append, inject, remove, replace } from '$lib/array-manipulation'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/encryption';
+import type { Snippet } from '$lib/persistence'
+import { snippetStore } from '$lib/persistence'
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -73,7 +75,8 @@ windows:
   },
 ]
 
-export const cardStore = writable<Card[]>(sampleCards)
+// TODO: card state
+export const cardStore = derived(await snippetStore(), (snippetStore => snippetStore.map(snippetToCard)))
 export const unlockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => !card.encrypted))
 export const lockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => card.encrypted))
 
@@ -163,5 +166,16 @@ export async function toUnlockedCard(card: Card, password: string): Promise<Card
     ...card,
     content: await aesGcmDecrypt(card.content, password),
     encrypted: true,
+  }
+}
+
+export function snippetToCard(snippet: Snippet): Card {
+  return {
+    id: snippet.id,
+    title: snippet.name,
+    language: snippet.language,
+    content: snippet.text,
+    encrypted: snippet.encrypted,
+    state: 'default',
   }
 }
