@@ -1,3 +1,5 @@
+import { writable } from 'svelte/store'
+
 type Snippet = {
   id: string
   name: string
@@ -6,42 +8,91 @@ type Snippet = {
   encrypted: boolean
 }
 
-/* Utility wrapper around OPFS to read a file to string.
+function generateFolderName(folderName: string): string {
+  return `crypta.${folderName}`
+}
+
+/* Read all persisted snippets, with OPFS as the underlying engine. The
+ * assumption is that snippet's `id` is the file name, and the snippet itself is
+ * JSONified.
  *
- * @param path a string that is similar to a unique key to the file; uses
- * forward slash (`/`) to separate between folder(s) and file name; trailing
- * slashes are not permitted.
- * @example
- * // valid
- * readFile('a.json')
- * readFile('b/a.txt')
- * // error
- * readFile('/c/b/a.json')
- * readFile('c/b/a.json/')
+ * @param folderName is used to group the snippets; is defaulted for now since
+ * the frontend implementation is not there yet.
  * */
-export function readFile(path: string): string {
-  return ''
-}
-
-/* Get files in a certain folder. Create the folder if not existed.
- * */
-export function queryFiles(path: string): string[] {
-  return []
-}
-
-export function queryFolders(path: string): void {}
-
 export async function readSnippets(folderName: string = 'default'): Promise<Snippet[]> {
   const opfsRoot = await navigator.storage.getDirectory()
-  const folder = await opfsRoot.getDirectoryHandle(folderName, {create: true})
+  const folderHandle = await opfsRoot.getDirectoryHandle(
+    generateFolderName(folderName),
+    {create: true},
+  )
+  const snippets = []
+  for await (let [name, handle] of folderHandle) {
+    if (handle.isFile) {
+      const file = await handle.getFile()
+      const text = await file.text()
+      const snippet = {
+        id: name,
+        ...JSON.parse(text)
+      }
+      snippets.push(snippet)
+    }
+  }
+
+  return snippets as Snippet[]
 }
 
-export function readSnippet(folder: string, id: string) {}
-
-export function writeSnippet(folder: string, id: string) {}
-
-/* Snippet to Card and vice versa
- *
- *
- *
+/* Make sure that the snippet's data is available after restart. Snippet's `id`
+ * is used as the unique key.
  * */
+export async function persistSnippet(snippet: Snippet, folderName: string = 'default') {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const folderHandle = await opfsRoot.getDirectoryHandle(
+    generateFolderName(folderName),
+    {create: true},
+  )
+  const fileHandle = await folderHandle.getFileHandle(snippet.id, {create: true})
+  const writable = await fileHandle.createWritable()
+  await writable.write(JSON.stringify(snippet))
+  await writable.close()
+}
+
+/* Delete the snippet's data completely.
+ * */
+export async function deleteSnippet(id: string, folderName: string = 'default') {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const folderHandle = await opfsRoot.getDirectoryHandle(
+    generateFolderName(folderName),
+    {create: true},
+  )
+  await folderHandle.removeEntry(id)
+}
+
+async function snippetStore() {
+  const snippets = await readSnippets()
+  const store = writable(snippets)
+  const {subscribe, set, update} = store
+
+  return {
+    subscribe,
+    upsert: async (snippet: Snippet) => {
+      await persistSnippet(snippet)
+      update(
+        snippets => {
+          const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
+          snippets[index] = snippet
+          return snippets
+        }
+      )
+    },
+    remove: async (id: string) => {
+      await deleteSnippet(id)
+      update(
+        snippets => {
+          const index = snippets.findIndex(snippet => snippet.id === id)
+          snippets.splice(index)
+          return snippets
+        }
+      )
+    }
+  }
+}
