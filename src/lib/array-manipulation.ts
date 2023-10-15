@@ -9,14 +9,14 @@
  * // then we insert `b` to the place after `d`
  * // ['a', 'c', 'd', 'b', 'e']
  * */
-export function inject<T>(items: T[], index1: number, index2: number): T[] {
-  if (index1 == index2) {
+export function inject<T>(items: T[], movingIndex: number, pivotIndex: number): T[] {
+  if (movingIndex == pivotIndex) {
     return items
   }
 
   items = items.slice()
-  const item = items.splice(index1, 1)[0]
-  items = insert(items, index2, item)
+  const item = items.splice(movingIndex, 1)[0]
+  items = insert(items, pivotIndex, item)
   return items
 }
 
@@ -49,4 +49,3 @@ export function append<T>(items: T[], item: T): T[] {
     item,
   ]
 }
-
