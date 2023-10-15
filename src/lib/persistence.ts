@@ -6,6 +6,7 @@ export type Snippet = {
   language: string
   text: string
   encrypted: boolean
+  position: number
 }
 
 function generateFolderName(folderName: string): string {

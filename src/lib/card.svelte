@@ -8,7 +8,7 @@
   import { fade } from 'svelte/transition'
   import { showToaster } from './toaster.ts'
   import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog';
-  import { replaceCard, toLockedCard } from './card.ts';
+  import { replaceCard, toLockedCard, updateCard } from './card.ts';
 
   export let card: Card = {
     id: '',
@@ -17,6 +17,7 @@
     language: '',
     state: 'default',
     encrypted: false,
+    position: 0,
   }
   export let contentState: 'default' | 'hoveredOn' = 'default'
   export let removalCallback: () => void = () => {}
@@ -56,7 +57,11 @@
   >
     <input
       class="m-2 px-2 border-2 rounded-xl w-2/3"
-      value="{card.title}"
+      bind:value="{card.title}"
+      on:change={async () => {
+        await updateCard(card)
+        showToaster('Card updated!')
+      }}
     />
     <div class="mr-2 my-3 gap-1 flex">
       <button><IconExpandIon/></button>
@@ -96,7 +101,12 @@
     <textarea
       rows="5"
       class="m-2 border-2 px-1 overflow-scroll font-mono whitespace-pre"
-    >{card.content}</textarea>
+      bind:value={card.content}
+      on:change={async () => {
+        await updateCard(card)
+        showToaster('Card updated!')
+      }}
+    ></textarea>
   </div>
   <div
     class="flex justify-between m-2"
