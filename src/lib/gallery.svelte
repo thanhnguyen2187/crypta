@@ -22,7 +22,7 @@
       const text = await navigator.clipboard.readText()
       const card = newEmptyCard()
       card.content = text
-      addNewCard(card)
+      await addNewCard(card)
     }
   }
 </script>
@@ -57,8 +57,8 @@
     >
       <Card
         card="{card}"
-        removalCallback="{() => {
-          removeCard(card.id)
+        removalCallback="{async () => {
+          await removeCard(card.id)
         }}"
         lockCallback="{() => {
           $dialogStateStore = 'password'
@@ -73,14 +73,14 @@
   <div
     class="cursor-pointer"
     on:dragover|preventDefault={() => {}}
-    on:drop={() => {
+    on:drop={async () => {
       dropped = true
       updateCardState(draggedId, 'default')
       const newCard = duplicateCard($unlockedCardStore[draggedId])
-      addNewCard(newCard)
+      await addNewCard(newCard)
     }}
-    on:click={() => {
-      addNewCard(newEmptyCard())
+    on:click={async () => {
+      await addNewCard(newEmptyCard())
     }}
   >
     <CardPlaceHolding/>

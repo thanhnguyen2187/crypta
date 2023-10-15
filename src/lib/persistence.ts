@@ -27,11 +27,11 @@ export async function readSnippets(folderName: string = 'default'): Promise<Snip
   )
   const snippets = []
   for await (let [name, handle] of folderHandle) {
-    if (handle.isFile) {
+    if (handle.kind === 'file') {
       const file = await handle.getFile()
       const text = await file.text()
       const snippet = {
-        id: name,
+        id: name.replace('.json', ''),
         ...JSON.parse(text)
       }
       snippets.push(snippet)
@@ -50,7 +50,7 @@ export async function persistSnippet(snippet: Snippet, folderName: string = 'def
     generateFolderName(folderName),
     {create: true},
   )
-  const fileHandle = await folderHandle.getFileHandle(snippet.id, {create: true})
+  const fileHandle = await folderHandle.getFileHandle(`${snippet.id}.json`, {create: true})
   const writable = await fileHandle.createWritable()
   await writable.write(JSON.stringify(snippet))
   await writable.close()
@@ -64,10 +64,10 @@ export async function deleteSnippet(id: string, folderName: string = 'default') 
     generateFolderName(folderName),
     {create: true},
   )
-  await folderHandle.removeEntry(id)
+  await folderHandle.removeEntry(`${id}.json`)
 }
 
-export async function snippetStore() {
+export async function createSnippetStore() {
   const snippets = await readSnippets()
   const store = writable(snippets)
   const {subscribe, set, update} = store
@@ -79,7 +79,11 @@ export async function snippetStore() {
       update(
         snippets => {
           const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
-          snippets[index] = snippet
+          if (index !== -1) {
+            snippets[index] = snippet
+          } else {
+            snippets.push(snippet)
+          }
           return snippets
         }
       )
@@ -89,7 +93,9 @@ export async function snippetStore() {
       update(
         snippets => {
           const index = snippets.findIndex(snippet => snippet.id === id)
-          snippets.splice(index)
+          if (index !== -1) {
+            snippets.splice(index, 1)
+          }
           return snippets
         }
       )

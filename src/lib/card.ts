@@ -2,7 +2,7 @@ import { writable, derived } from 'svelte/store'
 import { append, inject, remove, replace } from '$lib/array-manipulation'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/encryption';
 import type { Snippet } from '$lib/persistence'
-import { snippetStore } from '$lib/persistence'
+import { createSnippetStore } from '$lib/persistence'
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -76,7 +76,19 @@ windows:
 ]
 
 // TODO: card state
-export const cardStore = derived(await snippetStore(), (snippetStore => snippetStore.map(snippetToCard)))
+const snippetStore = await createSnippetStore()
+export const cardStateStore = writable<{[id: string]: CardState}>({})
+export const cardStore = derived(
+  [snippetStore, cardStateStore],
+  (([snippets, cardStates]) => {
+    return snippets.map(
+      snippet => ({
+        ...snippetToCard(snippet),
+        state: cardStates[snippet.id] ?? 'default',
+      })
+    )
+  })
+)
 export const unlockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => !card.encrypted))
 export const lockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => card.encrypted))
 
@@ -105,11 +117,10 @@ export function duplicateCard(card: Card) {
 }
 
 export function updateCardState(id: string, state: CardState): void {
-  cardStore.update(
-    (cards: Card[]): Card[] => {
-      const index = cards.findIndex(card => card.id === id)
-      cards[index].state = state
-      return cards
+  cardStateStore.update(
+    cardStates => {
+      cardStates[id] = state
+      return cardStates
     }
   )
 }
@@ -124,23 +135,13 @@ export function injectCard(id1: string, id2: string): void {
   )
 }
 
-export function addNewCard(card: Card): void {
-  cardStore.update(
-    (cards: Card[]): Card[] => {
-      cards.push(card)
-      return cards
-    }
-  )
+export async function addNewCard(card: Card) {
+  const snippet = cardToSnippet(card)
+  await snippetStore.upsert(snippet)
 }
 
-export function removeCard(id: string): void {
-  cardStore.update(
-    (cards: Card[]): Card[] => {
-      const index = cards.findIndex(card => card.id === id)
-      cards.splice(index, 1)
-      return cards
-    }
-  )
+export async function removeCard(id: string) {
+  await snippetStore.remove(id)
 }
 
 export function replaceCard(id: string, card: Card): void {
@@ -177,5 +178,15 @@ export function snippetToCard(snippet: Snippet): Card {
     content: snippet.text,
     encrypted: snippet.encrypted,
     state: 'default',
+  }
+}
+
+export function cardToSnippet(card: Card): Snippet {
+  return {
+    id: card.id,
+    name: card.title,
+    text: card.content,
+    encrypted: card.encrypted,
+    language: card.language,
   }
 }
