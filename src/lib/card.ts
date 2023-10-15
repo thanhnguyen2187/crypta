@@ -80,6 +80,10 @@ export async function updateCard(card: Card) {
   await snippetStore.upsert(snippet)
 }
 
+/**
+ * Move one card (moving) to be behind another (pivot). Update the cards
+ * position to reflect the change.
+ * */
 export async function injectCard(movingId: string, pivotId: string) {
   if (movingId === pivotId) {
     return
@@ -96,17 +100,31 @@ export async function injectCard(movingId: string, pivotId: string) {
     return
   }
 
-  let previousPivotPosition = -1
+  let previousPivotPosition = Number.NEGATIVE_INFINITY
   for (const snippet of snippets) {
     if (snippet.position < pivotSnippet.position) {
       previousPivotPosition = Math.max(previousPivotPosition, snippet.position)
     }
   }
 
-  if (previousPivotPosition !== -1) {
-    movingSnippet.position = (previousPivotPosition + pivotSnippet.position) / 2
-  } else {
+  // handle edge case where the moving card is "right behind" the pivot card
+  if (previousPivotPosition === movingSnippet.position) {
+    [
+      movingSnippet.position,
+      pivotSnippet.position
+    ] = [
+      pivotSnippet.position,
+      movingSnippet.position,
+    ]
+    await snippetStore.upsert(movingSnippet)
+    await snippetStore.upsert(pivotSnippet)
+    return
+  }
+
+  if (previousPivotPosition === Number.NEGATIVE_INFINITY) {
     movingSnippet.position = pivotSnippet.position - 1
+  } else {
+    movingSnippet.position = (previousPivotPosition + pivotSnippet.position) / 2
   }
   await snippetStore.upsert(movingSnippet)
 }
