@@ -80,14 +80,35 @@ export async function updateCard(card: Card) {
   await snippetStore.upsert(snippet)
 }
 
-export function injectCard(id1: string, id2: string): void {
-  cardStore.update(
-    (cards: Card[]): Card[] => {
-      const index1 = cards.findIndex(card => card.id === id1)
-      const index2 = cards.findIndex(card => card.id === id2)
-      return inject(cards, index1, index2)
+export async function injectCard(movingId: string, pivotId: string) {
+  if (movingId === pivotId) {
+    return
+  }
+
+  const snippets = get(snippetStore)
+  const movingSnippet = snippets.find(snippet => snippet.id === movingId)
+  if (!movingSnippet) {
+    return
+  }
+
+  const pivotSnippet = snippets.find(snippet => snippet.id === pivotId)
+  if (!pivotSnippet) {
+    return
+  }
+
+  let previousPivotPosition = -1
+  for (const snippet of snippets) {
+    if (snippet.position < pivotSnippet.position) {
+      previousPivotPosition = Math.max(previousPivotPosition, snippet.position)
     }
-  )
+  }
+
+  if (previousPivotPosition !== -1) {
+    movingSnippet.position = (previousPivotPosition + pivotSnippet.position) / 2
+  } else {
+    movingSnippet.position = pivotSnippet.position - 1
+  }
+  await snippetStore.upsert(movingSnippet)
 }
 
 export async function addNewCard(card: Card) {

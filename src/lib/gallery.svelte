@@ -49,10 +49,10 @@
           dropped = true
         }
       }}
-      on:drop={() => {
+      on:drop={async () => {
         dropped = true
         updateCardState(draggedId, 'default')
-        injectCard(draggedId, card.id)
+        await injectCard(draggedId, card.id)
       }}
     >
       <Card
