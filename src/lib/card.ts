@@ -41,7 +41,7 @@ export const cardStore = derived(
 export const unlockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => !card.encrypted))
 export const lockedCardStore = derived(cardStore, ($cardStore) => $cardStore.filter(card => card.encrypted))
 
-/* Return precisely 6 random characters.
+/** Return precisely 6 random characters.
  * */
 function generateId(): string {
   return Math.random().toString(36).slice(2, 8)
