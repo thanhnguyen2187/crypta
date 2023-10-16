@@ -144,14 +144,9 @@ export async function removeCard(id: string) {
   await snippetStore.remove(id)
 }
 
-export function replaceCard(id: string, card: Card): void {
-  cardStore.update(
-    (cards: Card[]): Card[] => {
-      const index = cards.findIndex(card => card.id === id)
-      cards[index] = card
-      return cards
-    }
-  )
+export async function replaceCard(id: string, card: Card) {
+  const snippet = cardToSnippet(card)
+  await snippetStore.upsert(snippet)
 }
 
 export async function toLockedCard(card: Card, password: string): Promise<Card> {

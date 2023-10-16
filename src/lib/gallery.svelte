@@ -60,11 +60,11 @@
         removalCallback="{async () => {
           await removeCard(card.id)
         }}"
-        lockCallback="{() => {
+        lockCallback="{async () => {
           $dialogStateStore = 'password'
           $dialogActionStore = async () => {
             const lockedCard = await toLockedCard(card, $dialogPasswordStore)
-            replaceCard(card.id, lockedCard)
+            await replaceCard(card.id, lockedCard)
           }
         }}"
       />

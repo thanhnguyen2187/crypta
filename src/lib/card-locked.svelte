@@ -181,7 +181,7 @@
                     state: 'default',
                     encrypted: false,
                   }
-                  replaceCard(card.id, unlockedCard)
+                  await replaceCard(card.id, unlockedCard)
                 }
               }
               break
@@ -193,7 +193,7 @@
                 state: 'default',
                 encrypted: false,
               }
-              replaceCard(card.id, unlockedCard)
+              await replaceCard(card.id, unlockedCard)
               break
           }
         }}
