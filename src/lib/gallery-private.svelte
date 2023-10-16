@@ -2,7 +2,7 @@
   import CardLocked from './card-locked.svelte'
   import CardPlaceHolding from './card-placeholding.svelte'
   import { lockedCardStore } from './card.ts'
-
+  import { promptNewPrivateCard } from '$lib/dialog'
 </script>
 
 <div
@@ -20,6 +20,7 @@
   {/each}
   <button
     on:click={() => {
+      promptNewPrivateCard('abracadabra')
     }}
   >
     <CardPlaceHolding/>

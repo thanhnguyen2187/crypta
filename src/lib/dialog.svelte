@@ -1,7 +1,11 @@
 <script lang="ts">
-  import { dialogPasswordStore, dialogStateStore } from '$lib/dialog'
+  import { dialogContentStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog'
   import { dialogActionStore } from '$lib/dialog'
   import { fade } from 'svelte/transition'
+  import IconEye from '../svg/icon-eye-ion-24.svelte'
+  import IconEyeOff from '../svg/icon-eye-off-ion-24.svelte'
+
+  let privateContentVisible = false
 
   function handlePasswordKeyDown(e: KeyboardEvent) {
     switch (e.key) {
@@ -18,6 +22,13 @@
     }
   }
 </script>
+
+<style>
+  .blur-text {
+    color: transparent;
+    text-shadow: 0 0 8px rgba(0,0,0,0.5);
+  }
+</style>
 
 {#if $dialogStateStore !== 'hidden'}
   <div
@@ -73,13 +84,69 @@
       px-4 py-2 border-2 gap-2
     "
   >
-    <div>Input password here:</div>
+    <div>Password</div>
     <input
       class="border-2 rounded px-2"
       autofocus="autofocus"
       type="password"
       bind:value={$dialogPasswordStore}
       on:keydown={handlePasswordKeyDown}
+      placeholder="press Enter to submit"
+    />
+  </div>
+{:else if $dialogStateStore === 'new-private-card'}
+  <div
+    class="
+      fixed
+      left-1/2 top-1/2
+      -translate-x-1/2 -translate-y-1/2
+      flex flex-col
+      bg-white
+      rounded-xl
+      px-4 py-2 border-2 gap-2
+    "
+  >
+    <div
+      class="flex justify-between"
+    >
+      <div>Content</div>
+      <button
+        class:hidden={privateContentVisible}
+        on:click={() => {
+          privateContentVisible = true
+        }}
+      >
+        <IconEye/>
+      </button>
+      <button
+        class:hidden={!privateContentVisible}
+        on:click={() => {
+          privateContentVisible = false
+        }}
+      >
+        <IconEyeOff/>
+      </button>
+    </div>
+    <div>
+      <textarea
+        rows="5"
+        class="border-2 px-1 overflow-scroll font-mono whitespace-pre no-scrollbar blur-text"
+        class:blur-text={!privateContentVisible}
+        on:change={async () => {}}
+        on:focusin={() => privateContentVisible = true}
+        on:focusout={() => privateContentVisible = false}
+        spellcheck="false"
+        bind:value={$dialogContentStore}
+      ></textarea>
+    </div>
+    <div>Password</div>
+    <input
+      autofocus="autofocus"
+      class="border-2 rounded px-2"
+      type="password"
+      bind:value={$dialogPasswordStore}
+      on:keydown={handlePasswordKeyDown}
+      placeholder="press Enter to submit"
     />
   </div>
 {/if}
