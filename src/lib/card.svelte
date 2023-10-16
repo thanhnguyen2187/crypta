@@ -38,16 +38,6 @@
   }
 </script>
 
-<style>
-  /* Hide scrollbar */
-  textarea::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-</style>
-
 <div
   class="flex flex-col w-80 border-2 rounded-2xl transition-opacity"
   class:opacity-50={card.state === 'draggedOut'}
@@ -100,12 +90,13 @@
     {/if}
     <textarea
       rows="5"
-      class="m-2 border-2 px-1 overflow-scroll font-mono whitespace-pre"
+      class="m-2 border-2 px-1 overflow-scroll font-mono whitespace-pre no-scrollbar"
       bind:value={card.content}
       on:change={async () => {
         await updateCard(card)
         showToaster('Card updated!')
       }}
+      spellcheck="false"
     ></textarea>
   </div>
   <div

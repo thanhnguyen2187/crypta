@@ -6,19 +6,9 @@
 		<meta name="viewport" content="width=device-width" />
 		%sveltekit.head%
 	</head>
-	<style>
-		body::-webkit-scrollbar {
-			width: 0;
-			height: 0;
-			scrollbar-width: none;
-			-ms-overflow-style: none;
-		}
-		body {
-			overflow: scroll;
-		}
-	</style>
 	<body
 		data-sveltekit-preload-data="hover"
+		class="no-scrollbar"
 	>
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>

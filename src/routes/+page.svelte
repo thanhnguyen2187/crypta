@@ -9,6 +9,19 @@
   import { sectionState } from '$lib/store'
 </script>
 
+<style>
+  :global(.no-scrollbar) {
+    overflow: scroll;
+  }
+
+  :global(.no-scrollbar)::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+</style>
+
 <div
   use:autoAnimate
   class="flex"
