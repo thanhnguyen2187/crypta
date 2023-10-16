@@ -16,8 +16,9 @@ export function promptPassword(action: () => void) {
   dialogActionStore.set(action)
 }
 
-export function promptNewPrivateCard(content: string) {
+export function promptNewPrivateCard(content: string, action: () => void) {
   dialogStateStore.set('new-private-card')
+  dialogActionStore.set(action)
   dialogContentStore.set(content)
 }
 

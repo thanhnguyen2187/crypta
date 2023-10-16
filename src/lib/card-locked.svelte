@@ -22,6 +22,7 @@
   import { attemptDecrypt } from './card-locked'
   import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
   import { type Card, replaceCard, toUnlockedCard } from './card'
+  import { attemptCopyToClipboard } from '$lib/clipboard'
 
   let mouseState: MouseState = 'default'
   let contentState: ContentState = 'locked'
@@ -38,15 +39,6 @@
     position: 0,
   }
   export let removalCallback: () => void = () => {}
-
-  async function copyToClipboard(text: string) {
-    try {
-      await navigator.clipboard.writeText(text)
-      showToaster('Copied successfully!')
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-    }
-  }
 
   async function attemptUnlock() {
     const decryptedText = await attemptDecrypt(card.content, getCurrentPassword())
@@ -141,7 +133,7 @@
       <button
         transition:fade={{duration: 400}}
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
-        on:click={copyToClipboard(decryptedContent)}
+        on:click={attemptCopyToClipboard(decryptedContent)}
       >
         <IconCopyIon/>
       </button>
@@ -210,13 +202,13 @@
               $dialogActionStore = async () => {
                 await attemptUnlock()
                 if (contentState === 'unlocked') {
-                  await copyToClipboard(decryptedContent)
+                  await attemptCopyToClipboard(decryptedContent)
                 }
               }
               break
             case 'unlocked':
             case 'visible':
-              await copyToClipboard(decryptedContent)
+              await attemptCopyToClipboard(decryptedContent)
               break
           }
         }}

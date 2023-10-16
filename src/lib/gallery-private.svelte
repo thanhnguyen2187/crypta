@@ -1,8 +1,10 @@
 <script lang="ts">
   import CardLocked from './card-locked.svelte'
   import CardPlaceHolding from './card-placeholding.svelte'
-  import { lockedCardStore } from './card.ts'
-  import { promptNewPrivateCard } from '$lib/dialog'
+  import { addNewCard, lockedCardStore, newEmptyCard } from './card.ts'
+  import { dialogContentStore, dialogPasswordStore, promptNewPrivateCard } from '$lib/dialog'
+  import { attemptGetFromClipboard } from '$lib/clipboard'
+  import { aesGcmEncrypt } from '$lib/encryption'
 </script>
 
 <div
@@ -19,8 +21,17 @@
     </div>
   {/each}
   <button
-    on:click={() => {
-      promptNewPrivateCard('abracadabra')
+    on:click={async () => {
+      promptNewPrivateCard(
+        await attemptGetFromClipboard(),
+        async () => {
+          const card = newEmptyCard()
+          card.content = await aesGcmEncrypt($dialogContentStore, $dialogPasswordStore)
+          card.encrypted = true
+
+          await addNewCard(card)
+        },
+      )
     }}
   >
     <CardPlaceHolding/>
