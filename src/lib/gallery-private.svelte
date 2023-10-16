@@ -18,5 +18,10 @@
       />
     </div>
   {/each}
-  <CardPlaceHolding/>
+  <button
+    on:click={() => {
+    }}
+  >
+    <CardPlaceHolding/>
+  </button>
 </div>
