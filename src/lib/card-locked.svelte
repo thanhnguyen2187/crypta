@@ -35,6 +35,7 @@
     content: '',
     encrypted: false,
     state: 'default',
+    position: 0,
   }
   export let removalCallback: () => void = () => {}
 
