@@ -22,6 +22,7 @@
   export let contentState: 'default' | 'hoveredOn' = 'default'
   export let removalCallback: () => void = () => {}
   export let lockCallback: () => void = () => {}
+  let languageTextWidth = 0
 
   async function copyToClipboard(text: string) {
     try {
@@ -67,6 +68,12 @@
     on:mouseover={() => {contentState = 'hoveredOn'}}
     on:mouseleave={() => {contentState = 'default'}}
   >
+    <span
+      class="absolute pl-2 pr-3 invisible"
+      bind:offsetWidth={languageTextWidth}
+    >
+      {card.language}
+    </span>
     {#if card.state === 'beingHoverOver'}
       <div
         class="absolute h-40 border border-gray"
@@ -74,12 +81,17 @@
       ></div>
     {/if}
     {#if contentState === 'hoveredOn'}
-      <button
+      <input
         transition:fade={{duration: 400}}
         class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
+        bind:value={card.language}
+        style="width: {languageTextWidth}px"
+        spellcheck="false"
+        on:change={async () => {
+          await updateCard(card)
+          showToaster('Card updated!')
+        }}
       >
-        {card.language}
-      </button>
       <button
         transition:fade={{duration: 400}}
         class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
