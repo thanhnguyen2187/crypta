@@ -105,36 +105,35 @@
           <IconExpandIon/>
         </button>
         <button
-          style="transform: rotate(180deg)"
           on:click={async () => {
-          switch (contentState) {
-            case 'locked':
-              $dialogStateStore = 'password'
-              $dialogActionStore = async () => {
-                await attemptUnlock()
-                if (contentState === 'unlocked') {
-                  const unlockedCard = {
-                    ...card,
-                    content: decryptedContent,
-                    state: 'default',
-                    encrypted: false,
+            switch (contentState) {
+              case 'locked':
+                $dialogStateStore = 'password'
+                $dialogActionStore = async () => {
+                  await attemptUnlock()
+                  if (contentState === 'unlocked') {
+                    const unlockedCard = {
+                      ...card,
+                      content: decryptedContent,
+                      state: 'default',
+                      encrypted: false,
+                    }
+                    await replaceCard(card.id, unlockedCard)
                   }
-                  await replaceCard(card.id, unlockedCard)
                 }
-              }
-              break
-            case 'unlocked':
-            case 'visible':
-              const unlockedCard = {
-                ...card,
-                content: decryptedContent,
-                state: 'default',
-                encrypted: false,
-              }
-              await replaceCard(card.id, unlockedCard)
-              break
-          }
-        }}
+                break
+              case 'unlocked':
+              case 'visible':
+                const unlockedCard = {
+                  ...card,
+                  content: decryptedContent,
+                  state: 'default',
+                  encrypted: false,
+                }
+                await replaceCard(card.id, unlockedCard)
+                break
+            }
+          }}
         >
           <IconKey/>
         </button>
