@@ -83,11 +83,14 @@
     {#if contentState === 'hoveredOn'}
       <input
         transition:fade={{duration: 400}}
-        class="absolute cursor-text select-text right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
+        class="absolute right-0 mt-2 mr-2 px-2 border-2 rounded-l bg-white"
         bind:value={card.language}
         style="width: {languageTextWidth}px"
         spellcheck="false"
         on:change={async () => {
+          if (!card.language) {
+            card.language = 'plaintext'
+          }
           await updateCard(card)
           showToaster('Card updated!')
         }}
