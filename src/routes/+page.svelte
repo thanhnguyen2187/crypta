@@ -2,7 +2,7 @@
   import Toaster from '$lib/toaster.svelte'
   import Gallery from '$lib/gallery.svelte'
   import GalleryPrivate from '$lib/gallery-private.svelte'
-  import NextButton from '$lib/next-button.svelte'
+  import VisibilitySwitcher from '$lib/visibility-switcher.svelte'
   import Dialog from '$lib/dialog.svelte'
   import Header from '$lib/header.svelte'
   import autoAnimate from '@formkit/auto-animate'
@@ -31,12 +31,13 @@
     class="flex"
     use:autoAnimate
   >
+    <FolderSwitcher/>
     {#if $sectionState === 'public'}
       <Gallery/>
     {:else}
       <GalleryPrivate/>
     {/if}
-    <NextButton/>
+    <VisibilitySwitcher/>
   </div>
 </div>
 
