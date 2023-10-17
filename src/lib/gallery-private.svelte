@@ -5,10 +5,12 @@
   import { dialogContentStore, dialogPasswordStore, promptNewPrivateCard } from '$lib/dialog'
   import { attemptGetFromClipboard } from '$lib/clipboard'
   import { aesGcmEncrypt } from '$lib/encryption'
+  import autoAnimate from '@formkit/auto-animate'
 </script>
 
 <div
   class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
+  use:autoAnimate
   tabindex="-1"
 >
   {#each $lockedCardStore as card, index (card.id)}
