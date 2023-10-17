@@ -9,6 +9,7 @@
   import IconEyeOff from '../svg/icon-eye-off-ion-24.svelte'
   import IconEnter from '../svg/icon-enter-ion-24.svelte'
   import IconExit from '../svg/icon-exit-ion-24.svelte'
+  import IconKey from '../svg/icon-key-ion-24.svelte'
   import { showToaster } from './toaster.ts'
   import {
     dialogStateStore,
@@ -100,20 +101,43 @@
     />
     <div class="mr-2 my-3 gap-1 flex opacity-25">
       {#if contentState !== 'locked'}
-        <button><IconExpandIon/></button>
-        {#if contentState === 'visible'}
-          <button
-            on:click={() => contentState = 'unlocked'}
-          >
-            <IconEyeOff/>
-          </button>
-        {:else if contentState === 'unlocked'}
-          <button
-            on:click={() => contentState = 'visible'}
-          >
-            <IconEye/>
-          </button>
-        {/if}
+        <button>
+          <IconExpandIon/>
+        </button>
+        <button
+          style="transform: rotate(180deg)"
+          on:click={async () => {
+          switch (contentState) {
+            case 'locked':
+              $dialogStateStore = 'password'
+              $dialogActionStore = async () => {
+                await attemptUnlock()
+                if (contentState === 'unlocked') {
+                  const unlockedCard = {
+                    ...card,
+                    content: decryptedContent,
+                    state: 'default',
+                    encrypted: false,
+                  }
+                  await replaceCard(card.id, unlockedCard)
+                }
+              }
+              break
+            case 'unlocked':
+            case 'visible':
+              const unlockedCard = {
+                ...card,
+                content: decryptedContent,
+                state: 'default',
+                encrypted: false,
+              }
+              await replaceCard(card.id, unlockedCard)
+              break
+          }
+        }}
+        >
+          <IconKey/>
+        </button>
       {/if}
       <button on:click={() => {removalCallback()}}><IconTrashIon/></button>
     </div>
@@ -160,40 +184,6 @@
       class="flex gap-1 opacity-25"
     >
       <button
-        style="transform: rotate(180deg)"
-        on:click={async () => {
-          switch (contentState) {
-            case 'locked':
-              $dialogStateStore = 'password'
-              $dialogActionStore = async () => {
-                await attemptUnlock()
-                if (contentState === 'unlocked') {
-                  const unlockedCard = {
-                    ...card,
-                    content: decryptedContent,
-                    state: 'default',
-                    encrypted: false,
-                  }
-                  await replaceCard(card.id, unlockedCard)
-                }
-              }
-              break
-            case 'unlocked':
-            case 'visible':
-              const unlockedCard = {
-                ...card,
-                content: decryptedContent,
-                state: 'default',
-                encrypted: false,
-              }
-              await replaceCard(card.id, unlockedCard)
-              break
-          }
-        }}
-      >
-        <IconExit/>
-      </button>
-      <button
         class:hidden={contentState === 'visible'}
         on:click={async () => {
           switch (contentState) {
@@ -213,8 +203,21 @@
           }
         }}
       >
-        <IconClipboardIon/>
+        <IconCopyIon/>
       </button>
+      {#if contentState === 'visible'}
+        <button
+          on:click={() => contentState = 'unlocked'}
+        >
+          <IconEyeOff/>
+        </button>
+      {:else if contentState === 'unlocked'}
+        <button
+          on:click={() => contentState = 'visible'}
+        >
+          <IconEye/>
+        </button>
+      {/if}
     </div>
   </div>
 </div>
