@@ -23,18 +23,21 @@
   }
 </style>
 
-<Header/>
-
 <div
-  use:autoAnimate
-  class="flex"
+  class="flex flex-col"
 >
-  {#if $sectionState === 'public'}
-    <Gallery/>
-  {:else}
-    <GalleryPrivate/>
-  {/if}
-  <NextButton/>
+  <Header/>
+  <div
+    class="flex"
+    use:autoAnimate
+  >
+    {#if $sectionState === 'public'}
+      <Gallery/>
+    {:else}
+      <GalleryPrivate/>
+    {/if}
+    <NextButton/>
+  </div>
 </div>
 
 <Toaster/>

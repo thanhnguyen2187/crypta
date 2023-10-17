@@ -7,7 +7,7 @@
 </script>
 
 <div
-  class="absolute top-0 right-0 h-screen w-16 transition-opacity flex items-center"
+  class="h-screen w-16 transition-opacity flex items-center"
   class:bg-gray-200={hovered}
   on:mouseenter={() => hovered = true}
   on:click={() => setSectionState(nextSectionState($sectionState))}

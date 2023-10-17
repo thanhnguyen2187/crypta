@@ -9,7 +9,7 @@
 </script>
 
 <div
-  class="container mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center"
+  class="mx-auto my-4 grid grid-cols-4 gap-4 justify-items-center content-start"
   use:autoAnimate
   tabindex="-1"
 >
