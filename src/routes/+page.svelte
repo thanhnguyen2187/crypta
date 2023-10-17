@@ -4,6 +4,7 @@
   import GalleryPrivate from '$lib/gallery-private.svelte'
   import NextButton from '$lib/next-button.svelte'
   import Dialog from '$lib/dialog.svelte'
+  import Header from '$lib/header.svelte'
   import autoAnimate from '@formkit/auto-animate'
 
   import { sectionState } from '$lib/store'
@@ -21,6 +22,8 @@
     -ms-overflow-style: none;
   }
 </style>
+
+<Header/>
 
 <div
   use:autoAnimate
