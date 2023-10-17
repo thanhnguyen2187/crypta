@@ -2,8 +2,8 @@
   import { dialogContentStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog'
   import { dialogActionStore } from '$lib/dialog'
   import { fade } from 'svelte/transition'
-  import IconEye from '../svg/icon-eye-ion-24.svelte'
-  import IconEyeOff from '../svg/icon-eye-off-ion-24.svelte'
+  import IconEye from '../svg/icon-ion-eye-24.svelte'
+  import IconEyeOff from '../svg/icon-ion-eye-off-24.svelte'
 
   let privateContentVisible = false
 

@@ -1,7 +1,7 @@
 <script
   lang="ts"
 >
-  import IconSettings from '../svg/icon-settings-ion-48.svelte'
+  import IconSettings from '../svg/icon-ion-settings-48.svelte'
 
   let hovered = false
 </script>
@@ -14,7 +14,7 @@
     class="border-2"
   >
     <input
-      class="border-2 rounded px-2 w-max"
+      class="border-2 rounded px-2 w-80"
       placeholder="search here"
     />
   </div>

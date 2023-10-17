@@ -1,15 +1,12 @@
 <script lang="ts">
-  import IconClipboardIon from '../svg/icon-clipboard-ion-24.svelte'
-  import IconLock from '../svg/icon-lock-ion-128.svelte'
-  import IconUnlock from '../svg/icon-unlock-ion-128.svelte'
-  import IconTrashIon from '../svg/icon-trash-ion-24.svelte'
-  import IconExpandIon from '../svg/icon-expand-ion-24.svelte'
-  import IconLockIon from '../svg/icon-lock-ion-24.svelte'
-  import IconEye from '../svg/icon-eye-ion-24.svelte'
-  import IconEyeOff from '../svg/icon-eye-off-ion-24.svelte'
-  import IconEnter from '../svg/icon-enter-ion-24.svelte'
-  import IconExit from '../svg/icon-exit-ion-24.svelte'
-  import IconKey from '../svg/icon-key-ion-24.svelte'
+  import IconLock from '../svg/icon-ion-lock-128.svelte'
+  import IconUnlock from '../svg/icon-ion-unlock-128.svelte'
+  import IconTrashIon from '../svg/icon-ion-trash-24.svelte'
+  import IconExpandIon from '../svg/icon-ion-expand-24.svelte'
+  import IconEye from '../svg/icon-ion-eye-24.svelte'
+  import IconEyeOff from '../svg/icon-ion-eye-off-24.svelte'
+  import IconKey from '../svg/icon-ion-key-24.svelte'
+  import IconCopyIon from '../svg/icon-ion-copy-24.svelte'
   import { showToaster } from './toaster.ts'
   import {
     dialogStateStore,
@@ -21,7 +18,6 @@
   import type { MouseState, ContentState } from './card-locked'
   import { fade } from 'svelte/transition'
   import { attemptDecrypt } from './card-locked'
-  import IconCopyIon from '../svg/icon-copy-ion-24.svelte'
   import { type Card, replaceCard, toUnlockedCard } from './card'
   import { attemptCopyToClipboard } from '$lib/clipboard'
 
