@@ -1,6 +1,11 @@
 import { get, writable } from 'svelte/store'
 
-export type DialogState = 'hidden' | 'confirm' | 'password' | 'new-private-card'
+export type DialogState =
+  'hidden' |
+  'confirm' |
+  'password' |
+  'new-private-card' |
+  'settings'
 
 export const dialogStateStore = writable<DialogState>('hidden')
 export const dialogPasswordStore = writable('')
@@ -22,7 +27,12 @@ export function promptNewPrivateCard(content: string, action: () => void) {
   dialogContentStore.set(content)
 }
 
-/* Get the current password after password prompt is finished.
+export function promptSettings() {
+  dialogStateStore.set('settings')
+}
+
+/**
+ * Get the current password after password prompt is finished.
  * */
 export function getCurrentPassword(): string {
   return get(dialogPasswordStore)

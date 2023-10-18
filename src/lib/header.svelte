@@ -2,8 +2,7 @@
   lang="ts"
 >
   import IconSettings from '../svg/icon-ion-settings-24.svelte'
-
-  let hovered = false
+  import { promptSettings } from './dialog'
 </script>
 
 <div
@@ -17,7 +16,10 @@
       placeholder="search here"
     />
   </div>
-  <div>
+  <button
+    class="cursor-pointer"
+    on:click={() => promptSettings()}
+  >
     <IconSettings/>
-  </div>
+  </button>
 </div>

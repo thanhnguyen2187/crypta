@@ -38,9 +38,6 @@
       $dialogStateStore = 'hidden'
     }}
   ></div>
-{/if}
-
-{#if $dialogStateStore === 'confirm'}
   <div
     class="
       fixed
@@ -52,82 +49,59 @@
       px-4 py-2 border-2 gap-2
     "
   >
-    <div>Are you sure you want to do this?</div>
-    <div
-      class="flex gap-2"
-    >
-      <button
-        class="cursor-pointer px-4 border-2 rounded-xl"
-        on:click={() => {
-          const action = $dialogActionStore
-          action()
-          $dialogStateStore = 'hidden'
-        }}
-      >Yes</button>
-      <button
-        class="cursor-pointer px-4 border-2 rounded-xl"
-        on:click={() => {
-          $dialogStateStore = 'hidden'
-        }}
-      >No</button>
-    </div>
-  </div>
-{:else if $dialogStateStore === 'password'}
-  <div
-    class="
-      fixed
-      left-1/2 top-1/2
-      -translate-x-1/2 -translate-y-1/2
-      flex flex-col
-      bg-white
-      rounded-xl
-      px-4 py-2 border-2 gap-2
-    "
-  >
-    <div>Password</div>
-    <input
-      class="border-2 rounded px-2"
-      autofocus="autofocus"
-      type="password"
-      bind:value={$dialogPasswordStore}
-      on:keydown={handlePasswordKeyDown}
-      placeholder="press Enter to submit"
-    />
-  </div>
-{:else if $dialogStateStore === 'new-private-card'}
-  <div
-    class="
-      fixed
-      left-1/2 top-1/2
-      -translate-x-1/2 -translate-y-1/2
-      flex flex-col
-      bg-white
-      rounded-xl
-      px-4 py-2 border-2 gap-2
-    "
-  >
-    <div
-      class="flex justify-between"
-    >
-      <div>Content</div>
-      <button
-        class:hidden={privateContentVisible}
-        on:click={() => {
-          privateContentVisible = true
-        }}
+    {#if $dialogStateStore === 'confirm'}
+      <div>Are you sure you want to do this?</div>
+      <div
+        class="flex gap-2"
       >
-        <IconEye/>
-      </button>
-      <button
-        class:hidden={!privateContentVisible}
-        on:click={() => {
-          privateContentVisible = false
-        }}
+        <button
+          class="cursor-pointer px-4 border-2 rounded-xl"
+          on:click={() => {
+            const action = $dialogActionStore
+            action()
+            $dialogStateStore = 'hidden'
+          }}
+        >Yes</button>
+        <button
+          class="cursor-pointer px-4 border-2 rounded-xl"
+          on:click={() => {
+            $dialogStateStore = 'hidden'
+          }}
+        >No</button>
+      </div>
+    {:else if $dialogStateStore === 'password'}
+      <div>Password</div>
+      <input
+        class="border-2 rounded px-2"
+        autofocus="autofocus"
+        type="password"
+        bind:value={$dialogPasswordStore}
+        on:keydown={handlePasswordKeyDown}
+        placeholder="press Enter to submit"
+      />
+    {:else if $dialogStateStore === 'new-private-card'}
+      <div
+        class="flex justify-between"
       >
-        <IconEyeOff/>
-      </button>
-    </div>
-    <div>
+        <div>Content</div>
+        <button
+          class:hidden={privateContentVisible}
+          on:click={() => {
+            privateContentVisible = true
+          }}
+        >
+          <IconEye/>
+        </button>
+        <button
+          class:hidden={!privateContentVisible}
+          on:click={() => {
+            privateContentVisible = false
+          }}
+        >
+          <IconEyeOff/>
+        </button>
+      </div>
+      <div>
       <textarea
         rows="5"
         class="border-2 px-1 overflow-scroll font-mono whitespace-pre no-scrollbar blur-text"
@@ -138,16 +112,18 @@
         spellcheck="false"
         bind:value={$dialogContentStore}
       ></textarea>
-    </div>
-    <div>Password</div>
-    <input
-      autofocus="autofocus"
-      class="border-2 rounded px-2"
-      type="password"
-      bind:value={$dialogPasswordStore}
-      on:keydown={handlePasswordKeyDown}
-      placeholder="press Enter to submit"
-    />
+      </div>
+      <div>Password</div>
+      <input
+        autofocus="autofocus"
+        class="border-2 rounded px-2"
+        type="password"
+        bind:value={$dialogPasswordStore}
+        on:keydown={handlePasswordKeyDown}
+        placeholder="press Enter to submit"
+      />
+    {:else if $dialogStateStore === 'settings'}
+      <div>Hello world</div>
+    {/if}
   </div>
 {/if}
-
