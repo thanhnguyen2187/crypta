@@ -1,34 +1,23 @@
 <script
   lang="ts"
 >
-  import IconSettings from '../svg/icon-ion-settings-48.svelte'
+  import IconSettings from '../svg/icon-ion-settings-24.svelte'
 
   let hovered = false
 </script>
 
 <div
-  class="flex items-center justify-between"
+  class="flex items-center justify-center my-6 gap-4"
 >
-  <div></div>
   <div
-    class="border-2"
+    class="border-2 rounded"
   >
     <input
       class="border-2 rounded px-2 w-80"
       placeholder="search here"
     />
   </div>
-  <div
-    on:mouseenter={() => hovered = true}
-    class="w-16 h-16 flex items-center justify-center"
-    on:mouseleave={() => hovered = false}
-    class:bg-gray-200={hovered}
-  >
-    <div
-      class="opacity-25"
-      class:opacity-50={hovered}
-    >
-      <IconSettings/>
-    </div>
+  <div>
+    <IconSettings/>
   </div>
 </div>

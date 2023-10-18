@@ -25,21 +25,21 @@
 </style>
 
 <div
-  class="flex flex-col"
+  class="flex justify-between"
 >
-  <Header/>
+  <FolderSwitcher/>
   <div
-    class="flex"
+    class="flex flex-col"
     use:autoAnimate
   >
-    <FolderSwitcher/>
+    <Header/>
     {#if $sectionState === 'public'}
       <Gallery/>
     {:else}
       <GalleryPrivate/>
     {/if}
-    <VisibilitySwitcher/>
   </div>
+  <VisibilitySwitcher/>
 </div>
 
 <Toaster/>
