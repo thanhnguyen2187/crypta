@@ -123,7 +123,19 @@
         placeholder="press Enter to submit"
       />
     {:else if $dialogStateStore === 'settings'}
-      <div>Hello world</div>
+      <div>Server URL</div>
+      <input
+        class="border-2 rounded px-2"
+      />
+      <div>Username</div>
+      <input
+        class="border-2 rounded px-2"
+      />
+      <div>Password</div>
+      <input
+        type="password"
+        class="border-2 rounded px-2"
+      />
     {/if}
   </div>
 {/if}
