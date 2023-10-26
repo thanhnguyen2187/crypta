@@ -17,7 +17,7 @@
     />
   </div>
   <button
-    class="cursor-pointer"
+    class="cursor-pointer opacity-50 hover:opacity-100"
     on:click={() => promptSettings()}
   >
     <IconSettings/>

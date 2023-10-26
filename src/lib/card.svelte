@@ -54,11 +54,23 @@
       }}
     />
     <div class="mr-2 my-3 gap-1 flex">
-      <button><IconExpandIon/></button>
-      <button on:click={() => {lockCallback()}}>
+      <button
+        class="opacity-50 hover:opacity-100"
+      >
+        <IconExpandIon/>
+      </button>
+      <button
+        class="opacity-50 hover:opacity-100"
+        on:click={() => {lockCallback()}}
+      >
         <IconLockIon/>
       </button>
-      <button on:click={() => {confirmRemoval()}}><IconTrashIon/></button>
+      <button
+        class="opacity-50 hover:opacity-100"
+        on:click={() => {confirmRemoval()}}
+      >
+        <IconTrashIon/>
+      </button>
     </div>
   </div>
   <div
@@ -96,7 +108,7 @@
       >
       <button
         transition:fade={{duration: 400}}
-        class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white"
+        class="absolute cursor-pointer right-0 bottom-2 mt-2 mr-2 px-2 py-1 border-2 rounded-l bg-white opacity-50 hover:opacity-100"
         on:click={copyToClipboard(card.content)}
       >
         <IconCopyIon/>
