@@ -7,13 +7,16 @@ export type Snippet = {
   text: string
   encrypted: boolean
   position: number
+  updatedAt: number
+  createdAt: number
 }
 
 function generateFolderName(folderName: string): string {
   return `crypta.${folderName}`
 }
 
-/* Read all persisted snippets, with OPFS as the underlying engine. The
+/**
+ * Read all persisted snippets, with OPFS as the underlying engine. The
  * assumption is that snippet's `id` is the file name, and the snippet itself is
  * JSONified.
  *
@@ -42,7 +45,8 @@ export async function readSnippets(folderName: string = 'default'): Promise<Snip
   return snippets as Snippet[]
 }
 
-/* Make sure that the snippet's data is available after restart. Snippet's `id`
+/**
+ * Make sure that the snippet's data is available after restart. Snippet's `id`
  * is used as the unique key.
  * */
 export async function persistSnippet(snippet: Snippet, folderName: string = 'default') {
@@ -57,7 +61,8 @@ export async function persistSnippet(snippet: Snippet, folderName: string = 'def
   await writable.close()
 }
 
-/* Delete the snippet's data completely.
+/**
+ * Delete the snippet's data completely.
  * */
 export async function deleteSnippet(id: string, folderName: string = 'default') {
   const opfsRoot = await navigator.storage.getDirectory()
