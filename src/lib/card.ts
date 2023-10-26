@@ -13,6 +13,8 @@ export type Card = {
   encrypted: boolean
   state: CardState
   position: number
+  createdAt: number
+  updatedAt: number
 }
 
 // TODO: card state
@@ -56,6 +58,8 @@ export function newEmptyCard(): Card {
     encrypted: false,
     state: 'default',
     position: 0,
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime(),
   }
 }
 
@@ -76,6 +80,7 @@ export function updateCardState(id: string, state: CardState): void {
 }
 
 export async function updateCard(card: Card) {
+  card.updatedAt = new Date().getTime()
   const snippet = cardToSnippet(card)
   await snippetStore.upsert(snippet)
 }
@@ -174,6 +179,8 @@ export function snippetToCard(snippet: Snippet): Card {
     encrypted: snippet.encrypted,
     state: 'default',
     position: snippet.position,
+    createdAt: snippet.createdAt,
+    updatedAt: snippet.updatedAt,
   }
 }
 
@@ -185,5 +192,7 @@ export function cardToSnippet(card: Card): Snippet {
     encrypted: card.encrypted,
     language: card.language,
     position: card.position,
+    createdAt: card.createdAt,
+    updatedAt: card.updatedAt,
   }
 }
