@@ -1,9 +1,16 @@
 <script lang="ts">
-  import { dialogContentStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog'
-  import { dialogActionStore } from '$lib/dialog'
+  import {
+    dialogContentStore,
+    dialogPasswordStore,
+    dialogStateStore,
+    dialogSettingsStore,
+    dialogTickerStore, dialogSettingsStateStore
+  } from './dialog'
+  import { dialogActionStore } from './dialog'
   import { fade } from 'svelte/transition'
   import IconEye from '../svg/icon-ion-eye-24.svelte'
   import IconEyeOff from '../svg/icon-ion-eye-off-24.svelte'
+  import { writeSettings } from './persistence'
 
   let privateContentVisible = false
 
@@ -17,6 +24,19 @@
         break
       case 'Escape':
         $dialogPasswordStore = ''
+        $dialogStateStore = 'hidden'
+        break
+    }
+  }
+
+  function hideOverlay() {
+    $dialogStateStore = 'hidden'
+  }
+
+  async function handleSettingsKeyDown(e: KeyboardEvent) {
+    switch (e.key) {
+      case 'Enter':
+        await writeSettings($dialogSettingsStore)
         $dialogStateStore = 'hidden'
         break
     }
@@ -126,16 +146,35 @@
       <div>Server URL</div>
       <input
         class="border-2 rounded px-2"
+        placeholder="https://your.server.com"
+        bind:value={$dialogSettingsStore.serverURL}
+        on:keydown={handleSettingsKeyDown}
+        spellcheck="false"
       />
       <div>Username</div>
       <input
         class="border-2 rounded px-2"
+        placeholder="admin"
+        bind:value={$dialogSettingsStore.username}
+        on:keydown={handleSettingsKeyDown}
+        spellcheck="false"
       />
       <div>Password</div>
       <input
         type="password"
+        placeholder="press Enter to submit"
         class="border-2 rounded px-2"
+        bind:value={$dialogSettingsStore.password}
+        on:keydown={handleSettingsKeyDown}
+        spellcheck="false"
       />
+      <div>
+        {#await $dialogSettingsStateStore}
+          waiting
+        {:then stateStore}
+          {stateStore}
+        {/await}
+      </div>
     {/if}
   </div>
 {/if}

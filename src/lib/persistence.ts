@@ -11,6 +11,18 @@ export type Snippet = {
   createdAt: number
 }
 
+export type Settings = {
+  serverURL: string
+  username: string
+  password: string
+}
+
+export const defaultSettings: Settings = {
+  serverURL: '',
+  username: '',
+  password: '',
+}
+
 function generateFolderName(folderName: string): string {
   return `crypta.${folderName}`
 }
@@ -107,4 +119,26 @@ export async function createSnippetStore() {
       )
     }
   }
+}
+
+export async function readSettings() {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('settings.json', {create: true})
+  const file = await fileHandle.getFile()
+  const text = await file.text()
+  const savedSettings = text ? JSON.parse(text) : {}
+
+  return Object.assign(
+    {},
+    defaultSettings,
+    savedSettings,
+  )
+}
+
+export async function writeSettings(settings: Settings) {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('settings.json', {create: true})
+  const writeable = await fileHandle.createWritable()
+  await writeable.write(JSON.stringify(settings))
+  await writeable.close()
 }

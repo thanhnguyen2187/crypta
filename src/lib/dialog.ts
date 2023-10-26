@@ -1,4 +1,6 @@
-import { get, writable } from 'svelte/store'
+import { derived, get, readable, writable } from 'svelte/store'
+import type { Settings } from './persistence'
+import { defaultSettings, readSettings, writeSettings } from './persistence'
 
 export type DialogState =
   'hidden' |
@@ -7,10 +9,44 @@ export type DialogState =
   'new-private-card' |
   'settings'
 
+export type SettingsState =
+  'blank' |
+  'connecting' |
+  'connected' |
+  'error'
+
 export const dialogStateStore = writable<DialogState>('hidden')
 export const dialogPasswordStore = writable('')
 export const dialogContentStore = writable('')
 export const dialogActionStore = writable<(() => void) | undefined>()
+export const dialogSettingsStore = writable<Settings>(await readSettings())
+export const dialogTickerStore = createTickerStore(5000)
+export const dialogSettingsStateStore = derived([
+  dialogTickerStore,
+  // dialogSettingsStore,
+], async () => {
+  try {
+    const settings = get(dialogSettingsStore)
+    if (!settings.serverURL) {
+      return 'blank'
+    }
+    await fetch(`${settings.serverURL}/api/v1/alive`)
+    return 'connected' as SettingsState
+  } catch (error: unknown) {
+    if (error instanceof TypeError) {
+      console.error({
+        message: 'check server alive error',
+        error,
+      })
+    } else {
+      console.error({
+        message: 'unknown type error',
+        error,
+      })
+    }
+    return 'error' as SettingsState
+  }
+})
 
 /**
  * Display a prompt for password, then do a certain action/callback after the
@@ -36,4 +72,16 @@ export function promptSettings() {
  * */
 export function getCurrentPassword(): string {
   return get(dialogPasswordStore)
+}
+
+export function createTickerStore(intervalMs: number = 1000) {
+  return readable(new Date(), (set) => {
+    set(new Date())
+
+    const interval = setInterval(() => {
+      set(new Date())
+    }, intervalMs)
+
+    return () => clearInterval(interval)
+  })
 }
