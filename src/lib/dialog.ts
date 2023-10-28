@@ -21,32 +21,32 @@ export const dialogContentStore = writable('')
 export const dialogActionStore = writable<(() => void) | undefined>()
 export const dialogSettingsStore = writable<Settings>(await readSettings())
 export const dialogTickerStore = createTickerStore(5000)
-export const dialogSettingsStateStore = derived([
+export const dialogSettingsStateStore = derived(
   dialogTickerStore,
-  // dialogSettingsStore,
-], async () => {
-  try {
-    const settings = get(dialogSettingsStore)
-    if (!settings.serverURL) {
-      return 'blank'
+  async () => {
+    // TODO: implement state where it is erred, but the settings also changed
+    try {
+      const settings = get(dialogSettingsStore)
+      if (!settings.serverURL) {
+        return 'blank' as SettingsState
+      }
+      await fetch(`${settings.serverURL}/api/v1/alive`)
+      return 'connected' as SettingsState
+    } catch (error: unknown) {
+      if (error instanceof TypeError) {
+        console.error({
+          message: 'check server alive error',
+          error,
+        })
+      } else {
+        console.error({
+          message: 'unknown type error',
+          error,
+        })
+      }
+      return 'error' as SettingsState
     }
-    await fetch(`${settings.serverURL}/api/v1/alive`)
-    return 'connected' as SettingsState
-  } catch (error: unknown) {
-    if (error instanceof TypeError) {
-      console.error({
-        message: 'check server alive error',
-        error,
-      })
-    } else {
-      console.error({
-        message: 'unknown type error',
-        error,
-      })
-    }
-    return 'error' as SettingsState
-  }
-})
+  })
 
 /**
  * Display a prompt for password, then do a certain action/callback after the
