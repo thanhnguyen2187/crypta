@@ -4,12 +4,15 @@
     dialogPasswordStore,
     dialogStateStore,
     dialogSettingsStore,
-    dialogTickerStore, dialogSettingsStateStore
+    dialogTickerStore,
+    dialogSettingsStateStore,
   } from './dialog'
   import { dialogActionStore } from './dialog'
   import { fade } from 'svelte/transition'
   import IconEye from '../svg/icon-ion-eye-24.svelte'
   import IconEyeOff from '../svg/icon-ion-eye-off-24.svelte'
+  import IconReloadCircle from '../svg/icon-ion-reload-circle-24.svelte'
+  import IconReload from '../svg/icon-ion-reload-24.svelte'
   import { writeSettings } from './persistence'
 
   let privateContentVisible = false
@@ -143,7 +146,14 @@
         placeholder="press Enter to submit"
       />
     {:else if $dialogStateStore === 'settings'}
-      <div>Server URL</div>
+      <div
+        class="flex justify-between"
+      >
+        <div>Server</div>
+        <div class="animate-spin">
+          <IconReloadCircle/>
+        </div>
+      </div>
       <input
         class="border-2 rounded px-2"
         placeholder="https://your.server.com"
