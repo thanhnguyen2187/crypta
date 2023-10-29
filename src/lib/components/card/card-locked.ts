@@ -1,4 +1,4 @@
-import { aesGcmDecrypt } from '../../encryption'
+import { aesGcmDecrypt } from '../../utitlities/encryption'
 
 export type ContentState = 'locked' | 'unlocked' | 'visible'
 export type MouseState = 'default' | 'hovered'

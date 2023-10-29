@@ -1,8 +1,8 @@
 import { writable, derived, get } from 'svelte/store'
-import { append, inject, remove, replace } from '$lib/array-manipulation'
-import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/encryption';
-import type { Snippet } from '$lib/persistence'
-import { createSnippetStore } from '$lib/persistence'
+import { append, inject, remove, replace } from '$lib/utitlities/array-manipulation'
+import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption';
+import type { Snippet } from '$lib/utitlities/persistence'
+import { createSnippetStore } from '$lib/utitlities/persistence'
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {

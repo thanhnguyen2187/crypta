@@ -19,7 +19,7 @@
   import { fade } from 'svelte/transition'
   import { attemptDecrypt } from './card-locked'
   import { type Card, replaceCard, toUnlockedCard } from './card'
-  import { attemptCopyToClipboard } from '$lib/clipboard'
+  import { attemptCopyToClipboard } from '$lib/utitlities/clipboard'
 
   let mouseState: MouseState = 'default'
   let contentState: ContentState = 'locked'
