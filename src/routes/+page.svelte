@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Toaster from '$lib/toaster.svelte'
+  import Toaster from '$lib/components/toaster/toaster.svelte'
   import Gallery from '$lib/components/gallery/gallery.svelte'
   import GalleryPrivate from '$lib/components/gallery/gallery-private.svelte'
   import VisibilitySwitcher from '$lib/components/header/visibility-switcher.svelte'

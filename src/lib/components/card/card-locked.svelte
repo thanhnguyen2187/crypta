@@ -7,7 +7,7 @@
   import IconEyeOff from '../../../svg/icon-ion-eye-off-24.svelte'
   import IconKey from '../../../svg/icon-ion-key-24.svelte'
   import IconCopyIon from '../../../svg/icon-ion-copy-24.svelte'
-  import { showToaster } from '../../toaster.ts'
+  import { showToaster } from '../toaster/toaster.ts'
   import {
     dialogStateStore,
     dialogActionStore,

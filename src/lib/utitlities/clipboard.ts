@@ -1,4 +1,4 @@
-import { showToaster } from '$lib/toaster'
+import { showToaster } from '$lib/components/toaster/toaster'
 
 export async function copyToClipboard(text: string): Promise<string | null> {
   try {

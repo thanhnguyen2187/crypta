@@ -5,7 +5,7 @@
   import IconCopyIon from '../../../svg/icon-ion-copy-24.svelte'
   import type { Card, CardState } from './card.ts'
   import { fade } from 'svelte/transition'
-  import { showToaster } from '../../toaster.ts'
+  import { showToaster } from '../toaster/toaster.ts'
   import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/components/dialog/dialog';
   import { replaceCard, toLockedCard, updateCard } from './card.ts';
 
