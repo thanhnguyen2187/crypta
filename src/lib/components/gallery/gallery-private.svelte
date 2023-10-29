@@ -2,7 +2,7 @@
   import CardLocked from '../card/card-locked.svelte'
   import CardPlaceHolding from '../card/card-placeholding.svelte'
   import { addNewCard, lockedCardStore, newEmptyCard } from '../card/card.ts'
-  import { dialogContentStore, dialogPasswordStore, promptNewPrivateCard } from '$lib/dialog'
+  import { dialogContentStore, dialogPasswordStore, promptNewPrivateCard } from '$lib/components/dialog/dialog'
   import { attemptGetFromClipboard } from '$lib/clipboard'
   import { aesGcmEncrypt } from '$lib/encryption'
   import autoAnimate from '@formkit/auto-animate'

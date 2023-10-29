@@ -6,7 +6,7 @@
   import type { Card, CardState } from './card.ts'
   import { fade } from 'svelte/transition'
   import { showToaster } from '../../toaster.ts'
-  import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog';
+  import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/components/dialog/dialog';
   import { replaceCard, toLockedCard, updateCard } from './card.ts';
 
   export let card: Card = {

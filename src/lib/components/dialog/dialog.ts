@@ -1,6 +1,6 @@
 import { derived, get, readable, writable } from 'svelte/store'
-import type { Settings } from './persistence'
-import { defaultSettings, readSettings, writeSettings } from './persistence'
+import type { Settings } from '../../persistence'
+import { defaultSettings, readSettings, writeSettings } from '../../persistence'
 
 export type DialogState =
   'hidden' |

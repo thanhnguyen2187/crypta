@@ -12,7 +12,7 @@
   } from '../card/card.ts'
   import autoAnimate from '@formkit/auto-animate'
   import { injectCard, newEmptyCard } from '../card/card.ts'
-  import { dialogActionStore, dialogStateStore, dialogPasswordStore } from '../../dialog'
+  import { dialogActionStore, dialogStateStore, dialogPasswordStore } from '../dialog/dialog'
 
   let draggedId = ''
   let dropped = true

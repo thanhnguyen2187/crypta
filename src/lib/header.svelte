@@ -2,7 +2,7 @@
   lang="ts"
 >
   import IconSettings from '../svg/icon-ion-settings-24.svelte'
-  import { promptSettings } from './dialog'
+  import { promptSettings } from './components/dialog/dialog'
 </script>
 
 <div

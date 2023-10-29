@@ -9,11 +9,11 @@
   } from './dialog'
   import { dialogActionStore } from './dialog'
   import { fade } from 'svelte/transition'
-  import IconEye from '../svg/icon-ion-eye-24.svelte'
-  import IconEyeOff from '../svg/icon-ion-eye-off-24.svelte'
-  import IconReloadCircle from '../svg/icon-ion-reload-circle-24.svelte'
-  import IconReload from '../svg/icon-ion-reload-24.svelte'
-  import { writeSettings } from './persistence'
+  import IconEye from '../../../svg/icon-ion-eye-24.svelte'
+  import IconEyeOff from '../../../svg/icon-ion-eye-off-24.svelte'
+  import IconReloadCircle from '../../../svg/icon-ion-reload-circle-24.svelte'
+  import IconReload from '../../../svg/icon-ion-reload-24.svelte'
+  import { writeSettings } from '../../persistence'
 
   let privateContentVisible = false
 

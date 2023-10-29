@@ -14,7 +14,7 @@
     dialogPasswordStore,
     getCurrentPassword,
     promptPassword
-  } from '$lib/dialog'
+  } from '$lib/components/dialog/dialog'
   import type { MouseState, ContentState } from './card-locked'
   import { fade } from 'svelte/transition'
   import { attemptDecrypt } from './card-locked'
