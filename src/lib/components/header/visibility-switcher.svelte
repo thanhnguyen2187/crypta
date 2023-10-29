@@ -1,7 +1,7 @@
 <script lang="ts">
-  import IconArrowForward from '../svg/icon-ion-arrow-forward-64.svelte'
-  import IconArrowBack from '../svg/icon-ion-arrow-back-64.svelte'
-  import { sectionState, nextSectionState, setSectionState } from './store'
+  import IconArrowForward from '../../../svg/icon-ion-arrow-forward-64.svelte'
+  import IconArrowBack from '../../../svg/icon-ion-arrow-back-64.svelte'
+  import { sectionState, nextSectionState, setSectionState } from '../../store'
 
   let state : 'default' | 'hovered' | 'clicked' = 'default'
   let hovered = false

@@ -1,8 +1,8 @@
 <script
   lang="ts"
 >
-  import IconSettings from '../svg/icon-ion-settings-24.svelte'
-  import { promptSettings } from './components/dialog/dialog'
+  import IconSettings from '../../../svg/icon-ion-settings-24.svelte'
+  import { promptSettings } from '../dialog/dialog'
 </script>
 
 <div

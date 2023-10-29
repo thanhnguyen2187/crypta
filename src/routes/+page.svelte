@@ -2,10 +2,10 @@
   import Toaster from '$lib/toaster.svelte'
   import Gallery from '$lib/components/gallery/gallery.svelte'
   import GalleryPrivate from '$lib/components/gallery/gallery-private.svelte'
-  import VisibilitySwitcher from '$lib/visibility-switcher.svelte'
-  import FolderSwitcher from '$lib/folder-switcher.svelte'
+  import VisibilitySwitcher from '$lib/components/header/visibility-switcher.svelte'
+  import FolderSwitcher from '$lib/components/header/folder-switcher.svelte'
   import Dialog from '$lib/components/dialog/dialog.svelte'
-  import Header from '$lib/header.svelte'
+  import Header from '$lib/components/header/header.svelte'
   import autoAnimate from '@formkit/auto-animate'
 
   import { sectionState } from '$lib/store'
