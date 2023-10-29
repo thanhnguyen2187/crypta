@@ -1,7 +1,7 @@
 <script lang="ts">
-  import CardLocked from './card-locked.svelte'
-  import CardPlaceHolding from './card-placeholding.svelte'
-  import { addNewCard, lockedCardStore, newEmptyCard } from './card.ts'
+  import CardLocked from './components/card/card-locked.svelte'
+  import CardPlaceHolding from './components/card/card-placeholding.svelte'
+  import { addNewCard, lockedCardStore, newEmptyCard } from './components/card/card.ts'
   import { dialogContentStore, dialogPasswordStore, promptNewPrivateCard } from '$lib/dialog'
   import { attemptGetFromClipboard } from '$lib/clipboard'
   import { aesGcmEncrypt } from '$lib/encryption'

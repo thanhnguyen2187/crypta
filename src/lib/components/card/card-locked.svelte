@@ -1,13 +1,13 @@
 <script lang="ts">
-  import IconLock from '../svg/icon-ion-lock-128.svelte'
-  import IconUnlock from '../svg/icon-ion-unlock-128.svelte'
-  import IconTrashIon from '../svg/icon-ion-trash-24.svelte'
-  import IconExpandIon from '../svg/icon-ion-expand-24.svelte'
-  import IconEye from '../svg/icon-ion-eye-24.svelte'
-  import IconEyeOff from '../svg/icon-ion-eye-off-24.svelte'
-  import IconKey from '../svg/icon-ion-key-24.svelte'
-  import IconCopyIon from '../svg/icon-ion-copy-24.svelte'
-  import { showToaster } from './toaster.ts'
+  import IconLock from '../../../svg/icon-ion-lock-128.svelte'
+  import IconUnlock from '../../../svg/icon-ion-unlock-128.svelte'
+  import IconTrashIon from '../../../svg/icon-ion-trash-24.svelte'
+  import IconExpandIon from '../../../svg/icon-ion-expand-24.svelte'
+  import IconEye from '../../../svg/icon-ion-eye-24.svelte'
+  import IconEyeOff from '../../../svg/icon-ion-eye-off-24.svelte'
+  import IconKey from '../../../svg/icon-ion-key-24.svelte'
+  import IconCopyIon from '../../../svg/icon-ion-copy-24.svelte'
+  import { showToaster } from '../../toaster.ts'
   import {
     dialogStateStore,
     dialogActionStore,

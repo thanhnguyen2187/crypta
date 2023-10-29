@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Card from './card.svelte'
-  import CardPlaceHolding from './card-placeholding.svelte'
+  import Card from './components/card/card.svelte'
+  import CardPlaceHolding from './components/card/card-placeholding.svelte'
   import {
     addNewCard,
     duplicateCard,
@@ -9,9 +9,9 @@
     removeCard,
     replaceCard,
     toLockedCard
-  } from './card.ts'
+  } from './components/card/card.ts'
   import autoAnimate from '@formkit/auto-animate'
-  import { injectCard, newEmptyCard } from './card.js'
+  import { injectCard, newEmptyCard } from './components/card/card.ts'
   import { dialogActionStore, dialogStateStore, dialogPasswordStore } from './dialog'
 
   let draggedId = ''

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import IconClipboardIon from '../svg/icon-ion-clipboard-24.svelte'
-  import IconAdd from '../svg/icon-ion-add-256.svelte'
-  import IconExpandIon from '../svg/icon-ion-expand-24.svelte';
+  import IconClipboardIon from '../../../svg/icon-ion-clipboard-24.svelte'
+  import IconAdd from '../../../svg/icon-ion-add-256.svelte'
+  import IconExpandIon from '../../../svg/icon-ion-expand-24.svelte';
 
   export let title = 'Sample Clojure'
   export let content = '(println "Hello world")'

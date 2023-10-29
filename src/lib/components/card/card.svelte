@@ -1,11 +1,11 @@
 <script lang="ts">
-  import IconExpandIon from '../svg/icon-ion-expand-24.svelte'
-  import IconLockIon from '../svg/icon-ion-lock-24.svelte'
-  import IconTrashIon from '../svg/icon-ion-trash-24.svelte'
-  import IconCopyIon from '../svg/icon-ion-copy-24.svelte'
+  import IconExpandIon from '../../../svg/icon-ion-expand-24.svelte'
+  import IconLockIon from '../../../svg/icon-ion-lock-24.svelte'
+  import IconTrashIon from '../../../svg/icon-ion-trash-24.svelte'
+  import IconCopyIon from '../../../svg/icon-ion-copy-24.svelte'
   import type { Card, CardState } from './card.ts'
   import { fade } from 'svelte/transition'
-  import { showToaster } from './toaster.ts'
+  import { showToaster } from '../../toaster.ts'
   import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/dialog';
   import { replaceCard, toLockedCard, updateCard } from './card.ts';
 
