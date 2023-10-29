@@ -1,7 +1,7 @@
 <script lang="ts">
   import Toaster from '$lib/toaster.svelte'
-  import Gallery from '$lib/gallery.svelte'
-  import GalleryPrivate from '$lib/gallery-private.svelte'
+  import Gallery from '$lib/components/gallery/gallery.svelte'
+  import GalleryPrivate from '$lib/components/gallery/gallery-private.svelte'
   import VisibilitySwitcher from '$lib/visibility-switcher.svelte'
   import FolderSwitcher from '$lib/folder-switcher.svelte'
   import Dialog from '$lib/dialog.svelte'
