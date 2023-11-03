@@ -17,6 +17,15 @@ export type Settings = {
   password: string
 }
 
+export type DataState = 'conflicted' | 'synchronized' | 'localOnly'
+export type RawDataState = {
+  [id: string]: {
+    localRecord: {}
+    remoteRecord: {}
+    state: DataState
+  }
+}
+
 export const defaultSettings: Settings = {
   serverURL: '',
   username: '',

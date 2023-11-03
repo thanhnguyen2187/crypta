@@ -17,7 +17,6 @@ export type Card = {
   updatedAt: number
 }
 
-// TODO: card state
 const snippetStore = await createSnippetStore()
 export const cardStateStore = writable<{[id: string]: CardState}>({})
 export const cardStore = derived(
