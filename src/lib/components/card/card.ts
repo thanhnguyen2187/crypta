@@ -2,7 +2,7 @@ import { writable, derived, get } from 'svelte/store'
 import { append, inject, remove, replace } from '$lib/utitlities/array-manipulation'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption';
 import type { Snippet } from '$lib/utitlities/persistence'
-import { createSnippetStore } from '$lib/utitlities/persistence'
+import { createLocalSnippetStore } from '$lib/utitlities/persistence'
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -17,10 +17,10 @@ export type Card = {
   updatedAt: number
 }
 
-const snippetStore = await createSnippetStore()
+const localSnippetStore = await createLocalSnippetStore()
 export const cardStateStore = writable<{[id: string]: CardState}>({})
 export const cardStore = derived(
-  [snippetStore, cardStateStore],
+  [localSnippetStore, cardStateStore],
   (([snippets, cardStates]) => {
     return snippets.map(
       snippet => ({
@@ -81,7 +81,7 @@ export function updateCardState(id: string, state: CardState): void {
 export async function updateCard(card: Card) {
   card.updatedAt = new Date().getTime()
   const snippet = cardToSnippet(card)
-  await snippetStore.upsert(snippet)
+  await localSnippetStore.upsert(snippet)
 }
 
 /**
@@ -93,7 +93,7 @@ export async function injectCard(movingId: string, pivotId: string) {
     return
   }
 
-  const snippets = get(snippetStore)
+  const snippets = get(localSnippetStore)
   const movingSnippet = snippets.find(snippet => snippet.id === movingId)
   if (!movingSnippet) {
     return
@@ -120,8 +120,8 @@ export async function injectCard(movingId: string, pivotId: string) {
       pivotSnippet.position,
       movingSnippet.position,
     ]
-    await snippetStore.upsert(movingSnippet)
-    await snippetStore.upsert(pivotSnippet)
+    await localSnippetStore.upsert(movingSnippet)
+    await localSnippetStore.upsert(pivotSnippet)
     return
   }
 
@@ -130,7 +130,7 @@ export async function injectCard(movingId: string, pivotId: string) {
   } else {
     movingSnippet.position = (previousPivotPosition + pivotSnippet.position) / 2
   }
-  await snippetStore.upsert(movingSnippet)
+  await localSnippetStore.upsert(movingSnippet)
 }
 
 export async function addNewCard(card: Card) {
@@ -141,16 +141,16 @@ export async function addNewCard(card: Card) {
   } else {
     snippet.position = 1
   }
-  await snippetStore.upsert(snippet)
+  await localSnippetStore.upsert(snippet)
 }
 
 export async function removeCard(id: string) {
-  await snippetStore.remove(id)
+  await localSnippetStore.remove(id)
 }
 
 export async function replaceCard(id: string, card: Card) {
   const snippet = cardToSnippet(card)
-  await snippetStore.upsert(snippet)
+  await localSnippetStore.upsert(snippet)
 }
 
 export async function toLockedCard(card: Card, password: string): Promise<Card> {

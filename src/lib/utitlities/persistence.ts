@@ -17,15 +17,6 @@ export type Settings = {
   password: string
 }
 
-export type DataState = 'conflicted' | 'synchronized' | 'localOnly'
-export type RawDataState = {
-  [id: string]: {
-    localRecord: {}
-    remoteRecord: {}
-    state: DataState
-  }
-}
-
 export const defaultSettings: Settings = {
   serverURL: '',
   username: '',
@@ -94,7 +85,7 @@ export async function deleteSnippet(id: string, folderName: string = 'default') 
   await folderHandle.removeEntry(`${id}.json`)
 }
 
-export async function createSnippetStore() {
+export async function createLocalSnippetStore() {
   const snippets = await readSnippets()
   const store = writable(snippets)
   const {subscribe, set, update} = store
