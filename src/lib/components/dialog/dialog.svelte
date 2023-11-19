@@ -12,10 +12,13 @@
   import IconEye from '../../../svg/icon-ion-eye-24.svelte'
   import IconEyeOff from '../../../svg/icon-ion-eye-off-24.svelte'
   import IconReloadCircle from '../../../svg/icon-ion-reload-circle-24.svelte'
+  import IconAlertCircle from '../../../svg/icon-ion-alert-circle-24.svelte'
+  import IconCheckmarkCircle from '../../../svg/icon-ion-checkmark-circle-24.svelte'
   import IconReload from '../../../svg/icon-ion-reload-24.svelte'
-  import { writeSettings } from '../../utitlities/persistence'
+  import { writeSettings } from '$lib/utitlities/persistence'
 
   let privateContentVisible = false
+  let inputWidth = 0
 
   function handlePasswordKeyDown(e: KeyboardEvent) {
     switch (e.key) {
@@ -71,6 +74,7 @@
       rounded-xl
       px-4 py-2 border-2 gap-2
     "
+    bind:offsetWidth={inputWidth}
   >
     {#if $dialogStateStore === 'confirm'}
       <div>Are you sure you want to do this?</div>
@@ -150,9 +154,17 @@
         class="flex justify-between"
       >
         <div>Server</div>
-        <div class="animate-spin">
-          <IconReloadCircle/>
-        </div>
+        {#await $dialogSettingsStateStore}
+          <div class="animate-spin">
+            <IconReloadCircle/>
+          </div>
+        {:then stateStore}
+          {#if stateStore === 'error'}
+            <IconAlertCircle/>
+          {:else if stateStore === 'connected'}
+            <IconCheckmarkCircle/>
+          {/if}
+        {/await}
       </div>
       <input
         class="border-2 rounded px-2"
@@ -178,11 +190,14 @@
         on:keydown={handleSettingsKeyDown}
         spellcheck="false"
       />
-      <div>
+      <div
+        style="width: 219px"
+      >
         {#await $dialogSettingsStateStore}
-          waiting
         {:then stateStore}
-          {stateStore}
+          {#if stateStore === 'error'}
+            Please check your connection settings
+          {/if}
         {/await}
       </div>
     {/if}
