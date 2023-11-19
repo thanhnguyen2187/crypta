@@ -30,8 +30,20 @@ export const dialogSettingsStateStore = derived(
       if (!settings.serverURL) {
         return 'blank' as SettingsState
       }
-      await fetch(`${settings.serverURL}/api/v1/alive`)
-      return 'connected' as SettingsState
+      const encodedAuthorization = Buffer.from(`${settings.username}:${settings.password}`).toString('base64')
+      const response = await fetch(
+        `${settings.serverURL}/api/v1/alive`,
+        {
+          headers: {
+            Authorization: `Basic ${encodedAuthorization}`
+          },
+        },
+      )
+      const responseJSON = await response.json()
+
+      if (responseJSON.alive) {
+        return 'connected' as SettingsState
+      }
     } catch (error: unknown) {
       if (error instanceof TypeError) {
         console.error({
@@ -44,8 +56,9 @@ export const dialogSettingsStateStore = derived(
           error,
         })
       }
-      return 'error' as SettingsState
     }
+
+    return 'error' as SettingsState
   })
 
 /**

@@ -14,7 +14,6 @@
   import IconReloadCircle from '../../../svg/icon-ion-reload-circle-24.svelte'
   import IconAlertCircle from '../../../svg/icon-ion-alert-circle-24.svelte'
   import IconCheckmarkCircle from '../../../svg/icon-ion-checkmark-circle-24.svelte'
-  import IconReload from '../../../svg/icon-ion-reload-24.svelte'
   import { writeSettings } from '$lib/utitlities/persistence'
 
   let privateContentVisible = false
