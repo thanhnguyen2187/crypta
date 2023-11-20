@@ -128,6 +128,7 @@ export async function readSettings() {
   const text = await file.text()
   const savedSettings = text ? JSON.parse(text) : {}
 
+  // use default settings if no settings are found
   return Object.assign(
     {},
     defaultSettings,
