@@ -16,6 +16,8 @@
     language: '',
     state: 'default',
     encrypted: false,
+    createdAt: new Date().getDay(),
+    updatedAt: new Date().getDay(),
     position: 0,
   }
   export let contentState: 'default' | 'hoveredOn' = 'default'
