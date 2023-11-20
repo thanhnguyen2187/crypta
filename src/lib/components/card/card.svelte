@@ -3,6 +3,8 @@
   import IconLockIon from '../../../svg/icon-ion-lock-24.svelte'
   import IconTrashIon from '../../../svg/icon-ion-trash-24.svelte'
   import IconCopyIon from '../../../svg/icon-ion-copy-24.svelte'
+  import IconCloudOfflineIon from '../../../svg/icon-ion-cloud-offline-24.svelte'
+  import IconAlertCircleIon from '../../../svg/icon-ion-alert-circle-24.svelte'
   import type { Card, CardState } from './card.ts'
   import { fade } from 'svelte/transition'
   import { showToaster } from '../toaster/toaster.ts'
@@ -41,9 +43,14 @@
 </script>
 
 <div
-  class="flex flex-col w-80 border-2 rounded-2xl transition-opacity"
+  class="flex flex-col w-80 border-2 rounded-2xl transition-opacity relative"
   class:opacity-50={card.state === 'draggedOut'}
 >
+  <div
+    class="absolute -top-[12px] -right-[12px] opacity-50 hidden"
+  >
+    <IconAlertCircleIon/>
+  </div>
   <div
     class="flex justify-between"
   >
