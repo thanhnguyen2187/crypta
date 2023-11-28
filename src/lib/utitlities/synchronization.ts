@@ -10,21 +10,22 @@ export type DataState = {
   }
 }
 
-export async function createRemoteSnippetStore() {
-  const settings = get(dialogSettingsStore)
-  const endpoint = `${settings.serverURL}/api/v1/snippets`
+const remoteSnippetStore = derived(
+  dialogSettingsStateStore,
+  async (connectionState) => {
+    if (connectionState !== 'connected') {
+      return []
+    }
 
-  const store = derived(
-    dialogSettingsStateStore,
-    async (settingsStatePromise) => {
-      const settingsState = await settingsStatePromise
-      if (settingsState !== 'connected') {
-        return []
-      }
+    const settings = get(dialogSettingsStore)
+    const endpoint = `${settings.serverURL}/api/v1/snippets`
+    const response = await fetch(endpoint)
+    if (response.status !== 200) {
+      // should log or find some way to indicate that there was a problem
+      return []
+    }
 
-      return await fetch(endpoint)
-    },
-  )
-
-  return store
-}
+    const responseJson = await response.json()
+    return responseJson.data
+  }
+)
