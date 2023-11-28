@@ -153,17 +153,15 @@
         class="flex justify-between"
       >
         <div>Server</div>
-        {#await $dialogSettingsStateStore}
+        {#if $dialogSettingsStateStore === 'connecting'}
           <div class="animate-spin">
             <IconReloadCircle/>
           </div>
-        {:then stateStore}
-          {#if stateStore === 'error'}
-            <IconAlertCircle/>
-          {:else if stateStore === 'connected'}
-            <IconCheckmarkCircle/>
-          {/if}
-        {/await}
+        {:else if $dialogSettingsStateStore === 'error'}
+          <IconAlertCircle/>
+        {:else if $dialogSettingsStateStore === 'connected'}
+          <IconCheckmarkCircle/>
+        {/if}
       </div>
       <input
         class="border-2 rounded px-2"
@@ -192,12 +190,13 @@
       <div
         style="width: 219px"
       >
-        {#await $dialogSettingsStateStore}
-        {:then stateStore}
-          {#if stateStore === 'error'}
-            Please check your connection settings
-          {/if}
-        {/await}
+        {#if $dialogSettingsStateStore === 'connecting'}
+          Connecting...
+        {:else if $dialogSettingsStateStore === 'error'}
+          Please make sure that the server is reachable and correct.
+        {:else if $dialogSettingsStateStore === 'connected'}
+          Connected!
+        {/if}
       </div>
     {/if}
   </div>

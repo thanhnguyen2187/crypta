@@ -1,7 +1,9 @@
 import { derived, get, readable, writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import type { Settings } from '../../utitlities/persistence'
 import { defaultSettings, readSettings, writeSettings } from '../../utitlities/persistence'
 import { throttle } from '$lib/utitlities/throttle';
+import { debounce } from '$lib/utitlities/debounce';
 
 export type DialogState =
   'hidden' |
@@ -22,7 +24,8 @@ export const dialogContentStore = writable('')
 export const dialogActionStore = writable<(() => void) | undefined>()
 export const dialogSettingsStore = writable<Settings>(await readSettings())
 export const dialogTickerStore = createTickerStore(5000)
-export const dialogSettingsStateStore = derived(
+export const dialogSettingsStateStore: Readable<ConnectionState> = createConnectionStateStore()
+export const dialogSettingsStateStore_ = derived(
   dialogTickerStore,
   async () => {
     // TODO: implement state where it is erred, but the settings also changed
@@ -100,40 +103,44 @@ export function createTickerStore(intervalMs: number = 1000) {
   })
 }
 
-export function createConnectionStateStore() {
-  let state: ConnectionState = 'blank'
-  const {set, update, subscribe} = writable<ConnectionState>(state)
-  type Action = 'clearInput' | 'userInput' | 'connectError' | 'connectSuccess'
+export function createConnectionStateStore(): Readable<ConnectionState> {
+  const {set, update, subscribe} = writable<ConnectionState>('blank')
 
-  function moveState(action: Action) {
-    switch (action) {
-      case 'userInput':
-        state = 'connecting'
-        break
-      case 'connectError':
-        state = 'error'
-        break
-      case 'connectSuccess':
-        state = 'connected'
-        break
-      case 'clearInput':
-        state = 'blank'
-        break
-    }
-    set(state)
-  }
-
-  const [onSettingsChanged, cancelOnSettingsChanged] = throttle(
-    (settings: Settings) => {
+  dialogSettingsStore.subscribe(
+    (settings) => {
       if (!settings.serverURL) {
-        moveState('clearInput')
-      } else {
-        moveState('userInput')
+        set('blank')
+        return
       }
-    },
-    2_000, // 2 second
+      set('connecting')
+    }
   )
-  dialogSettingsStore.subscribe(onSettingsChanged, cancelOnSettingsChanged)
+  dialogSettingsStore.subscribe(
+    debounce(
+      async (settings) => {
+        if (!settings.serverURL) {
+          return
+        }
+
+        const encodedAuthorization = Buffer.from(`${settings.username}:${settings.password}`).toString('base64')
+        const response = await fetch(
+          `${settings.serverURL}/api/v1/alive`,
+          {
+            headers: {
+              Authorization: `Basic ${encodedAuthorization}`
+            },
+          },
+        )
+        if (response.status !== 200) {
+          set('error')
+          return
+        }
+
+        set('connected')
+      },
+      2_000,
+    )
+  )
 
   return {
     subscribe,
