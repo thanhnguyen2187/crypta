@@ -25,45 +25,6 @@ export const dialogActionStore = writable<(() => void) | undefined>()
 export const dialogSettingsStore = writable<Settings>(await readSettings())
 export const dialogTickerStore = createTickerStore(5000)
 export const dialogSettingsStateStore: Readable<ConnectionState> = createConnectionStateStore()
-export const dialogSettingsStateStore_ = derived(
-  dialogTickerStore,
-  async () => {
-    // TODO: implement state where it is erred, but the settings also changed
-    try {
-      const settings = get(dialogSettingsStore)
-      if (!settings.serverURL) {
-        return 'blank' as ConnectionState
-      }
-      const encodedAuthorization = Buffer.from(`${settings.username}:${settings.password}`).toString('base64')
-      const response = await fetch(
-        `${settings.serverURL}/api/v1/alive`,
-        {
-          headers: {
-            Authorization: `Basic ${encodedAuthorization}`
-          },
-        },
-      )
-      const responseJSON = await response.json()
-
-      if (responseJSON.alive) {
-        return 'connected' as ConnectionState
-      }
-    } catch (error: unknown) {
-      if (error instanceof TypeError) {
-        console.error({
-          message: 'check server alive error',
-          error,
-        })
-      } else {
-        console.error({
-          message: 'unknown type error',
-          error,
-        })
-      }
-    }
-
-    return 'error' as ConnectionState
-  })
 
 /**
  * Display a prompt for password, then do a certain action/callback after the
