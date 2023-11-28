@@ -104,7 +104,30 @@ export function createTickerStore(intervalMs: number = 1000) {
 }
 
 export function createConnectionStateStore(): Readable<ConnectionState> {
-  const {set, update, subscribe} = writable<ConnectionState>('blank')
+  const store = writable<ConnectionState>('blank')
+  const {set, update, subscribe} = store
+
+  async function checkConnection(settings: Settings) {
+    if (!settings.serverURL) {
+      return
+    }
+
+    const encodedAuthorization = Buffer.from(`${settings.username}:${settings.password}`).toString('base64')
+    const response = await fetch(
+      `${settings.serverURL}/api/v1/alive`,
+      {
+        headers: {
+          Authorization: `Basic ${encodedAuthorization}`
+        },
+      },
+    )
+    if (response.status !== 200) {
+      set('error')
+      return
+    }
+
+    set('connected')
+  }
 
   dialogSettingsStore.subscribe(
     (settings) => {
@@ -116,30 +139,13 @@ export function createConnectionStateStore(): Readable<ConnectionState> {
     }
   )
   dialogSettingsStore.subscribe(
-    debounce(
-      async (settings) => {
-        if (!settings.serverURL) {
-          return
-        }
-
-        const encodedAuthorization = Buffer.from(`${settings.username}:${settings.password}`).toString('base64')
-        const response = await fetch(
-          `${settings.serverURL}/api/v1/alive`,
-          {
-            headers: {
-              Authorization: `Basic ${encodedAuthorization}`
-            },
-          },
-        )
-        if (response.status !== 200) {
-          set('error')
-          return
-        }
-
-        set('connected')
-      },
-      2_000,
-    )
+    debounce(checkConnection, 2_000)
+  )
+  dialogTickerStore.subscribe(
+    () => {
+      const settings = get(dialogSettingsStore)
+      checkConnection(settings)
+    }
   )
 
   return {
