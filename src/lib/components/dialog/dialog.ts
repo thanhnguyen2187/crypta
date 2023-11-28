@@ -1,6 +1,7 @@
 import { derived, get, readable, writable } from 'svelte/store'
 import type { Settings } from '../../utitlities/persistence'
 import { defaultSettings, readSettings, writeSettings } from '../../utitlities/persistence'
+import { throttle } from '$lib/utitlities/throttle';
 
 export type DialogState =
   'hidden' |
@@ -9,7 +10,7 @@ export type DialogState =
   'new-private-card' |
   'settings'
 
-export type SettingsState =
+export type ConnectionState =
   'blank' |
   'connecting' |
   'connected' |
@@ -28,7 +29,7 @@ export const dialogSettingsStateStore = derived(
     try {
       const settings = get(dialogSettingsStore)
       if (!settings.serverURL) {
-        return 'blank' as SettingsState
+        return 'blank' as ConnectionState
       }
       const encodedAuthorization = Buffer.from(`${settings.username}:${settings.password}`).toString('base64')
       const response = await fetch(
@@ -42,7 +43,7 @@ export const dialogSettingsStateStore = derived(
       const responseJSON = await response.json()
 
       if (responseJSON.alive) {
-        return 'connected' as SettingsState
+        return 'connected' as ConnectionState
       }
     } catch (error: unknown) {
       if (error instanceof TypeError) {
@@ -58,7 +59,7 @@ export const dialogSettingsStateStore = derived(
       }
     }
 
-    return 'error' as SettingsState
+    return 'error' as ConnectionState
   })
 
 /**
@@ -97,4 +98,44 @@ export function createTickerStore(intervalMs: number = 1000) {
 
     return () => clearInterval(interval)
   })
+}
+
+export function createConnectionStateStore() {
+  let state: ConnectionState = 'blank'
+  const {set, update, subscribe} = writable<ConnectionState>(state)
+  type Action = 'clearInput' | 'userInput' | 'connectError' | 'connectSuccess'
+
+  function moveState(action: Action) {
+    switch (action) {
+      case 'userInput':
+        state = 'connecting'
+        break
+      case 'connectError':
+        state = 'error'
+        break
+      case 'connectSuccess':
+        state = 'connected'
+        break
+      case 'clearInput':
+        state = 'blank'
+        break
+    }
+    set(state)
+  }
+
+  const [onSettingsChanged, cancelOnSettingsChanged] = throttle(
+    (settings: Settings) => {
+      if (!settings.serverURL) {
+        moveState('clearInput')
+      } else {
+        moveState('userInput')
+      }
+    },
+    2_000, // 2 second
+  )
+  dialogSettingsStore.subscribe(onSettingsChanged, cancelOnSettingsChanged)
+
+  return {
+    subscribe,
+  }
 }
