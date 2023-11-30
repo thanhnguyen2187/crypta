@@ -3,6 +3,7 @@ import { append, inject, remove, replace } from '$lib/utitlities/array-manipulat
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption';
 import type { Snippet } from '$lib/utitlities/persistence'
 import { createLocalSnippetStore } from '$lib/utitlities/persistence'
+import { remoteSnippetStore } from '$lib/utitlities/synchronization';
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -18,9 +19,19 @@ export type Card = {
 }
 
 const localSnippetStore = await createLocalSnippetStore()
+const allSnippetsStore = derived(
+  [localSnippetStore, remoteSnippetStore],
+  ([localSnippets, remoteSnippets]) => {
+    debugger
+    return [
+      ...localSnippets,
+      ...remoteSnippets,
+    ]
+  }
+)
 export const cardStateStore = writable<{[id: string]: CardState}>({})
 export const cardStore = derived(
-  [localSnippetStore, cardStateStore],
+  [allSnippetsStore, cardStateStore],
   (([snippets, cardStates]) => {
     return snippets.map(
       snippet => ({
