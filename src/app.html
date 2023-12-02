@@ -9,8 +9,12 @@
 	<body
 		data-sveltekit-preload-data="hover"
 		data-theme="skeleton"
-		class="no-scrollbar"
 	>
-		<div style="display: contents">%sveltekit.body%</div>
+		<div
+			style="display: contents"
+			class="h-full overflow-hidden"
+		>
+			%sveltekit.body%
+		</div>
 	</body>
 </html>
