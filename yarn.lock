@@ -223,6 +223,18 @@
   resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.27.8.tgz#6667fac16c436b5434a387a34dedb013198f6e6e"
   integrity sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==
 
+"@skeletonlabs/skeleton@^2.5.1":
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/@skeletonlabs/skeleton/-/skeleton-2.5.1.tgz#8d8aab315f5598f09d68250e94b54c68b39d21a2"
+  integrity sha512-llzzKr6PQV1MUsJybdo3Z0SaVwm00KDf8DKhlVTt3X3fbCjIbS9rK6sLzJKZO01L/cQYtAzdVXv9CxALtIuy0w==
+  dependencies:
+    esm-env "1.0.0"
+
+"@skeletonlabs/tw-plugin@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@skeletonlabs/tw-plugin/-/tw-plugin-0.2.4.tgz#6b8c926a272445237ee64d27d1017f66d24d8132"
+  integrity sha512-DmOFMV6jhhvnub/TANB62nJJqxfMBby5Kxwe/Mn3DTxHuJLZj8B47Ta2K5sl/or2B8MaMfny8ocvPAzd6lrMtQ==
+
 "@sveltejs/adapter-auto@^2.0.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@sveltejs/adapter-auto/-/adapter-auto-2.1.0.tgz#cb36fd7081e3c4b1c9a9192b1a23c8c82dce8a1b"
@@ -916,7 +928,7 @@ escalade@^3.1.1:
   resolved "https://registry.yarnpkg.com/escalade/-/escalade-3.1.1.tgz#d8cfdc7000965c5a0174b4a82eaa5c0552742e40"
   integrity sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==
 
-esm-env@^1.0.0:
+esm-env@1.0.0, esm-env@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/esm-env/-/esm-env-1.0.0.tgz#b124b40b180711690a4cb9b00d16573391950413"
   integrity sha512-Cf6VksWPsTuW01vU9Mk/3vRue91Zevka5SjyNf3nEpokFRuqt/KjUQoGAwq9qMmhpLTHmXzSIrFRw8zxWzmFBA==

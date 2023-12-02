@@ -27,20 +27,5 @@
 <div
   class="flex justify-between"
 >
-  <FolderSwitcher/>
-  <div
-    class="flex flex-col"
-    use:autoAnimate
-  >
-    <Header/>
-    {#if $sectionState === 'public'}
-      <Gallery/>
-    {:else}
-      <GalleryPrivate/>
-    {/if}
-  </div>
-  <VisibilitySwitcher/>
+  Hello world
 </div>
-
-<Toaster/>
-<Dialog/>
