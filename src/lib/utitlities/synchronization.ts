@@ -1,13 +1,14 @@
 import { derived, get, writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import { dialogSettingsStateStore, dialogSettingsStore, dialogStateStore } from '$lib/components/dialog/dialog'
-import type { Settings, Snippet } from '$lib/utitlities/persistence';
+import type { Settings, Snippet } from '$lib/utitlities/persistence'
 
-export type SyncState = 'conflicted' | 'synchronized' | 'localOnly'
+export type SyncState = 'conflicted' | 'synchronized' | 'localOnly' | 'remoteOnly'
 export type DataState = {
   [id: string]: {
-    localRecord: {}
-    remoteRecord: {}
-    syncState: SyncState
+    localRecord?: Snippet
+    remoteRecord?: Snippet
+    syncState?: SyncState
   }
 }
 
@@ -33,7 +34,7 @@ async function fetchRemoteSnippets(settings: Settings) {
   return responseJson.data
 }
 
-export function createRemoteSnippetStore() {
+export function createRemoteSnippetStore(): Readable<Snippet[]> {
   const store = writable([])
   const {set, update, subscribe} = store
 
@@ -54,4 +55,17 @@ export function createRemoteSnippetStore() {
   return {
     subscribe,
   }
+}
+
+export function compareSnippets(localSnippet: Snippet | undefined, remoteSnippet: Snippet | undefined): SyncState {
+  if (!remoteSnippet) {
+    return 'localOnly'
+  }
+  if (!localSnippet) {
+    return 'remoteOnly'
+  }
+  if (localSnippet.updatedAt !== remoteSnippet.updatedAt) {
+    return 'conflicted'
+  }
+  return 'synchronized'
 }

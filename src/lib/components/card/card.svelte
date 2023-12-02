@@ -9,7 +9,8 @@
   import { fade } from 'svelte/transition'
   import { showToaster } from '../toaster/toaster.ts'
   import { dialogActionStore, dialogPasswordStore, dialogStateStore } from '$lib/components/dialog/dialog';
-  import { replaceCard, toLockedCard, updateCard } from './card.ts';
+  // import { dataSt }
+  import { replaceCard, toLockedCard, updateCard, dataStateStore } from './card.ts';
 
   export let card: Card = {
     id: '',
@@ -47,9 +48,19 @@
   class:opacity-50={card.state === 'draggedOut'}
 >
   <div
-    class="absolute -top-[12px] -right-[12px] opacity-50 hidden"
+    class="group absolute -top-[12px] -right-[12px]"
+    class:hidden={$dataStateStore[card.id].syncState === 'synchronized'}
   >
     <IconAlertCircleIon/>
+    <span
+      class="absolute left-0 -top-6 opacity-0 transition-opacity group-hover:opacity-100 w-40"
+    >
+      {#if $dataStateStore[card.id].syncState === 'localOnly'}
+        There was problem synchronizing with server.
+      {:else if $dataStateStore[card.id].syncState === 'remoteOnly'}
+        There was problem writing the server's record down.
+      {/if}
+    </span>
   </div>
   <div
     class="flex justify-between"

@@ -34,14 +34,13 @@
     }
   }
 
-  function hideOverlay() {
-    $dialogStateStore = 'hidden'
-  }
-
   async function handleSettingsKeyDown(e: KeyboardEvent) {
     switch (e.key) {
       case 'Enter':
         await writeSettings($dialogSettingsStore)
+        $dialogStateStore = 'hidden'
+        break
+      case 'Escape':
         $dialogStateStore = 'hidden'
         break
     }

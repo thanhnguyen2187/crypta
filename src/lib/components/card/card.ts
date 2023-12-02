@@ -1,9 +1,9 @@
 import { writable, derived, get } from 'svelte/store'
-import { append, inject, remove, replace } from '$lib/utitlities/array-manipulation'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption';
 import type { Snippet } from '$lib/utitlities/persistence'
 import { createLocalSnippetStore } from '$lib/utitlities/persistence'
-import { remoteSnippetStore } from '$lib/utitlities/synchronization';
+import { compareSnippets, remoteSnippetStore } from '$lib/utitlities/synchronization'
+import type { DataState } from '$lib/utitlities/synchronization'
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -19,16 +19,42 @@ export type Card = {
 }
 
 const localSnippetStore = await createLocalSnippetStore()
+
 const allSnippetsStore = derived(
   [localSnippetStore, remoteSnippetStore],
   ([localSnippets, remoteSnippets]) => {
-    debugger
     return [
       ...localSnippets,
       ...remoteSnippets,
     ]
   }
 )
+
+export const dataStateStore = derived(
+  [localSnippetStore, remoteSnippetStore],
+  ([localSnippets, remoteSnippets]) => {
+    const dataState: DataState = {}
+    debugger
+    for (const localSnippet of localSnippets) {
+      dataState[localSnippet.id] = {
+        localRecord: localSnippet,
+        syncState: 'localOnly',
+      }
+    }
+    for (const remoteSnippet of remoteSnippets) {
+      dataState[remoteSnippet.id] = {
+        syncState: 'remoteOnly',
+        remoteRecord: remoteSnippet,
+      }
+    }
+
+    for (const [id, holder] of Object.entries(dataState)) {
+      dataState[id].syncState = compareSnippets(holder.localRecord, holder.remoteRecord)
+    }
+    return dataState
+  }
+)
+
 export const cardStateStore = writable<{[id: string]: CardState}>({})
 export const cardStore = derived(
   [allSnippetsStore, cardStateStore],
