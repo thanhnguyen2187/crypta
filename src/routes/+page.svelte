@@ -1,14 +1,7 @@
 <script lang="ts">
-  import Toaster from '$lib/components/toaster/toaster.svelte'
-  import Gallery from '$lib/components/gallery/gallery.svelte'
-  import GalleryPrivate from '$lib/components/gallery/gallery-private.svelte'
-  import VisibilitySwitcher from '$lib/components/header/visibility-switcher.svelte'
-  import FolderSwitcher from '$lib/components/header/folder-switcher.svelte'
-  import Dialog from '$lib/components/dialog/dialog.svelte'
-  import Header from '$lib/components/header/header.svelte'
-  import autoAnimate from '@formkit/auto-animate'
+  import { AppBar, AppShell, AppRail, AppRailTile, AppRailAnchor, CodeBlock } from '@skeletonlabs/skeleton'
 
-  import { sectionState } from '$lib/store'
+  let currentTile: number = 0
 </script>
 
 <style>
@@ -24,8 +17,74 @@
   }
 </style>
 
-<div
-  class="flex justify-between"
+<AppShell
 >
-  Hello world
-</div>
+  <svelte:fragment slot="header">
+    <AppBar gridColumns="grid-cols-3">
+      <svelte:fragment slot="lead">
+        <div></div>
+      </svelte:fragment>
+      <input class="input" type="text" placeholder="Search here..."/>
+      <svelte:fragment slot="trail">
+        <button
+          class="btn-icon variant-filled"
+        >
+          <i class="fa-xl fa-solid fa-gear"></i>
+        </button>
+      </svelte:fragment>
+    </AppBar>
+  </svelte:fragment>
+  <div
+    class="p-4 grid grid-cols-4 gap-4"
+  >
+    <div
+      class="card p-4"
+    >
+      <header
+        class="card-header flex gap-4 justify-between"
+      >
+        <h3 class="h3">Card title</h3>
+        <button
+          class="btn btn-sm variant-filled"
+        >
+          <i class="fa-xl fa-solid fa-ellipsis-v"></i>
+        </button>
+      </header>
+      <section
+        class="p-4"
+      >
+        <CodeBlock
+          code="(println 'Hello world')"
+        />
+      </section>
+      <footer
+        class="card-footer"
+      >
+        <span class="chip variant-filled">
+          Tag 1
+        </span>
+        <span class="chip variant-filled">
+          Tag 2
+        </span>
+      </footer>
+    </div>
+    <div
+      class="card p-4 class-hover"
+    >Basic</div>
+    <div
+      class="card p-4 class-hover"
+    >Basic</div>
+  </div>
+  <svelte:fragment
+    slot="sidebarLeft"
+  >
+    <AppRail>
+      <AppRailTile bind:group={currentTile} value={0}>Default</AppRailTile>
+      <AppRailTile bind:group={currentTile} value={1}>Company</AppRailTile>
+      <AppRailTile bind:group={currentTile} value={2}>Personal</AppRailTile>
+      <AppRailTile bind:group={currentTile} value={3}>
+        <i class="fa-xl fa-solid fa-add"></i>
+      </AppRailTile>
+    </AppRail>
+  </svelte:fragment>
+</AppShell>
