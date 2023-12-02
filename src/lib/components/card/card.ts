@@ -34,7 +34,6 @@ export const dataStateStore = derived(
   [localSnippetStore, remoteSnippetStore],
   ([localSnippets, remoteSnippets]) => {
     const dataState: DataState = {}
-    debugger
     for (const localSnippet of localSnippets) {
       dataState[localSnippet.id] = {
         localRecord: localSnippet,
