@@ -18,7 +18,7 @@ export type Card = {
   updatedAt: number
 }
 
-const localSnippetStore = await createLocalSnippetStore()
+export const localSnippetStore = await createLocalSnippetStore()
 
 const allSnippetsStore = derived(
   [localSnippetStore, remoteSnippetStore],
