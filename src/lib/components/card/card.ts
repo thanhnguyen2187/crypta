@@ -4,6 +4,7 @@ import type { Snippet } from '$lib/utitlities/persistence'
 import { createLocalSnippetStore } from '$lib/utitlities/persistence'
 import { compareSnippets, remoteSnippetStore } from '$lib/utitlities/synchronization'
 import type { DataState } from '$lib/utitlities/synchronization'
+import { globalTagsStore } from '../../../routes/global-store';
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -19,6 +20,19 @@ export type Card = {
 }
 
 export const localSnippetStore = await createLocalSnippetStore()
+export const displaySnippetsStore = derived(
+  [localSnippetStore, globalTagsStore],
+  ([localSnippets, globalTags]) => {
+    if (globalTags.size === 0) {
+      return localSnippets
+    }
+
+    const filteredSnippets = localSnippets.filter(
+      snippet => snippet.tags.some(tag => globalTags.has(tag))
+    )
+    return filteredSnippets
+  }
+)
 
 const allSnippetsStore = derived(
   [localSnippetStore, remoteSnippetStore],

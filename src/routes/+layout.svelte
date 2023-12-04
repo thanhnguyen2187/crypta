@@ -46,7 +46,6 @@
         <input type="text" placeholder="Search..."/>
         <div
           class="flex gap-1"
-          class:hidden={($globalTagsStore).length === 0}
         >
           {#each $globalTagsStore as tag}
             <span
