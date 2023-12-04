@@ -16,20 +16,17 @@
   import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
   import { storePopup } from "@skeletonlabs/skeleton";
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
-  import {localSnippetStore} from "$lib/components/card/card.js";
+  import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
 
   initializeStores();
   const modalStore = getModalStore()
-  const settingsModal: ModalSettings = {
-      type: 'component',
-      component: 'settings',
-  }
 
   let currentTile: number = 0
   storePopup.set({computePosition, autoUpdate, offset, shift, flip, arrow})
 
   const modalRegistry = {
     settings: {ref: ModalSettings},
+    snippet: {ref: ModalSnippet},
   }
 </script>
 
@@ -60,7 +57,10 @@
             target: 'tooltip-settings',
             placement: 'bottom',
           }}
-          on:click={() => modalStore.trigger(settingsModal)}
+          on:click={() => modalStore.trigger({
+            type: 'component',
+            component: 'settings',
+          })}
         >
           <i class="fa-xl fa-solid fa-gear"></i>
         </button>
