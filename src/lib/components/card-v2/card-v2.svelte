@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { CodeBlock, popup } from '@skeletonlabs/skeleton'
+  import { CodeBlock, getModalStore, popup } from '@skeletonlabs/skeleton'
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
   import { localSnippetStore } from '$lib/components/card/card';
   import { createNewSnippet } from '$lib/utitlities/persistence'
+
+  const modalStore = getModalStore()
 
   export let snippet: Snippet = {
     id: '',
@@ -40,7 +42,18 @@
     {
       text: 'Delete',
       faIconClass: 'fa-trash',
-      callback: () => localSnippetStore.remove(snippet.id),
+      callback: () => {
+        modalStore.trigger({
+          type: 'confirm',
+          title: 'Are you sure about this action?',
+          body: 'The record would be deleted completely!',
+          response: (r: boolean) => {
+            if (r) {
+              localSnippetStore.remove(snippet.id)
+            }
+          }
+        })
+      },
     },
   ]
 </script>
