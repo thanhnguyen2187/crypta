@@ -92,6 +92,19 @@ export async function createLocalSnippetStore() {
 
   return {
     subscribe,
+    clone: async (snippet: Snippet) => {
+      const newSnippet = {
+        ...snippet,
+        id: crypto.randomUUID(),
+      }
+      await persistSnippet(newSnippet)
+      update(
+        snippets => {
+          snippets.push(newSnippet)
+          return snippets
+        }
+      )
+    },
     upsert: async (snippet: Snippet) => {
       await persistSnippet(snippet)
       update(
