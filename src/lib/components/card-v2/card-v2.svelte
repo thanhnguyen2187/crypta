@@ -5,6 +5,7 @@
   import { localSnippetStore } from '$lib/components/card/card';
   import { createNewSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
+  import { globalTagsStore } from '../../../routes/global-store';
 
   const modalStore = getModalStore()
 
@@ -103,7 +104,7 @@
       </div>
     </header>
     <section
-      class="m-4 h-40 overflow-y-scroll hide-scrollbar"
+      class="m-4 max-h-40 overflow-y-scroll hide-scrollbar"
     >
     {#if !snippet.encrypted}
       <CodeBlock
@@ -114,17 +115,20 @@
       <LockIcon />
     {/if}
     </section>
-    <footer class="card-footer">
-      <span class="chip variant-filled-primary">Tag 1</span>
-      <span class="chip variant-filled-primary">Tag 2</span>
+    <footer class="card-footer flex gap-1">
+      {#each snippet.tags as tag}
+        <span
+          class="chip variant-filled"
+          on:click={() => globalTagsStore.add(tag)}
+        >{tag}</span>
+      {/each}
+
+      {#if snippet.tags.length === 0}
+        <span class="chip variant-ghost">no tag yet</span>
+      {/if}
     </footer>
   {:else}
-    <header
-      class="card-header flex gap-4 justify-between invisible"
-    >
-      <h3 class="h3">Placeholder</h3>
-    </header>
-    <section class="m-4 h-40 flex flex-col justify-center items-center">
+    <section class="p-4 h-full flex flex-col justify-center items-center">
       <button class="btn variant-filled" on:click={() => localSnippetStore.upsert(createNewSnippet())}>
         <i class="fa-solid fa-add fa-9x"></i>
       </button>

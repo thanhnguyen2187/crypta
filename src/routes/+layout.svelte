@@ -17,8 +17,9 @@
   import { storePopup } from "@skeletonlabs/skeleton";
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
+  import { globalTagsStore } from './global-store';
 
-  initializeStores();
+  initializeStores()
   const modalStore = getModalStore()
 
   let currentTile: number = 0
@@ -38,7 +39,25 @@
       <svelte:fragment slot="lead">
         <div></div>
       </svelte:fragment>
-      <input class="input" type="text" placeholder="Search here..."/>
+      <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+        <div class="input-group-shim">
+          <i class="fa-solid fa-search"></i>
+        </div>
+        <input type="text" placeholder="Search..."/>
+        <div
+          class="flex gap-1"
+          class:hidden={($globalTagsStore).length === 0}
+        >
+          {#each $globalTagsStore as tag}
+            <span
+              class="chip variant-filled"
+              on:click={() => globalTagsStore.remove(tag)}
+            >
+              {tag}
+            </span>
+          {/each}
+        </div>
+      </div>
       <svelte:fragment slot="trail">
         <button
           class="btn-icon variant-filled"

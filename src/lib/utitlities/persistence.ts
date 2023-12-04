@@ -5,6 +5,7 @@ export type Snippet = {
   name: string
   language: string
   text: string
+  tags: string[]
   encrypted: boolean
   position: number
   updatedAt: number
@@ -91,6 +92,7 @@ export function createNewSnippet(): Snippet {
     name: 'Untitled',
     language: 'plaintext',
     text: 'To be filled',
+    tags: [],
     encrypted: false,
     position: 0,
     updatedAt: new Date().getTime(),
