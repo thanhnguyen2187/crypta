@@ -4,6 +4,7 @@
   import LockIcon from './lock-icon.svelte'
   import { localSnippetStore } from '$lib/components/card/card';
   import { createNewSnippet } from '$lib/utitlities/persistence'
+  import { modalSnippetStore } from '$lib/components/modal-snippet/store'
 
   const modalStore = getModalStore()
 
@@ -37,7 +38,13 @@
     {
       text: 'Edit',
       faIconClass: 'fa-edit',
-      callback: () => {},
+      callback: () => {
+        modalSnippetStore.set(snippet)
+        modalStore.trigger({
+          type: 'component',
+          component: 'snippet',
+        })
+      },
     },
     {
       text: 'Delete',
