@@ -72,7 +72,7 @@
     <header
       class="card-header flex gap-4 justify-between"
     >
-      <h3 class="h3">{snippet.name}</h3>
+      <h3 class="h3 truncate">{snippet.name}</h3>
       <button
         use:popup={{
           event: 'click',
