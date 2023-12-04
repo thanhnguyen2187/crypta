@@ -3,8 +3,8 @@
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
   import { localSnippetStore } from '$lib/components/card/card';
+  import { createNewSnippet } from '$lib/utitlities/persistence'
 
-  let lockMouseState = 'none' | 'hover' | 'active'
   export let snippet: Snippet = {
     id: '',
     name: '',
@@ -40,17 +40,7 @@
     {
       text: 'Delete',
       faIconClass: 'fa-trash',
-      callback: () => {},
-    },
-    {
-      text: 'Import',
-      faIconClass: 'fa-file-import',
-      callback: () => {},
-    },
-    {
-      text: 'Export',
-      faIconClass: 'fa-file-export',
-      callback: () => {},
+      callback: () => localSnippetStore.remove(snippet.id),
     },
   ]
 </script>
@@ -58,42 +48,43 @@
 <div
   class="card p-4"
 >
-  <header
-    class="card-header flex gap-4 justify-between"
-  >
-    <h3 class="h3">{snippet.name}</h3>
-    <button
-      use:popup={{
-        event: 'click',
-        target: 'card-actions-' + snippet.id,
-        placement: 'right',
-      }}
-      class="btn btn-sm variant-filled"
+  {#if snippet.id !== 'new-card'}
+    <header
+      class="card-header flex gap-4 justify-between"
     >
-      <i class="fa-xl fa-solid fa-ellipsis-v"></i>
-    </button>
-    <div
-      data-popup="card-actions-{snippet.id}"
-      class="z-10"
+      <h3 class="h3">{snippet.name}</h3>
+      <button
+        use:popup={{
+          event: 'click',
+          target: 'card-actions-' + snippet.id,
+          placement: 'right',
+        }}
+        class="btn btn-sm variant-filled"
+      >
+        <i class="fa-xl fa-solid fa-ellipsis-v"></i>
+      </button>
+      <div
+        data-popup="card-actions-{snippet.id}"
+        class="z-10"
+      >
+        <!--Use `z-10` to make it displays above AppShell-->
+        <ul class="list-nav variant-filled gap-2 rounded-container-token">
+          {#each cardActions as cardAction}
+            <li>
+              <button class="w-full" on:click={() => cardAction.callback()}>
+                <span>
+                <i class="fa-solid {cardAction.faIconClass}"></i>
+                </span>
+                <span>{cardAction.text}</span>
+              </button>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </header>
+    <section
+      class="m-4 h-40 overflow-y-scroll hide-scrollbar"
     >
-      <!--Use `z-10` to make it displays above AppShell-->
-      <ul class="list-nav variant-filled gap-2 rounded-container-token">
-        {#each cardActions as cardAction}
-          <li>
-            <button class="w-full">
-            <span>
-              <i class="fa-solid {cardAction.faIconClass}"></i>
-            </span>
-              <span>{cardAction.text}</span>
-            </button>
-          </li>
-        {/each}
-      </ul>
-    </div>
-  </header>
-  <section
-    class="m-4 h-40 overflow-y-scroll hide-scrollbar"
-  >
     {#if !snippet.encrypted}
       <CodeBlock
         language={snippet.language}
@@ -102,15 +93,21 @@
     {:else}
       <LockIcon />
     {/if}
-  </section>
-  <footer
-    class="card-footer"
-  >
-    <span class="chip variant-filled-primary">
-      Tag 1
-    </span>
-    <span class="chip variant-filled-primary">
-      Tag 2
-    </span>
-  </footer>
+    </section>
+    <footer class="card-footer">
+      <span class="chip variant-filled-primary">Tag 1</span>
+      <span class="chip variant-filled-primary">Tag 2</span>
+    </footer>
+  {:else}
+    <header
+      class="card-header flex gap-4 justify-between invisible"
+    >
+      <h3 class="h3">Placeholder</h3>
+    </header>
+    <section class="m-4 h-40 flex flex-col justify-center items-center">
+      <button class="btn variant-filled" on:click={() => localSnippetStore.upsert(createNewSnippet())}>
+        <i class="fa-solid fa-add fa-9x"></i>
+      </button>
+    </section>
+  {/if}
 </div>

@@ -85,6 +85,19 @@ export async function deleteSnippet(id: string, folderName: string = 'default') 
   await folderHandle.removeEntry(`${id}.json`)
 }
 
+export function createNewSnippet(): Snippet {
+  return {
+    id: crypto.randomUUID(),
+    name: 'Untitled',
+    language: 'plaintext',
+    text: 'To be filled',
+    encrypted: false,
+    position: 0,
+    updatedAt: new Date().getTime(),
+    createdAt: new Date().getTime(),
+  }
+}
+
 export async function createLocalSnippetStore() {
   const snippets = await readSnippets()
   const store = writable(snippets)
@@ -93,9 +106,12 @@ export async function createLocalSnippetStore() {
   return {
     subscribe,
     clone: async (snippet: Snippet) => {
-      const newSnippet = {
+      const newSnippet: Snippet = {
         ...snippet,
         id: crypto.randomUUID(),
+        position: snippets.length + 1,
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
       }
       await persistSnippet(newSnippet)
       update(
@@ -113,6 +129,7 @@ export async function createLocalSnippetStore() {
           if (index !== -1) {
             snippets[index] = snippet
           } else {
+            snippet.position = snippets.length + 1
             snippets.push(snippet)
           }
           return snippets
