@@ -19,9 +19,9 @@ export type Card = {
   updatedAt: number
 }
 
-export const localSnippetStore = await createLocalSnippetStore()
+export const localSnippetsStore = await createLocalSnippetStore()
 export const displaySnippetsStore = derived(
-  [localSnippetStore, globalTagsStore, globalSearchStore],
+  [localSnippetsStore, globalTagsStore, globalSearchStore],
   ([localSnippets, globalTags, globalSearch]) => {
     globalSearch = globalSearch.toLowerCase()
     const filteredSnippets = localSnippets.filter(
@@ -42,7 +42,7 @@ export const displaySnippetsStore = derived(
 )
 
 const allSnippetsStore = derived(
-  [localSnippetStore, remoteSnippetStore],
+  [localSnippetsStore, remoteSnippetStore],
   ([localSnippets, remoteSnippets]) => {
     return [
       ...localSnippets,
@@ -52,7 +52,7 @@ const allSnippetsStore = derived(
 )
 
 export const dataStateStore = derived(
-  [localSnippetStore, remoteSnippetStore],
+  [localSnippetsStore, remoteSnippetStore],
   ([localSnippets, remoteSnippets]) => {
     const dataState: DataState = {}
     for (const localSnippet of localSnippets) {
@@ -138,7 +138,7 @@ export function updateCardState(id: string, state: CardState): void {
 export async function updateCard(card: Card) {
   card.updatedAt = new Date().getTime()
   const snippet = cardToSnippet(card)
-  await localSnippetStore.upsert(snippet)
+  await localSnippetsStore.upsert(snippet)
 }
 
 /**
@@ -150,7 +150,7 @@ export async function injectCard(movingId: string, pivotId: string) {
     return
   }
 
-  const snippets = get(localSnippetStore)
+  const snippets = get(localSnippetsStore)
   const movingSnippet = snippets.find(snippet => snippet.id === movingId)
   if (!movingSnippet) {
     return
@@ -177,8 +177,8 @@ export async function injectCard(movingId: string, pivotId: string) {
       pivotSnippet.position,
       movingSnippet.position,
     ]
-    await localSnippetStore.upsert(movingSnippet)
-    await localSnippetStore.upsert(pivotSnippet)
+    await localSnippetsStore.upsert(movingSnippet)
+    await localSnippetsStore.upsert(pivotSnippet)
     return
   }
 
@@ -187,7 +187,7 @@ export async function injectCard(movingId: string, pivotId: string) {
   } else {
     movingSnippet.position = (previousPivotPosition + pivotSnippet.position) / 2
   }
-  await localSnippetStore.upsert(movingSnippet)
+  await localSnippetsStore.upsert(movingSnippet)
 }
 
 export async function addNewCard(card: Card) {
@@ -198,16 +198,16 @@ export async function addNewCard(card: Card) {
   } else {
     snippet.position = 1
   }
-  await localSnippetStore.upsert(snippet)
+  await localSnippetsStore.upsert(snippet)
 }
 
 export async function removeCard(id: string) {
-  await localSnippetStore.remove(id)
+  await localSnippetsStore.remove(id)
 }
 
 export async function replaceCard(id: string, card: Card) {
   const snippet = cardToSnippet(card)
-  await localSnippetStore.upsert(snippet)
+  await localSnippetsStore.upsert(snippet)
 }
 
 export async function toLockedCard(card: Card, password: string): Promise<Card> {

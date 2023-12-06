@@ -2,7 +2,7 @@
   import { CodeBlock, getModalStore, popup } from '@skeletonlabs/skeleton'
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
-  import { localSnippetStore } from '$lib/components/card/card';
+  import { localSnippetsStore } from '$lib/components/card/card';
   import { createNewSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { globalTagsStore } from '../../../routes/global-store';
@@ -34,7 +34,7 @@
     {
       text: 'Duplicate',
       faIconClass: 'fa-copy',
-      callback: () => localSnippetStore.clone(snippet),
+      callback: () => localSnippetsStore.clone(snippet),
     },
     {
       text: 'Edit',
@@ -57,7 +57,7 @@
           body: 'The record would be deleted completely!',
           response: (r: boolean) => {
             if (r) {
-              localSnippetStore.remove(snippet.id)
+              localSnippetsStore.remove(snippet.id)
             }
           }
         })
@@ -129,7 +129,7 @@
     </footer>
   {:else}
     <section class="p-4 h-full flex flex-col justify-center items-center">
-      <button class="btn variant-filled" on:click={() => localSnippetStore.upsert(createNewSnippet())}>
+      <button class="btn variant-filled" on:click={() => localSnippetsStore.upsert(createNewSnippet())}>
         <i class="fa-solid fa-add fa-9x"></i>
       </button>
     </section>

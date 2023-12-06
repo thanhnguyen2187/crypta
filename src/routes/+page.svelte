@@ -1,6 +1,6 @@
 <script lang="ts">
   import CardV2 from '$lib/components/card-v2/card-v2.svelte'
-  import { displaySnippetsStore, localSnippetStore } from '$lib/components/card/card'
+  import { displaySnippetsStore, localSnippetsStore } from '$lib/components/card/card'
   import autoAnimate from '@formkit/auto-animate'
 
 </script>

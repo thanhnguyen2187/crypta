@@ -1,6 +1,6 @@
 <script lang="ts">
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
-  import { localSnippetStore } from '$lib/components/card/card'
+  import { localSnippetsStore } from '$lib/components/card/card'
   import { format } from '$lib/utitlities/date'
   import { onMount } from 'svelte';
   import type { Snippet } from '$lib/utitlities/persistence'
@@ -22,7 +22,7 @@
   }
 
   function upsert() {
-    localSnippetStore.upsert(snippet)
+    localSnippetsStore.upsert(snippet)
     modalStore.clear()
   }
 </script>
