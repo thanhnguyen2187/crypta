@@ -17,6 +17,7 @@
   import { storePopup } from "@skeletonlabs/skeleton";
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
+  import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
   import { globalSearchStore, globalTagsStore } from './global-store';
 
   initializeStores()
@@ -28,6 +29,7 @@
   const modalRegistry = {
     settings: {ref: ModalSettings},
     snippet: {ref: ModalSnippet},
+    locker: {ref: ModalLocker},
   }
 </script>
 

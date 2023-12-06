@@ -14,6 +14,7 @@
     name: '',
     language: '',
     text: '',
+    tags: [],
     encrypted: false,
     position: 0,
     createdAt: 0,
@@ -29,7 +30,12 @@
     {
       text: 'Lock',
       faIconClass: 'fa-lock',
-      callback: () => {},
+      callback: () => {
+        modalStore.trigger({
+          type: 'component',
+          component: 'locker',
+        })
+      },
     },
     {
       text: 'Duplicate',
