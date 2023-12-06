@@ -19,3 +19,4 @@ export function createTagsStore() {
 }
 
 export const globalTagsStore = createTagsStore()
+export const globalSearchStore = writable<string>('')

@@ -4,7 +4,7 @@ import type { Snippet } from '$lib/utitlities/persistence'
 import { createLocalSnippetStore } from '$lib/utitlities/persistence'
 import { compareSnippets, remoteSnippetStore } from '$lib/utitlities/synchronization'
 import type { DataState } from '$lib/utitlities/synchronization'
-import { globalTagsStore } from '../../../routes/global-store';
+import { globalSearchStore, globalTagsStore } from '../../../routes/global-store';
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {
@@ -21,14 +21,21 @@ export type Card = {
 
 export const localSnippetStore = await createLocalSnippetStore()
 export const displaySnippetsStore = derived(
-  [localSnippetStore, globalTagsStore],
-  ([localSnippets, globalTags]) => {
-    if (globalTags.size === 0) {
-      return localSnippets
-    }
-
+  [localSnippetStore, globalTagsStore, globalSearchStore],
+  ([localSnippets, globalTags, globalSearch]) => {
+    globalSearch = globalSearch.toLowerCase()
     const filteredSnippets = localSnippets.filter(
-      snippet => snippet.tags.some(tag => globalTags.has(tag))
+      snippet => {
+        const snippetTags = new Set(snippet.tags)
+        const searchingFound =
+          snippet.name.toLowerCase().includes(globalSearch) ||
+          snippet.text.toLowerCase().includes(globalSearch)
+        // make sure that the snippet's tags include every global tag
+        const taggingFound = Array
+          .from(globalTags.keys())
+          .every(globalTag => snippetTags.has(globalTag))
+        return searchingFound && taggingFound
+      }
     )
     return filteredSnippets
   }

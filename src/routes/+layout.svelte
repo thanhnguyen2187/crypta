@@ -17,7 +17,7 @@
   import { storePopup } from "@skeletonlabs/skeleton";
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
-  import { globalTagsStore } from './global-store';
+  import { globalSearchStore, globalTagsStore } from './global-store';
 
   initializeStores()
   const modalStore = getModalStore()
@@ -43,7 +43,7 @@
         <div class="input-group-shim">
           <i class="fa-solid fa-search"></i>
         </div>
-        <input type="text" placeholder="Search..."/>
+        <input type="text" placeholder="Search..." bind:value={$globalSearchStore}/>
         <div
           class="flex gap-1"
         >
