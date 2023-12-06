@@ -1,14 +1,14 @@
 <script lang="ts">
   import "../app.postcss";
   import {
-      AppBar,
-      AppRail,
-      AppRailTile,
-      AppShell,
-      getModalStore,
-      initializeStores,
-      Modal,
-      popup
+    AppBar,
+    AppRail,
+    AppRailTile,
+    AppShell,
+    getModalStore,
+    initializeStores,
+    Modal, ModalComponent,
+    popup
   } from '@skeletonlabs/skeleton';
   import '@fortawesome/fontawesome-free/css/fontawesome.css';
   import '@fortawesome/fontawesome-free/css/brands.css';
@@ -26,7 +26,7 @@
   let currentTile: number = 0
   storePopup.set({computePosition, autoUpdate, offset, shift, flip, arrow})
 
-  const modalRegistry = {
+  const modalRegistry: Record<string, ModalComponent> = {
     settings: {ref: ModalSettings},
     snippet: {ref: ModalSnippet},
     locker: {ref: ModalLocker},
