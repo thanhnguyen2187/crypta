@@ -3,7 +3,7 @@
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
   import { localSnippetsStore } from '$lib/components/card/card';
-  import { createNewSnippet } from '$lib/utitlities/persistence'
+  import { createNewSnippet, lockSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { globalTagsStore } from '../../../routes/global-store';
 
@@ -34,6 +34,11 @@
         modalStore.trigger({
           type: 'component',
           component: 'locker',
+          response: ({password}: {password: string}) => {
+            lockSnippet(snippet, password).then(
+              lockedSnippet => localSnippetsStore.upsert(lockedSnippet)
+            )
+          },
         })
       },
     },

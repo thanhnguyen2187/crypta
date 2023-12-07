@@ -14,8 +14,9 @@
   }
 
   function returnPassword() {
-    // TODO: fix error in here `modalStore[0].response is not a function`
-    $modalStore[0].response({password})
+    if ($modalStore[0].response) {
+      $modalStore[0].response({password})
+    }
     modalStore.clear()
   }
 </script>
