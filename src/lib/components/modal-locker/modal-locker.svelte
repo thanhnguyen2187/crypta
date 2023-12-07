@@ -59,7 +59,7 @@
       class="btn variant-filled"
       on:click={returnPassword}
     >
-      Save
+      Submit
     </button>
   </div>
 </div>

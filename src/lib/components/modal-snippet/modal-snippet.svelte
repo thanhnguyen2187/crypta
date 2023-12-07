@@ -14,6 +14,10 @@
     loadFromStore()
   })
 
+  function clear() {
+    modalStore.clear()
+  }
+
   function loadFromStore() {
     snippet = {
       ...($modalSnippetStore),
@@ -66,6 +70,10 @@
     </label>
   </section>
   <footer class="card-footer flex gap-2 justify-end">
+    <button class="btn variant-ghost" on:click={clear}>
+      <i class="fa-solid fa-cancel"></i>
+      <span>Cancel</span>
+    </button>
     <button class="btn variant-filled" on:click={loadFromStore}>
       <i class="fa-solid fa-refresh"></i>
       <span>Reload</span>

@@ -7,6 +7,7 @@
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { globalTagsStore } from '../../../routes/global-store';
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
+  import { fade } from 'svelte/transition'
 
   const modalStore = getModalStore()
 
@@ -130,6 +131,7 @@
 
 <div
   class="card p-4"
+  transition:fade
 >
   {#if snippet.id !== 'new-card'}
     <header
