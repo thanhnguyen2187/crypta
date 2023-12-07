@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import { aesGcmEncrypt } from '$lib/utitlities/encryption'
+import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 
 export type Snippet = {
   id: string
@@ -109,6 +109,16 @@ export async function lockSnippet(oldSnippet: Snippet, password: string): Promis
     updatedAt: new Date().getTime(),
   }
 }
+
+export async function unlockSnippet(oldSnippet: Snippet, password: string): Promise<Snippet> {
+  return {
+    ...oldSnippet,
+    encrypted: false,
+    text: await aesGcmDecrypt(oldSnippet.text, password),
+    updatedAt: new Date().getTime(),
+  }
+}
+
 
 export async function createLocalSnippetStore() {
   const snippets = await readSnippets()

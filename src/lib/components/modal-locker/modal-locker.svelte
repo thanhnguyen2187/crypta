@@ -1,5 +1,6 @@
 <script lang="ts">
   import { getModalStore } from '@skeletonlabs/skeleton';
+  import { lockerShowWarningStore } from './store'
 
   const modalStore = getModalStore()
   let password = ''
@@ -19,6 +20,12 @@
     }
     modalStore.clear()
   }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+      returnPassword()
+    }
+  }
 </script>
 
 <div
@@ -31,12 +38,15 @@
       type="password"
       bind:value={password}
       on:focusout={markDirty}
+      on:keydown={handleKeydown}
     />
   </label>
-  <div>
-    Please be noticed that once the snippet is locked, the only way to unlock it
-    is to use the same password!
-  </div>
+  {#if $lockerShowWarningStore}
+    <div>
+      Please be noticed that once the data is encrypted, the only way to decrypt
+      it is to use the same password!
+    </div>
+  {/if}
 
   <div class="flex justify-end gap-2">
     <button

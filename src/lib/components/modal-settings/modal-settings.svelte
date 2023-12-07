@@ -10,7 +10,7 @@
       <span>Folder name</span>
       <input class="input" type="text" placeholder="Default"/>
     </label>
-    <SlideToggle>Show locked cards</SlideToggle>
+    <SlideToggle name="showLockedCards">Show locked cards</SlideToggle>
     <div
       class="flex gap-4"
     >

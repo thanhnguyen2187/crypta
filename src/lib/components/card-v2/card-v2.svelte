@@ -3,9 +3,10 @@
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
   import { localSnippetsStore } from '$lib/components/card/card';
-  import { createNewSnippet, lockSnippet } from '$lib/utitlities/persistence'
+  import { createNewSnippet, lockSnippet, unlockSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { globalTagsStore } from '../../../routes/global-store';
+  import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
 
   const modalStore = getModalStore()
 
@@ -26,55 +27,105 @@
     faIconClass: string
     callback: () => void
   }
-  const cardActions: CardAction[] = [
-    {
-      text: 'Lock',
-      faIconClass: 'fa-lock',
-      callback: () => {
-        modalStore.trigger({
-          type: 'component',
-          component: 'locker',
-          response: ({password}: {password: string}) => {
-            lockSnippet(snippet, password).then(
-              lockedSnippet => localSnippetsStore.upsert(lockedSnippet)
-            )
-          },
-        })
-      },
-    },
-    {
-      text: 'Duplicate',
-      faIconClass: 'fa-copy',
-      callback: () => localSnippetsStore.clone(snippet),
-    },
-    {
-      text: 'Edit',
-      faIconClass: 'fa-edit',
-      callback: () => {
-        modalSnippetStore.set(snippet)
-        modalStore.trigger({
-          type: 'component',
-          component: 'snippet',
-        })
-      },
-    },
-    {
-      text: 'Delete',
-      faIconClass: 'fa-trash',
-      callback: () => {
-        modalStore.trigger({
-          type: 'confirm',
-          title: 'Are you sure about this action?',
-          body: 'The record would be deleted completely!',
-          response: (r: boolean) => {
-            if (r) {
-              localSnippetsStore.remove(snippet.id)
-            }
+  const actionLock: CardAction = {
+    text: 'Lock',
+    faIconClass: 'fa-lock',
+    callback: () => {
+      $lockerShowWarningStore = true
+      modalStore.trigger({
+        type: 'component',
+        component: 'locker',
+        response: (data: {password: string} | undefined) => {
+          if (!data) {
+            return
           }
-        })
-      },
+          const {password} = data
+
+          lockSnippet(snippet, password).then(
+            lockedSnippet => localSnippetsStore.upsert(lockedSnippet)
+          )
+        },
+      })
     },
+  }
+  const actionUnlock: CardAction = {
+    text: 'Unlock',
+    faIconClass: 'fa-unlock',
+    callback: () => {
+      $lockerShowWarningStore = false
+      modalStore.trigger({
+        type: 'component',
+        component: 'locker',
+        response: (data: {password: string} | undefined) => {
+          if (!data) {
+            return
+          }
+          const {password} = data
+
+          unlockSnippet(snippet, password).then(
+            unlockedSnippet => localSnippetsStore.upsert(unlockedSnippet)
+          ).catch(e => {
+            console.error(e)
+            setTimeout(() => modalStore.trigger({
+              type: 'alert',
+              title: 'Unable to unlock the card',
+              body: 'Please recheck your password!',
+            }), 500)
+          })
+        },
+      })
+    },
+  }
+  const actionDuplicate: CardAction = {
+    text: 'Duplicate',
+    faIconClass: 'fa-copy',
+    callback: () => localSnippetsStore.clone(snippet),
+  }
+  const actionEdit: CardAction = {
+    text: 'Edit',
+    faIconClass: 'fa-edit',
+    callback: () => {
+      modalSnippetStore.set(snippet)
+      modalStore.trigger({
+        type: 'component',
+        component: 'snippet',
+      })
+    },
+  }
+  const actionDelete: CardAction = {
+    text: 'Delete',
+    faIconClass: 'fa-trash',
+    callback: () => {
+      modalStore.trigger({
+        type: 'confirm',
+        title: 'Are you sure about this action?',
+        body: 'The record would be deleted completely!',
+        response: (r: boolean) => {
+          if (r) {
+            localSnippetsStore.remove(snippet.id)
+          }
+        }
+      })
+    },
+  }
+
+  const freeCardActions: CardAction[] = [
+    actionLock,
+    actionEdit,
+    actionDuplicate,
+    actionDelete,
   ]
+  const lockedCardActions: CardAction[] = [
+    actionUnlock,
+    actionDelete,
+  ]
+
+  let cardActions: CardAction[] = []
+  $: {
+    cardActions = snippet.encrypted
+      ? lockedCardActions
+      : freeCardActions
+  }
 </script>
 
 <div
@@ -123,7 +174,9 @@
         code={snippet.text}
       />
     {:else}
-      <LockIcon />
+      <button class="w-full h-full" on:click={actionUnlock.callback}>
+        <LockIcon />
+      </button>
     {/if}
     </section>
     <footer class="card-footer flex gap-1">

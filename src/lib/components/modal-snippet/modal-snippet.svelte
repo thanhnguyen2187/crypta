@@ -50,7 +50,7 @@
     </label>
     <label>
       <span>Tags</span>
-      <InputChip value={snippet.tags}/>
+      <InputChip name="tags" value={snippet.tags}/>
     </label>
     <label class="label">
       <span>ID</span>
