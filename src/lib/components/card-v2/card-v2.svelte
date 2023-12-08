@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CodeBlock, getModalStore, popup } from '@skeletonlabs/skeleton'
+  import { CodeBlock, getModalStore, popup, clipboard } from '@skeletonlabs/skeleton'
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
   import { localSnippetsStore } from '$lib/components/card/card';
@@ -12,6 +12,7 @@
   const modalStore = getModalStore()
   let state: 'default' | 'locked' | 'unlocked' = 'default'
   let unlockedVisibility: 'hidden' | 'visible' = 'hidden'
+  let hiddenCopyClass = 'fa-copy'
 
   export let snippet: Snippet = {
     id: '',
@@ -115,7 +116,7 @@
   }
   const actionDuplicate: CardAction = {
     text: 'Duplicate',
-    faIconClass: 'fa-copy',
+    faIconClass: 'fa-clone',
     callback: () => localSnippetsStore.clone(snippet),
   }
   const actionEdit: CardAction = {
@@ -179,6 +180,16 @@
         {#if state === 'unlocked' && unlockedVisibility === 'hidden'}
           <button
             class="btn btn-sm variant-filled"
+            use:clipboard={snippet.text}
+            on:click={() => {
+              hiddenCopyClass = 'fa-check'
+              setTimeout(() => hiddenCopyClass = 'fa-copy', 1000)
+            }}
+          >
+            <i class="fa-solid {hiddenCopyClass}"></i>
+          </button>
+          <button
+            class="btn btn-sm variant-filled"
             on:click={() => unlockedVisibility = 'visible'}
           >
             <i class="fa-solid fa-eye"></i>
@@ -231,6 +242,8 @@
         />
       {:else if state === 'default' || unlockedVisibility === 'visible'}
         <CodeBlock
+          buttonLabel="Copy"
+          buttonCopied="✔️"
           language={snippet.language}
           code={snippet.text}
         />
