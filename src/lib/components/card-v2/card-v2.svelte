@@ -51,34 +51,6 @@
       })
     },
   }
-  const actionUnlock: CardAction = {
-    text: 'Unlock',
-    faIconClass: 'fa-key',
-    callback: () => {
-      $lockerShowWarningStore = false
-      modalStore.trigger({
-        type: 'component',
-        component: 'locker',
-        response: (data: {password: string} | undefined) => {
-          if (!data) {
-            return
-          }
-          const {password} = data
-
-          decryptSnippet(snippet, password).then(
-            unlockedSnippet => localSnippetsStore.upsert(unlockedSnippet)
-          ).catch(e => {
-            console.error(e)
-            setTimeout(() => modalStore.trigger({
-              type: 'alert',
-              title: 'Unable to unlock the card',
-              body: 'Please recheck your password!',
-            }), 500)
-          })
-        },
-      })
-    },
-  }
   const actionDecrypt: CardAction = {
     text: 'Decrypt',
     faIconClass: 'fa-unlock',
@@ -103,6 +75,37 @@
             setTimeout(() => modalStore.trigger({
               type: 'alert',
               title: 'Unable to decrypt the card',
+              body: 'Please recheck your password!',
+            }), 500)
+          })
+        },
+      })
+    },
+  }
+  const actionUnlock: CardAction = {
+    text: 'Unlock',
+    faIconClass: 'fa-key',
+    callback: () => {
+      $lockerShowWarningStore = false
+      modalStore.trigger({
+        type: 'component',
+        component: 'locker',
+        response: (data: {password: string} | undefined) => {
+          if (!data) {
+            return
+          }
+          const {password} = data
+
+          decryptSnippet(snippet, password).then(
+            unlockedSnippet => {
+              state = 'default'
+              localSnippetsStore.upsert(unlockedSnippet)
+            }
+          ).catch(e => {
+            console.error(e)
+            setTimeout(() => modalStore.trigger({
+              type: 'alert',
+              title: 'Unable to unlock the card',
               body: 'Please recheck your password!',
             }), 500)
           })
