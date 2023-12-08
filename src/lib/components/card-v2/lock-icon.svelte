@@ -1,18 +1,32 @@
 <script lang="ts">
   let state: 'default' | 'hovered' | 'active' = 'default'
+  export let encrypted = false
+  export let decryptCallback: () => void = () => {}
 </script>
 
-<div
-  on:mouseenter={() => state = 'hovered'}
-  on:mousedown={() => state = 'active'}
-  on:mouseup={() => state = 'hovered'}
-  on:mouseleave={() => state = 'default'}
-  class="w-full p-4 flex justify-center cursor-pointer"
->
-  <i
-    class="fa-solid fa-8x opacity-75"
-    class:fa-lock={state === 'default'}
-    class:fa-unlock={state === 'hovered' || state === 'active'}
-  ></i>
-</div>
+{#if encrypted}
+  <div
+    on:mouseenter={() => state = 'hovered'}
+    on:mousedown={() => state = 'active'}
+    on:click={decryptCallback}
+    on:mouseup={() => state = 'hovered'}
+    on:mouseleave={() => state = 'default'}
+    class="w-full p-4 flex justify-center cursor-pointer"
+  >
+    <i
+      class="fa-solid fa-8x opacity-75"
+      class:fa-lock={state === 'default'}
+      class:fa-unlock={state === 'hovered' || state === 'active'}
+    ></i>
+  </div>
+{:else}
+  <div
+    class="w-full p-4 flex justify-center"
+  >
+    <i
+      class="fa-solid fa-unlock fa-8x opacity-75"
+    ></i>
+  </div>
+{/if}
+
 

@@ -101,7 +101,7 @@ export function createNewSnippet(): Snippet {
   }
 }
 
-export async function lockSnippet(oldSnippet: Snippet, password: string): Promise<Snippet> {
+export async function encryptSnippet(oldSnippet: Snippet, password: string): Promise<Snippet> {
   return {
     ...oldSnippet,
     encrypted: true,
@@ -110,7 +110,7 @@ export async function lockSnippet(oldSnippet: Snippet, password: string): Promis
   }
 }
 
-export async function unlockSnippet(oldSnippet: Snippet, password: string): Promise<Snippet> {
+export async function decryptSnippet(oldSnippet: Snippet, password: string): Promise<Snippet> {
   return {
     ...oldSnippet,
     encrypted: false,
