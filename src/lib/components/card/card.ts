@@ -4,7 +4,7 @@ import type { Snippet } from '$lib/utitlities/persistence'
 import { createLocalSnippetStore } from '$lib/utitlities/persistence'
 import { compareSnippets, remoteSnippetStore } from '$lib/utitlities/synchronization'
 import type { DataState } from '$lib/utitlities/synchronization'
-import { globalSearchStore, globalTagsStore } from '../../../routes/global-store';
+import { globalSearchStore, globalTagsStore } from '$lib/utitlities/ephemera'
 
 export type CardState = 'default' | 'draggedOut' | 'beingHoverOver'
 export type Card = {

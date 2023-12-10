@@ -19,12 +19,11 @@
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
-  import { globalSearchStore, globalTagsStore } from './global-store';
+  import { globalSearchStore, globalTagsStore } from '$lib/utitlities/ephemera'
 
   initializeStores()
   const modalStore = getModalStore()
 
-  let currentTile: number = 0
   storePopup.set({computePosition, autoUpdate, offset, shift, flip, arrow})
 
   const modalRegistry: Record<string, ModalComponent> = {
@@ -106,13 +105,6 @@
   <svelte:fragment
     slot="sidebarLeft"
   >
-    <AppRail>
-      <AppRailTile bind:group={currentTile} name="0" value={0}>Default</AppRailTile>
-      <AppRailTile bind:group={currentTile} name="1" value={1}>Company</AppRailTile>
-      <AppRailTile bind:group={currentTile} name="2" value={2}>Personal</AppRailTile>
-      <AppRailTile bind:group={currentTile} name="3" value={3}>
-        <i class="fa-xl fa-solid fa-add"></i>
-      </AppRailTile>
-    </AppRail>
+
   </svelte:fragment>
 </AppShell>

@@ -5,7 +5,7 @@
   import { localSnippetsStore } from '$lib/components/card/card';
   import { createNewSnippet, encryptSnippet, decryptSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
-  import { globalTagsStore } from '../../../routes/global-store';
+  import { globalTagsStore } from '$lib/utitlities/ephemera';
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { fade } from 'svelte/transition'
 

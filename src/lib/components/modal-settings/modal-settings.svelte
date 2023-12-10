@@ -1,7 +1,7 @@
 <script lang="ts">
   import { SlideToggle } from '@skeletonlabs/skeleton'
-  import { globalFolderStore } from '../../../routes/global-store'
   import { catalogStore } from './store'
+  import { globalFolderStore } from '$lib/utitlities/ephemera'
 
   function handleDisplayNameChange(e: InputEvent) {
     const target = e.target as HTMLInputElement

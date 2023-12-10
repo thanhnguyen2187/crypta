@@ -29,6 +29,7 @@ export type Catalog = {
   [folderName: string]: {
     displayName: string
     showLockedCard: boolean
+    position: number
   }
 }
 
@@ -36,6 +37,7 @@ export const defaultCatalog: Catalog = {
   default: {
     displayName: 'Default',
     showLockedCard: true,
+    position: 0,
   }
 }
 
