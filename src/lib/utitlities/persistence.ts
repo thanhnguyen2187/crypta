@@ -1,5 +1,6 @@
-import { writable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
+import { globalFolderStore } from '$lib/utitlities/ephemera';
 
 export type Snippet = {
   id: string
@@ -26,18 +27,26 @@ export const defaultSettings: Settings = {
 }
 
 export type Catalog = {
-  [folderName: string]: {
-    displayName: string
-    showLockedCard: boolean
-    position: number
-  }
+  [id: string]: Folder
+}
+
+export type Folder = {
+  id: string
+  displayName: string
+  position: number
+  showLockedCard: boolean
+  updatedAt: number
+  createdAt: number
 }
 
 export const defaultCatalog: Catalog = {
   default: {
+    id: 'default',
     displayName: 'Default',
     showLockedCard: true,
     position: 0,
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime(),
   }
 }
 
@@ -137,9 +146,15 @@ export async function decryptSnippet(oldSnippet: Snippet, password: string): Pro
 
 
 export async function createLocalSnippetStore() {
-  const snippets = await readSnippets()
+  let snippets: Snippet[] = []
   const store = writable(snippets)
   const {subscribe, set, update} = store
+  globalFolderStore.subscribe(
+    async (id) => {
+      snippets = await readSnippets(id)
+      set(snippets)
+    }
+  )
 
   return {
     subscribe,
@@ -233,4 +248,15 @@ export async function writeCatalog(catalog: Catalog) {
   const writeable = await fileHandle.createWritable()
   await writeable.write(JSON.stringify(catalog))
   await writeable.close()
+}
+
+export function createNewFolder(): Folder {
+  return {
+    id: crypto.randomUUID(),
+    displayName: 'Untitled',
+    showLockedCard: true,
+    position: 0,
+    createdAt: new Date().getTime(),
+    updatedAt: new Date().getTime(),
+  }
 }

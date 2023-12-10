@@ -1,5 +1,6 @@
-import { writable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
 import { readCatalog, writeCatalog } from '$lib/utitlities/persistence'
+import type { Catalog, Folder } from '$lib/utitlities/persistence'
 
 export async function createCatalogStore() {
   const catalog = await readCatalog()
@@ -8,16 +9,35 @@ export async function createCatalogStore() {
 
   return {
     subscribe,
-    setDisplayName: (folderName: string, displayName: string) => {
-      catalog[folderName].displayName = displayName
+    upsert: (folder: Folder) => {
+      catalog[folder.id] = folder
       writeCatalog(catalog)
       set(catalog)
     },
-    setShowLockedCard: (folderName: string, showLockedCard: boolean) => {
-      catalog[folderName].showLockedCard = showLockedCard
+    setDisplayName: (id: string, displayName: string) => {
+      catalog[id].displayName = displayName
+      writeCatalog(catalog)
+      set(catalog)
+    },
+    setShowLockedCard: (id: string, showLockedCard: boolean) => {
+      catalog[id].showLockedCard = showLockedCard
       writeCatalog(catalog)
       set(catalog)
     },
   }
 }
+
 export const catalogStore = await createCatalogStore()
+export const foldersStore = derived(
+  catalogStore,
+  (catalog: Catalog) => {
+    return Object.entries(catalog).map(
+      ([id, data]) => {
+        return {
+          id: id,
+          displayName: data.displayName,
+        }
+      }
+    )
+  }
+)

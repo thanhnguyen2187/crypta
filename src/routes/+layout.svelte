@@ -20,6 +20,7 @@
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
   import { globalSearchStore, globalTagsStore } from '$lib/utitlities/ephemera'
+  import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
 
   initializeStores()
   const modalStore = getModalStore()
@@ -105,6 +106,6 @@
   <svelte:fragment
     slot="sidebarLeft"
   >
-
+    <SidebarFolder />
   </svelte:fragment>
 </AppShell>
