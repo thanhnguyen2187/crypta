@@ -233,7 +233,7 @@
       </div>
     </header>
     <section
-      class="m-4 max-h-40 overflow-y-scroll hide-scrollbar"
+      class="m-4 h-40 overflow-y-scroll hide-scrollbar"
     >
       {#if (state !== 'default' || snippet.encrypted) && unlockedVisibility === 'hidden'}
         <LockIcon
@@ -262,10 +262,18 @@
       {/if}
     </footer>
   {:else}
-    <section class="p-4 h-full flex flex-col justify-center items-center">
+    <header
+      class="card-header flex gap-4 justify-between invisible"
+    >
+      <h3 class="h3 truncate">Placeholder</h3>
+    </header>
+    <section class="m-4 h-40 flex flex-col justify-center items-center">
       <button class="btn variant-filled" on:click={() => localSnippetsStore.upsert(createNewSnippet())}>
         <i class="fa-solid fa-add fa-9x"></i>
       </button>
     </section>
+    <footer class="card-footer invisible">
+      <span class="chip variant-ghost">no tag yet</span>
+    </footer>
   {/if}
 </div>
