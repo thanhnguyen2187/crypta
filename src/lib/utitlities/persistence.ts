@@ -147,11 +147,13 @@ export async function decryptSnippet(oldSnippet: Snippet, password: string): Pro
 
 export async function createLocalSnippetStore() {
   let snippets: Snippet[] = []
+  let folderId: string = 'default'
   const store = writable(snippets)
   const {subscribe, set, update} = store
   globalFolderStore.subscribe(
     async (id) => {
       snippets = await readSnippets(id)
+      folderId = id
       set(snippets)
     }
   )
@@ -166,7 +168,7 @@ export async function createLocalSnippetStore() {
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime(),
       }
-      await persistSnippet(newSnippet)
+      await persistSnippet(newSnippet, folderId)
       update(
         snippets => {
           snippets.push(newSnippet)
@@ -175,7 +177,7 @@ export async function createLocalSnippetStore() {
       )
     },
     upsert: async (snippet: Snippet) => {
-      await persistSnippet(snippet)
+      await persistSnippet(snippet, folderId)
       update(
         snippets => {
           const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
@@ -190,7 +192,7 @@ export async function createLocalSnippetStore() {
       )
     },
     remove: async (id: string) => {
-      await deleteSnippet(id)
+      await deleteSnippet(id, folderId)
       update(
         snippets => {
           const index = snippets.findIndex(snippet => snippet.id === id)
