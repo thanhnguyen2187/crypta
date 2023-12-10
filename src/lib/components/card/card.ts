@@ -37,6 +37,11 @@ export const displaySnippetsStore = derived(
         return searchingFound && taggingFound
       }
     )
+    filteredSnippets.sort(
+      (snippet1, snippet2) => {
+        return snippet1.position - snippet2.position
+      }
+    )
     return filteredSnippets
   }
 )
