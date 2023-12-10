@@ -32,7 +32,7 @@
     callback: () => void
   }
   const actionLock: CardAction = {
-    text: 'Lock',
+    text: 'Encrypt',
     faIconClass: 'fa-lock',
     callback: () => {
       $lockerShowWarningStore = true
