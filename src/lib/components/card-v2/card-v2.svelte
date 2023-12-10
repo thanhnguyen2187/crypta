@@ -168,8 +168,26 @@
 </script>
 
 <div
+  data-popup="card-actions-{snippet.id}"
+  class="z-10"
+>
+  <!--Use `z-10` to make it displays above AppShell-->
+  <ul class="list-nav variant-filled gap-2 rounded-container-token">
+    {#each cardActions as cardAction}
+      <li>
+        <button class="w-full" on:click={() => cardAction.callback()}>
+                <span>
+                <i class="fa-solid {cardAction.faIconClass}"></i>
+                </span>
+          <span>{cardAction.text}</span>
+        </button>
+      </li>
+    {/each}
+  </ul>
+</div>
+
+<div
   class="card p-4"
-  transition:fade
 >
   {#if snippet.id !== 'new-card'}
     <header
@@ -212,24 +230,6 @@
         >
           <i class="fa-xl fa-solid fa-ellipsis-v"></i>
         </button>
-      </div>
-      <div
-        data-popup="card-actions-{snippet.id}"
-        class="z-10"
-      >
-        <!--Use `z-10` to make it displays above AppShell-->
-        <ul class="list-nav variant-filled gap-2 rounded-container-token">
-          {#each cardActions as cardAction}
-            <li>
-              <button class="w-full" on:click={() => cardAction.callback()}>
-                <span>
-                <i class="fa-solid {cardAction.faIconClass}"></i>
-                </span>
-                <span>{cardAction.text}</span>
-              </button>
-            </li>
-          {/each}
-        </ul>
       </div>
     </header>
     <section

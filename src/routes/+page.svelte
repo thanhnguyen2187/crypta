@@ -19,7 +19,8 @@
 </style>
 
 <div
-  class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+  class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 hide-scrollbar"
+  use:autoAnimate
 >
   {#each $displaySnippetsStore as snippet (snippet.id)}
     <CardV2 snippet={snippet} />
