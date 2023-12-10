@@ -25,8 +25,22 @@ export const defaultSettings: Settings = {
   password: '',
 }
 
+export type Catalog = {
+  [folderName: string]: {
+    displayName: string
+    showLockedCard: boolean
+  }
+}
+
+export const defaultCatalog: Catalog = {
+  default: {
+    displayName: 'Default',
+    showLockedCard: true,
+  }
+}
+
 function generateFolderName(folderName: string): string {
-  return `crypta.${folderName}`
+  return `folder.${folderName}`
 }
 
 /**
@@ -193,5 +207,28 @@ export async function writeSettings(settings: Settings) {
   const fileHandle = await opfsRoot.getFileHandle('settings.json', {create: true})
   const writeable = await fileHandle.createWritable()
   await writeable.write(JSON.stringify(settings))
+  await writeable.close()
+}
+
+export async function readCatalog(): Promise<Catalog> {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('catalog.json', {create: true})
+  const file = await fileHandle.getFile()
+  const text = await file.text()
+  const savedSettings = text ? JSON.parse(text) : {}
+
+  // use default catalog if the file is found
+  return Object.assign(
+    {},
+    defaultCatalog,
+    savedSettings,
+  )
+}
+
+export async function writeCatalog(catalog: Catalog) {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('catalog.json', {create: true})
+  const writeable = await fileHandle.createWritable()
+  await writeable.write(JSON.stringify(catalog))
   await writeable.close()
 }
