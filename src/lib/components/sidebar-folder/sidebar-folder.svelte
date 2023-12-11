@@ -3,6 +3,7 @@
   import { catalogStore, foldersStore } from '$lib/components/modal-settings/store';
   import { globalFolderStore } from '$lib/utitlities/ephemera'
   import { createNewFolder } from '$lib/utitlities/persistence'
+  import { localSnippetsStore } from '$lib/components/card/card';
 
   const modalStore = getModalStore()
 
@@ -11,16 +12,20 @@
   type TileAction = {
     text: string
     faIconClass: string
-    callback: () => void
+    callback: (folderId: string) => void
   }
   const actionRename: TileAction = {
     text: 'Rename',
     faIconClass: 'fa-edit',
-    callback: () => {
+    callback: (folderId: string) => {
       modalStore.trigger({
         type: 'prompt',
         title: 'Enter new folder name',
-        response: (name: string) => {
+        response: (name: string | false) => {
+          if (!name) {
+            return
+          }
+          catalogStore.setDisplayName(folderId, name)
         },
       })
     },
@@ -38,7 +43,22 @@
   const actionDelete: TileAction = {
     text: 'Delete',
     faIconClass: 'fa-trash',
-    callback: () => {},
+    callback: (folderId: string) => {
+      modalStore.trigger({
+        type: 'confirm',
+        title: 'Are you sure about this action?',
+        body:
+         `The folder named "${$catalogStore[folderId].displayName}" with
+         ${$localSnippetsStore.length} record(s) would be deleted completely!`,
+        response: (answer: boolean) => {
+          if (answer) {
+            catalogStore.delete(folderId)
+            $globalFolderStore = 'default'
+            currentTile = 'default'
+          }
+        },
+      })
+    },
   }
   const actions = [
     actionRename,
@@ -66,7 +86,7 @@
       <ul class="list-nav variant-filled gap-2 rounded-container-token">
         {#each actions as action}
           <li>
-            <button class="w-full" on:click={() => action.callback()}>
+            <button class="w-full" on:click={() => action.callback(folder.id)}>
               <span>
                 <i class="fa-solid {action.faIconClass}"></i>
               </span>
@@ -87,7 +107,11 @@
       {#if folder.id === $globalFolderStore}
         <span
           class="badge-icon variant-filled absolute -top-0 -right-0 z-10"
-          on:click|stopPropagation={() => {}}
+          on:click|stopPropagation={() => {
+            // We need this since without it, the click would be received by the
+            // parent `AppRailTle`, which reset the whole element's state and
+            // close the popup immediately.
+          }}
           use:popup={{
             event: 'click',
             target: 'rail-tile-actions-'+ folder.id,

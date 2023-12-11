@@ -14,6 +14,11 @@ export async function createCatalogStore() {
       writeCatalog(catalog)
       set(catalog)
     },
+    delete: (id: string) => {
+      delete catalog[id]
+      writeCatalog(catalog)
+      set(catalog)
+    },
     setDisplayName: (id: string, displayName: string) => {
       catalog[id].displayName = displayName
       writeCatalog(catalog)
