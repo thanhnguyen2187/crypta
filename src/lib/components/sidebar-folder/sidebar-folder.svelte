@@ -45,6 +45,7 @@
     text: 'Delete',
     faIconClass: 'fa-trash',
     callback: (folderId: string) => {
+      // noinspection TypeScriptUnresolvedReference
       modalStore.trigger({
         type: 'confirm',
         title: 'Are you sure about this action?',
@@ -106,13 +107,14 @@
       class="relative"
     >
       {#if folder.id === $globalFolderStore}
+        <!--
+        We need `stopPropagation` since without it, the click would be received
+        by the // parent `AppRailTle`, which reset the whole element's state and
+        close the popup immediately.
+        -->
         <span
           class="badge-icon variant-filled absolute -top-0 -right-0 z-10"
-          on:click|stopPropagation={() => {
-            // We need this since without it, the click would be received by the
-            // parent `AppRailTle`, which reset the whole element's state and
-            // close the popup immediately.
-          }}
+          on:click|stopPropagation={() => {}}
           use:popup={{
             event: 'click',
             target: 'rail-tile-actions-'+ folder.id,
