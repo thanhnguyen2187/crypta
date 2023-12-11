@@ -38,6 +38,12 @@
       class="flex gap-4"
     >
       <button
+        class="btn variant-filled-error"
+      >
+        <i class="fa-solid fa-trash"></i>
+        <span>Delete</span>
+      </button>
+      <button
         class="btn variant-filled"
       >
         <i class="fa-solid fa-download"></i>

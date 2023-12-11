@@ -70,9 +70,13 @@
     </label>
   </section>
   <footer class="card-footer flex gap-2 justify-end">
-    <button class="btn variant-ghost" on:click={clear}>
-      <i class="fa-solid fa-cancel"></i>
-      <span>Cancel</span>
+    <button class="btn variant-filled">
+      <i class="fa-solid fa-file-import"></i>
+      <span>Import</span>
+    </button>
+    <button class="btn variant-filled">
+      <i class="fa-solid fa-file-export"></i>
+      <span>Export</span>
     </button>
     <button class="btn variant-filled" on:click={loadFromStore}>
       <i class="fa-solid fa-refresh"></i>
