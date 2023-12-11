@@ -2,7 +2,7 @@
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { localSnippetsStore } from '$lib/components/card/card'
   import { format } from '$lib/utitlities/date'
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import type { Snippet } from '$lib/utitlities/persistence'
   import { createNewSnippet } from '$lib/utitlities/persistence'
   import { getModalStore, InputChip } from '@skeletonlabs/skeleton'
@@ -14,11 +14,8 @@
     loadFromStore()
   })
 
-  function clear() {
-    modalStore.clear()
-  }
-
   function loadFromStore() {
+    // do this to avoid `tags` mutation
     snippet = {
       ...($modalSnippetStore),
       tags: $modalSnippetStore.tags.slice(),
@@ -28,6 +25,19 @@
   function upsert() {
     localSnippetsStore.upsert(snippet)
     modalStore.clear()
+  }
+
+  function download() {
+    const element = document.createElement('a')
+    const blob = new Blob([JSON.stringify(snippet)], {type: 'text/json'})
+    element.setAttribute('href', URL.createObjectURL(blob))
+    element.download = snippet.id + '.json'
+    element.click()
+    // TODO: should do `URL.revokeObjectURL` later
+  }
+
+  function upload() {
+    
   }
 </script>
 
@@ -74,7 +84,7 @@
       <i class="fa-solid fa-file-import"></i>
       <span>Import</span>
     </button>
-    <button class="btn variant-filled">
+    <button class="btn variant-filled" on:click={download}>
       <i class="fa-solid fa-file-export"></i>
       <span>Export</span>
     </button>
