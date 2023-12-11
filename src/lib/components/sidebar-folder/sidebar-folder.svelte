@@ -21,6 +21,7 @@
       modalStore.trigger({
         type: 'prompt',
         title: 'Enter new folder name',
+        value: $catalogStore[folderId].displayName,
         response: (name: string | false) => {
           if (!name) {
             return
