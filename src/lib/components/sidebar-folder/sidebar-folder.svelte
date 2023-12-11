@@ -75,6 +75,8 @@
     catalogStore.upsert(folder)
     $globalFolderStore = folder.id
     currentTile = folder.id
+
+    actionRename.callback(folder.id)
   }
 
 </script>
