@@ -8,6 +8,7 @@
   import { globalTagsStore } from '$lib/utitlities/ephemera';
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { fade } from 'svelte/transition'
+  import { getFromClipboard } from '$lib/utitlities/clipboard';
 
   const modalStore = getModalStore()
   let state: 'default' | 'locked' | 'unlocked' = 'default'
@@ -165,6 +166,17 @@
       ? lockedCardActions
       : defaultCardActions
   }
+
+  async function create() {
+    const snippet = createNewSnippet()
+    const text = await getFromClipboard()
+    if (!text) {
+      return
+    }
+
+    snippet.text = text
+    await localSnippetsStore.upsert(snippet)
+  }
 </script>
 
 <div
@@ -268,7 +280,7 @@
       <h3 class="h3 truncate">Placeholder</h3>
     </header>
     <section class="m-4 h-40 flex flex-col justify-center items-center">
-      <button class="btn variant-filled" on:click={() => localSnippetsStore.upsert(createNewSnippet())}>
+      <button class="btn variant-filled" on:click={create}>
         <i class="fa-solid fa-add fa-9x"></i>
       </button>
     </section>
