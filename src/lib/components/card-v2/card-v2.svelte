@@ -176,9 +176,9 @@
     {#each cardActions as cardAction}
       <li>
         <button class="w-full" on:click={() => cardAction.callback()}>
-                <span>
-                <i class="fa-solid {cardAction.faIconClass}"></i>
-                </span>
+          <span>
+            <i class="fa-solid {cardAction.faIconClass}"></i>
+          </span>
           <span>{cardAction.text}</span>
         </button>
       </li>
