@@ -37,7 +37,35 @@
   }
 
   function upload() {
-    
+    const element = document.createElement('input')
+    element.type = 'file'
+
+    element.onchange = async (e: InputEvent) => {
+      const target = e.target as HTMLInputElement
+      const files = target.files
+      if (!files) {
+        return
+      }
+      const file = files[0]
+
+      try {
+        const importedSnippet = JSON.parse(await file.text())
+        // TODO: add more data checking here
+        snippet = {
+          ...importedSnippet,
+          id: snippet.id,
+        }
+      } catch (e) {
+        modalStore.close()
+        modalStore.trigger({
+          type: 'alert',
+          title: 'Error!',
+          body: 'Something wrong happened importing a new snippet! Please check your file.',
+        })
+      }
+    }
+
+    element.click()
   }
 </script>
 
@@ -80,17 +108,13 @@
     </label>
   </section>
   <footer class="card-footer flex gap-2 justify-end">
-    <button class="btn variant-filled">
+    <button class="btn variant-filled" on:click={upload}>
       <i class="fa-solid fa-file-import"></i>
       <span>Import</span>
     </button>
     <button class="btn variant-filled" on:click={download}>
       <i class="fa-solid fa-file-export"></i>
       <span>Export</span>
-    </button>
-    <button class="btn variant-filled" on:click={loadFromStore}>
-      <i class="fa-solid fa-refresh"></i>
-      <span>Reload</span>
     </button>
     <button class="btn variant-filled" on:click={upsert}>
       <i class="fa-solid fa-save"></i>
