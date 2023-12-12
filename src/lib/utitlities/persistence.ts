@@ -202,7 +202,16 @@ export async function createLocalSnippetStore() {
           return snippets
         }
       )
-    }
+    },
+    move: async (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => {
+      await deleteSnippet(movingSnippet.id, sourceFolderId)
+      await persistSnippet(movingSnippet, destinationFolderId)
+      const index = snippets.findIndex(snippet => snippet.id === movingSnippet.id)
+      if (index !== -1) {
+        snippets.splice(index, 1)
+      }
+      set(snippets)
+    },
   }
 }
 

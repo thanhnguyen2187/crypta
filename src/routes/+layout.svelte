@@ -8,16 +8,17 @@
     getModalStore,
     initializeStores,
     Modal,
-    popup,
+    popup, Toast,
   } from '@skeletonlabs/skeleton';
   import type { ModalComponent } from '@skeletonlabs/skeleton'
-  import '@fortawesome/fontawesome-free/css/fontawesome.css';
-  import '@fortawesome/fontawesome-free/css/brands.css';
-  import '@fortawesome/fontawesome-free/css/solid.css';
-  import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
-  import { storePopup } from "@skeletonlabs/skeleton";
+  import '@fortawesome/fontawesome-free/css/fontawesome.css'
+  import '@fortawesome/fontawesome-free/css/brands.css'
+  import '@fortawesome/fontawesome-free/css/solid.css'
+  import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
+  import { storePopup } from "@skeletonlabs/skeleton"
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
+  import ModalMoveSnippet from '$lib/components/modal-snippet/modal-move-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
   import { globalSearchStore, globalTagsStore } from '$lib/utitlities/ephemera'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
@@ -31,10 +32,12 @@
     settings: {ref: ModalSettings},
     snippet: {ref: ModalSnippet},
     locker: {ref: ModalLocker},
+    moveSnippet: {ref: ModalMoveSnippet},
   }
 </script>
 
 <Modal components={modalRegistry} />
+<Toast />
 
 <AppShell>
   <svelte:fragment slot="header">

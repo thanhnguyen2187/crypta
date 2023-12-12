@@ -131,6 +131,17 @@
       })
     },
   }
+  const actionChangeFolder: CardAction = {
+    text: 'Move',
+    faIconClass: 'fa-arrow-up-from-bracket',
+    callback: () => {
+      modalSnippetStore.set(snippet)
+      modalStore.trigger({
+        type: 'component',
+        component: 'moveSnippet',
+      })
+    },
+  }
   const actionDelete: CardAction = {
     text: 'Delete',
     faIconClass: 'fa-trash',
@@ -152,11 +163,13 @@
     actionLock,
     actionEdit,
     actionDuplicate,
+    actionChangeFolder,
     actionDelete,
   ]
   const lockedCardActions: CardAction[] = [
     actionDecrypt,
     actionUnlock,
+    actionChangeFolder,
     actionDelete,
   ]
 
