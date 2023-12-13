@@ -1,0 +1,20 @@
+name: Build & Deploy
+on:
+  push:
+    branches: [master]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-nodes@v4
+      - name: Install dependencies
+        run: yarn install
+      - name: Build static files
+        run: yarn build
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
