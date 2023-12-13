@@ -64,45 +64,7 @@
         </div>
       </div>
       <svelte:fragment slot="trail">
-        <button
-          class="btn-icon variant-filled"
-          use:popup={{
-            event: 'hover',
-            target: 'tooltip-sort',
-            placement: 'bottom',
-          }}
-        >
-          <i class="fa-xl fa-solid fa-sort"></i>
-        </button>
-        <button
-          class="btn-icon variant-filled"
-          use:popup={{
-            event: 'hover',
-            target: 'tooltip-settings',
-            placement: 'bottom',
-          }}
-          on:click={() => modalStore.trigger({
-            type: 'component',
-            component: 'settings',
-          })}
-        >
-          <i class="fa-xl fa-solid fa-gear"></i>
-        </button>
       </svelte:fragment>
-      <div
-        data-popup="tooltip-sort"
-        class="card p-2 variant-filled-tertiary [&>*]:pointer-events-none"
-      >
-        Sort
-        <div class="arrow variant-filled-tertiary"></div>
-      </div>
-      <div
-        data-popup="tooltip-settings"
-        class="card p-2 variant-filled-tertiary [&>*]:pointer-events-none"
-      >
-        Settings
-        <div class="arrow variant-filled-tertiary"></div>
-      </div>
     </AppBar>
   </svelte:fragment>
   <slot />
