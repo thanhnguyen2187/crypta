@@ -14,6 +14,7 @@
     "@skeletonlabs/skeleton": "^2.5.1",
     "@skeletonlabs/tw-plugin": "^0.2.4",
     "@sveltejs/adapter-auto": "^2.0.0",
+    "@sveltejs/adapter-static": "^2.0.3",
     "@sveltejs/kit": "^1.20.4",
     "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.14",
@@ -26,6 +27,7 @@
     "typescript": "^5.0.0",
     "vite": "^4.4.2",
     "vite-plugin-node-polyfills": "^0.15.0",
+    "vite-plugin-top-level-await": "^1.4.0",
     "vitest": "^0.34.0"
   },
   "type": "module",
