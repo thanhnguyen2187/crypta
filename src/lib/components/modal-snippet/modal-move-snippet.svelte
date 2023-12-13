@@ -21,6 +21,7 @@
 >
   <label class="label">
     <span>Current folder</span>
+    <!--suppress HtmlUnknownAttribute -->
     <select
       class="select"
       value={$globalFolderStore}
