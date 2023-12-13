@@ -11,7 +11,7 @@
   $: shouldBeDisabled = $modalDestinationFolderStore === $globalFolderStore
 
   async function move() {
-    localSnippetsStore.move($modalSnippetStore, $globalFolderStore, $modalDestinationFolderStore)
+    await localSnippetsStore.move($modalSnippetStore, $globalFolderStore, $modalDestinationFolderStore)
     modalStore.close()
   }
 </script>
