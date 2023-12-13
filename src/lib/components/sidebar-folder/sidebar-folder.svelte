@@ -64,8 +64,9 @@
   }
   const actions = [
     actionRename,
-    actionDownload,
-    actionUpload,
+    // TODO: implement the callbacks for those actions and enable them then
+    // actionDownload,
+    // actionUpload,
     actionDelete,
   ]
 
