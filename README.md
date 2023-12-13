@@ -9,7 +9,8 @@ development version at: https://thanhnguyen2187.github.io/crypta/.
 
 - Optimized for fast copying and pasting
 - In-memory encryption/decryption
-- Fully local-first/offline-first (powered by OPFS)
+- Fully local-first/offline-first (powered by OPFS; one BIG WARNING: OPFS gets
+wiped out on Lighthouse benchmarking, so don't store anything sensitive here yet)
 - Tagging and searching
 - Self-hosted backend server (WIP)
 - PWA (WIP)
