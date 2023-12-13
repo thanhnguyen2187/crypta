@@ -54,12 +54,12 @@
           class="flex gap-1"
         >
           {#each $globalTagsStore as tag}
-            <span
+            <button
               class="chip variant-filled"
               on:click={() => globalTagsStore.remove(tag)}
             >
               {tag}
-            </span>
+            </button>
           {/each}
         </div>
       </div>

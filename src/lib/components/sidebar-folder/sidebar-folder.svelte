@@ -115,7 +115,7 @@
         by the // parent `AppRailTle`, which reset the whole element's state and
         close the popup immediately.
         -->
-        <span
+        <button
           class="badge-icon variant-filled absolute -top-0 -right-0 z-10"
           on:click|stopPropagation={() => {}}
           use:popup={{
@@ -125,7 +125,7 @@
           }}
         >
           <i class="fa-solid fa-ellipsis-v"></i>
-        </span>
+        </button>
       {/if}
       <span>
         {folder.displayName}

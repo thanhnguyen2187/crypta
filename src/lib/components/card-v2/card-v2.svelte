@@ -277,10 +277,10 @@
     </section>
     <footer class="card-footer flex gap-1">
       {#each snippet.tags as tag}
-        <span
+        <button
           class="chip variant-filled"
           on:click={() => globalTagsStore.add(tag)}
-        >{tag}</span>
+        >{tag}</button>
       {/each}
 
       {#if snippet.tags.length === 0}
