@@ -4,6 +4,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import topLevelAwait from 'vite-plugin-top-level-await'
 
 export default defineConfig({
+	base: '/crypta/',
 	plugins: [sveltekit(), nodePolyfills(), topLevelAwait()],
 	optimizeDeps: {
 	},
