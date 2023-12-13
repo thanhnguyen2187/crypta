@@ -87,6 +87,7 @@
         class="textarea"
         rows="8"
         spellcheck="false"
+        disabled={snippet.encrypted}
         bind:value={snippet.text}
       ></textarea>
     </label>

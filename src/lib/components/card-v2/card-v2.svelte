@@ -166,9 +166,10 @@
     actionChangeFolder,
     actionDelete,
   ]
-  const lockedCardActions: CardAction[] = [
+  const encryptedCardActions: CardAction[] = [
     actionDecrypt,
     actionUnlock,
+    actionEdit,
     actionChangeFolder,
     actionDelete,
   ]
@@ -176,7 +177,7 @@
   let cardActions: CardAction[] = []
   $: {
     cardActions = snippet.encrypted
-      ? lockedCardActions
+      ? encryptedCardActions
       : defaultCardActions
   }
 
