@@ -182,9 +182,9 @@
 
   async function create() {
     const snippet = createNewSnippet()
-    const text = await getFromClipboard()
+    let text = await getFromClipboard()
     if (!text) {
-      return
+      text = 'To be filled'
     }
 
     snippet.text = text
