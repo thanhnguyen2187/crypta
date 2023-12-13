@@ -2,8 +2,9 @@
 
 > (n.) an underground vault or chamber, especially one beneath a church that is used as a burial place.
 
-Or a personal vault for text, with encryption for sensitive data. Latest
-development version at: https://thanhnguyen2187.github.io/crypta/.
+Or a personal vault for text (or code snippets primarily) storing, with
+encryption for sensitive data. Latest development version at:
+https://thanhnguyen2187.github.io/crypta/.
 
 ## Features
 
