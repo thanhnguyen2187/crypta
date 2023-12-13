@@ -36,6 +36,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Crypta</title>
+</svelte:head>
+
 <Modal components={modalRegistry} />
 <Toast />
 
