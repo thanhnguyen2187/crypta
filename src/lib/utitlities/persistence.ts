@@ -205,6 +205,7 @@ export async function createLocalSnippetStore() {
     },
     move: async (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => {
       await deleteSnippet(movingSnippet.id, sourceFolderId)
+      movingSnippet.updatedAt = new Date().getTime()
       await persistSnippet(movingSnippet, destinationFolderId)
       const index = snippets.findIndex(snippet => snippet.id === movingSnippet.id)
       if (index !== -1) {
