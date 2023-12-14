@@ -30,3 +30,52 @@ for encryption/decryption either.
 
 Or NIH syndrome kicked in and I want to use that chance to polish my own skills
 a bit.
+
+## Development
+
+- Make sure that you have `node` and `yarn` ready:
+
+```shell
+node --version
+# v18.16.1
+yarn --version
+# 1.22.19
+```
+
+- Install dependencies:
+
+```shell
+yarn install
+```
+
+- Start the development server:
+
+```shell
+yarn dev
+```
+
+## Deployment
+
+- Build static files:
+
+```shell
+yarn build
+```
+
+The built files should be available in a folder named `build/`. You are free to
+copy this somewhere else and serve it as a static website using a web server
+like Nginx or Caddy.
+
+BEWARE: the data is stored within the browser, so make sure to 
+
+- Preview (see how the built files work):
+
+```shell
+yarn preview
+```
+
+Or you can move to the folder and try serving it yourself:
+
+```shell
+python -m http.server
+```
