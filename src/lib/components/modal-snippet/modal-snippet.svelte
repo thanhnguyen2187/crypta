@@ -75,11 +75,21 @@
   <section class="m-4 flex flex-col gap-2">
     <label class="label">
       <span>Title</span>
-      <input class="input" bind:value={snippet.name} spellcheck="false" />
+      <input
+        class="input"
+        bind:value={snippet.name}
+        on:change={() => localSnippetsStore.upsert(snippet)}
+        spellcheck="false"
+      />
     </label>
     <label class="label">
       <span>Language</span>
-      <input class="input" bind:value={snippet.language} spellcheck="false" />
+      <input
+        class="input"
+        bind:value={snippet.language}
+        on:change={() => localSnippetsStore.upsert(snippet)}
+        spellcheck="false"
+      />
     </label>
     <label class="label">
       <span>Content</span>
@@ -89,11 +99,16 @@
         spellcheck="false"
         disabled={snippet.encrypted}
         bind:value={snippet.text}
+        on:change={() => localSnippetsStore.upsert(snippet)}
       ></textarea>
     </label>
     <label>
       <span>Tags</span>
-      <InputChip name="tags" value={snippet.tags}/>
+      <InputChip
+        name="tags"
+        bind:value={snippet.tags}
+        on:change={() => localSnippetsStore.upsert(snippet)}
+      />
     </label>
     <label class="label">
       <span>ID</span>
@@ -116,10 +131,6 @@
     <button class="btn variant-filled" on:click={download}>
       <i class="fa-solid fa-file-export"></i>
       <span>Export</span>
-    </button>
-    <button class="btn variant-filled" on:click={upsert}>
-      <i class="fa-solid fa-save"></i>
-      <span>Save</span>
     </button>
   </footer>
 </div>
