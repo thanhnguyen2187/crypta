@@ -1,5 +1,3 @@
-import { showToaster } from '$lib/components/toaster/toaster'
-
 export async function copyToClipboard(text: string): Promise<string | null> {
   try {
     await navigator.clipboard.writeText(text)
@@ -23,22 +21,4 @@ export async function getFromClipboard(): Promise<string | null> {
     })
     return null
   }
-}
-
-export async function attemptCopyToClipboard(text: string) {
-  if (await copyToClipboard(text)) {
-    showToaster('Copied successfully!')
-  } else {
-    showToaster('Unable to copy!')
-  }
-}
-
-export async function attemptGetFromClipboard(): Promise<string> {
-  const text = await getFromClipboard()
-  if (!text) {
-    showToaster('Unable to get from clipboard!')
-    return ''
-  }
-
-  return text
 }
