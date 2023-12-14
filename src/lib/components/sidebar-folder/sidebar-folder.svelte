@@ -3,7 +3,7 @@
   import { catalogStore, foldersStore } from '$lib/components/modal-settings/store';
   import { globalFolderStore } from '$lib/utitlities/ephemera'
   import { createNewFolder } from '$lib/utitlities/persistence'
-  import { localSnippetsStore } from '$lib/components/card/card';
+  import { localSnippetsStore } from '$lib/components/card-v2/store'
 
   const modalStore = getModalStore()
 

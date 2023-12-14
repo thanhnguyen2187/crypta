@@ -2,13 +2,13 @@
   import { CodeBlock, getModalStore, popup, clipboard } from '@skeletonlabs/skeleton'
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
-  import { localSnippetsStore } from '$lib/components/card/card';
   import { createNewSnippet, encryptSnippet, decryptSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
-  import { globalTagsStore } from '$lib/utitlities/ephemera';
+  import { localSnippetsStore } from './store'
+  import { globalTagsStore } from '$lib/utitlities/ephemera'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { fade } from 'svelte/transition'
-  import { getFromClipboard } from '$lib/utitlities/clipboard';
+  import { getFromClipboard } from '$lib/utitlities/clipboard'
 
   const modalStore = getModalStore()
   let state: 'default' | 'locked' | 'unlocked' = 'default'

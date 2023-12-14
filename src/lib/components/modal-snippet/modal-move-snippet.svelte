@@ -2,7 +2,7 @@
   import { foldersStore } from '$lib/components/modal-settings/store'
   import { globalFolderStore } from '$lib/utitlities/ephemera'
   import { modalDestinationFolderStore, modalSnippetStore } from './store'
-  import { localSnippetsStore } from '$lib/components/card/card';
+  import { localSnippetsStore } from '$lib/components/card-v2/store'
   import { getModalStore } from '@skeletonlabs/skeleton';
 
   const modalStore = getModalStore()
