@@ -15,16 +15,12 @@
   })
 
   function loadFromStore() {
-    // do this to avoid `tags` mutation
-    snippet = {
-      ...($modalSnippetStore),
-      tags: $modalSnippetStore.tags.slice(),
-    }
+    snippet = $modalSnippetStore
   }
 
-  function upsert() {
+  function upsertWithTags() {
+    snippet.tags = snippet.tags
     localSnippetsStore.upsert(snippet)
-    modalStore.clear()
   }
 
   function download() {
@@ -107,7 +103,8 @@
       <InputChip
         name="tags"
         bind:value={snippet.tags}
-        on:change={() => localSnippetsStore.upsert(snippet)}
+        on:add={upsertWithTags}
+        on:remove={upsertWithTags}
       />
     </label>
     <label class="label">
