@@ -34,6 +34,7 @@
     locker: {ref: ModalLocker},
     moveSnippet: {ref: ModalMoveSnippet},
   }
+
 </script>
 
 <svelte:head>
@@ -47,9 +48,13 @@
   <svelte:fragment slot="header">
     <AppBar gridColumns="grid-cols-3">
       <svelte:fragment slot="lead">
-        <div></div>
+        <div class=""></div>
       </svelte:fragment>
-      <div class="input-group input-group-divider grid-cols-[auto_1fr_auto]">
+      <div
+        class="input-group input-group-divider"
+        class:grid-cols-[auto_1fr]={($globalTagsStore).size === 0}
+        class:grid-cols-[auto_1fr_auto]={($globalTagsStore).size !== 0}
+      >
         <div class="input-group-shim">
           <i class="fa-solid fa-search"></i>
         </div>
