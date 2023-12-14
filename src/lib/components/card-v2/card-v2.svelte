@@ -7,7 +7,6 @@
   import { localSnippetsStore } from './store'
   import { globalTagsStore } from '$lib/utitlities/ephemera'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
-  import { fade } from 'svelte/transition'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
 
   const modalStore = getModalStore()
@@ -219,7 +218,12 @@
     <header
       class="card-header flex gap-4 justify-between"
     >
-      <h3 class="h3 truncate">{snippet.name}</h3>
+      <button
+        class="h3 truncate cursor-pointer"
+        on:click={actionEdit.callback}
+      >
+        {snippet.name}
+      </button>
       <div class="flex gap-1">
         {#if state === 'unlocked' && unlockedVisibility === 'hidden'}
           <button
