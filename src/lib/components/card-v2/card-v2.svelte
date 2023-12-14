@@ -188,7 +188,14 @@
     }
 
     snippet.text = text
+    // noinspection TypeScriptValidateTypes
+    snippet.tags = Array.from($globalTagsStore)
     await localSnippetsStore.upsert(snippet)
+    modalSnippetStore.set(snippet)
+    modalStore.trigger({
+      type: 'component',
+      component: 'snippet',
+    })
   }
 </script>
 
