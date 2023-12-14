@@ -66,7 +66,8 @@ The built files should be available in a folder named `build/`. You are free to
 copy this somewhere else and serve it as a static website using a web server
 like Nginx or Caddy.
 
-BEWARE: the data is stored within the browser, so make sure to 
+BEWARE: the data is stored within the browser, so make sure to back up regularly
+before synchronization is implemented.
 
 - Preview (see how the built files work):
 
