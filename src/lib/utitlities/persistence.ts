@@ -1,6 +1,6 @@
-import { derived, writable } from 'svelte/store'
+import { writable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
-import { globalFolderStore } from '$lib/utitlities/ephemera';
+import { globalFolderStore } from '$lib/utitlities/ephemera'
 
 export type Snippet = {
   id: string
@@ -12,18 +12,6 @@ export type Snippet = {
   position: number
   updatedAt: number
   createdAt: number
-}
-
-export type Settings = {
-  serverURL: string
-  username: string
-  password: string
-}
-
-export const defaultSettings: Settings = {
-  serverURL: '',
-  username: '',
-  password: '',
 }
 
 export type Catalog = {
@@ -214,29 +202,6 @@ export async function createLocalSnippetStore() {
       set(snippets)
     },
   }
-}
-
-export async function readSettings() {
-  const opfsRoot = await navigator.storage.getDirectory()
-  const fileHandle = await opfsRoot.getFileHandle('settings.json', {create: true})
-  const file = await fileHandle.getFile()
-  const text = await file.text()
-  const savedSettings = text ? JSON.parse(text) : {}
-
-  // use default settings if no settings are found
-  return Object.assign(
-    {},
-    defaultSettings,
-    savedSettings,
-  )
-}
-
-export async function writeSettings(settings: Settings) {
-  const opfsRoot = await navigator.storage.getDirectory()
-  const fileHandle = await opfsRoot.getFileHandle('settings.json', {create: true})
-  const writeable = await fileHandle.createWritable()
-  await writeable.write(JSON.stringify(settings))
-  await writeable.close()
 }
 
 export async function readCatalog(): Promise<Catalog> {
