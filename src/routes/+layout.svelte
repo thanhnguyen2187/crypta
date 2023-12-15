@@ -16,7 +16,6 @@
   import '@fortawesome/fontawesome-free/css/solid.css'
   import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
   import { storePopup } from "@skeletonlabs/skeleton"
-  import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
   import ModalMoveSnippet from '$lib/components/modal-snippet/modal-move-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
@@ -29,7 +28,6 @@
   storePopup.set({computePosition, autoUpdate, offset, shift, flip, arrow})
 
   const modalRegistry: Record<string, ModalComponent> = {
-    settings: {ref: ModalSettings},
     snippet: {ref: ModalSnippet},
     locker: {ref: ModalLocker},
     moveSnippet: {ref: ModalMoveSnippet},
