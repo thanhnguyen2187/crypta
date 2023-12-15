@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AppRail, AppRailAnchor, AppRailTile, getModalStore, popup } from '@skeletonlabs/skeleton'
-  import { catalogStore, foldersStore } from '$lib/components/modal-settings/store';
+  import { catalogStore, foldersStore } from './store';
   import { globalFolderIdStore } from '$lib/utitlities/ephemera'
   import { createNewFolder } from '$lib/utitlities/persistence'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
