@@ -66,8 +66,14 @@
 </script>
 
 <div
-  class="card w-modal"
+  class="card w-modal relative"
 >
+  <button
+    class="badge-icon absolute md:hidden top-2 right-2"
+    on:click={modalStore.close}
+  >
+    <i class="fa-xl fa-solid fa-close"></i>
+  </button>
   <section class="m-4 flex flex-col gap-2">
     <label class="label">
       <span>Title</span>
@@ -89,6 +95,7 @@
     </label>
     <label class="label">
       <span>Content</span>
+      <!--suppress HtmlWrongAttributeValue -->
       <textarea
         class="textarea"
         rows="8"
