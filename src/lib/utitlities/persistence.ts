@@ -27,6 +27,12 @@ export type Folder = {
   createdAt: number
 }
 
+export type GlobalState = {
+  folderId: string
+  tags: string[]
+  searchInput: string
+}
+
 export const defaultCatalog: Catalog = {
   default: {
     id: 'default',
@@ -36,6 +42,12 @@ export const defaultCatalog: Catalog = {
     createdAt: new Date().getTime(),
     updatedAt: new Date().getTime(),
   }
+}
+
+export const defaultGlobalState: GlobalState = {
+  folderId: 'default',
+  tags: [],
+  searchInput: '',
 }
 
 function generateFolderName(folderName: string): string {
@@ -211,7 +223,7 @@ export async function readCatalog(): Promise<Catalog> {
   const text = await file.text()
   const savedSettings = text ? JSON.parse(text) : {}
 
-  // use default catalog if the file is found
+  // use default catalog if the file is not found
   return Object.assign(
     {},
     defaultCatalog,
@@ -236,4 +248,27 @@ export function createNewFolder(): Folder {
     createdAt: new Date().getTime(),
     updatedAt: new Date().getTime(),
   }
+}
+
+export async function readGlobalState(): Promise<GlobalState> {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('globalState.json', {create: true})
+  const file = await fileHandle.getFile()
+  const text = await file.text()
+  const savedState = text ? JSON.parse(text) : {}
+
+  // use default global state if the file is not found
+  return Object.assign(
+    {},
+    defaultGlobalState,
+    savedState,
+  )
+}
+
+export async function writeGlobalState(state: GlobalState) {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('globalState.json', {create: true})
+  const writeable = await fileHandle.createWritable()
+  await writeable.write(JSON.stringify(state))
+  await writeable.close()
 }
