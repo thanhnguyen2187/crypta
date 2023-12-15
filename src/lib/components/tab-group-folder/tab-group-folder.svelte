@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { AppRail, AppRailAnchor, AppRailTile, getModalStore, popup } from '@skeletonlabs/skeleton'
-  import { catalogStore, foldersStore } from './store';
-  import { globalStateStore } from '$lib/utitlities/ephemera'
-  import { createNewFolder } from '$lib/utitlities/persistence'
-  import { localSnippetsStore } from '$lib/components/card-v2/store'
+  import { AppRailTile, getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
+  import { globalStateStore } from '$lib/utitlities/ephemera';
+  import { catalogStore, foldersStore } from '$lib/components/sidebar-folder/store';
+  import { localSnippetsStore } from '$lib/components/card-v2/store';
+  import { createNewFolder } from '$lib/utitlities/persistence';
+  let currentTab = $globalStateStore.folderId
 
   const modalStore = getModalStore()
-
-  let currentTile = $globalStateStore.folderId
 
   type TileAction = {
     text: string
@@ -50,13 +49,13 @@
         type: 'confirm',
         title: 'Are you sure about this action?',
         body:
-         `The folder named "${$catalogStore[folderId].displayName}" with
+          `The folder named "${$catalogStore[folderId].displayName}" with
          ${$localSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
             catalogStore.delete(folderId)
             $globalStateStore.folderId = 'default'
-            currentTile = 'default'
+            currentTab = 'default'
           }
         },
       })
@@ -75,17 +74,16 @@
     folder.position = ($foldersStore).length + 1
     catalogStore.upsert(folder)
     $globalStateStore.folderId = folder.id
-    currentTile = folder.id
+    currentTab = folder.id
 
     actionRename.callback(folder.id)
   }
-
 </script>
 
-<AppRail class="hidden md:block">
+<TabGroup class="block md:hidden">
   {#each $foldersStore as folder}
     <div
-      data-popup="rail-tile-actions-{folder.id}"
+      data-popup="tab-actions-{folder.id}"
       class="z-10"
     >
       <ul class="list-nav variant-filled gap-2 rounded-container-token">
@@ -102,41 +100,31 @@
       </ul>
     </div>
 
-    <AppRailTile
-      bind:group={currentTile}
+    <Tab
+      bind:group={currentTab}
       name={folder.id}
       value={folder.id}
-      on:click={() => $globalStateStore.folderId = folder.id}
-      class="relative"
-    >
-      {#if folder.id === $globalStateStore.folderId}
-        <!--
-        We need `stopPropagation` since without it, the click would be received
-        by the parent `AppRailTle`, which reset the whole element's state and
-        close the popup immediately.
-        -->
-        <button
-          class="badge-icon variant-filled absolute -top-0 -right-0 z-10"
-          on:click|stopPropagation={() => {}}
-          use:popup={{
-            event: 'click',
-            target: 'rail-tile-actions-'+ folder.id,
-            placement: 'right',
-          }}
-        >
-          <i class="fa-solid fa-ellipsis-v"></i>
-        </button>
+      on:click={() => $globalStateStore.folderId = folder.id}>
+        <span>{folder.displayName}</span>
+        {#if folder.id === $globalStateStore.folderId}
+          <button
+            class="ml-2 fa-solid fa-ellipsis-h z-10"
+            on:click|stopPropagation={() => {}}
+            use:popup={{
+              event: 'click',
+              target: 'tab-actions-'+ folder.id,
+              placement: 'bottom',
+            }}
+          ></button>
       {/if}
-      <span>
-        {folder.displayName}
-      </span>
-    </AppRailTile>
+    </Tab>
   {/each}
-  <AppRailAnchor
+
+  <TabAnchor
     href="#"
     target="_self"
     on:click={newFolder}
   >
-    <i class="fa-xl fa-solid fa-add"></i>
-  </AppRailAnchor>
-</AppRail>
+    <i class="fa-solid fa-add"></i>
+  </TabAnchor>
+</TabGroup>
