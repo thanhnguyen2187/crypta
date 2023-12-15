@@ -1,6 +1,6 @@
 import { writable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
-import { globalFolderStore } from '$lib/utitlities/ephemera'
+import { globalFolderIdStore } from '$lib/utitlities/ephemera'
 
 export type Snippet = {
   id: string
@@ -138,7 +138,7 @@ export async function createLocalSnippetStore() {
   let folderId: string = 'default'
   const store = writable(snippets)
   const {subscribe, set, update} = store
-  globalFolderStore.subscribe(
+  globalFolderIdStore.subscribe(
     async (id) => {
       snippets = await readSnippets(id)
       folderId = id

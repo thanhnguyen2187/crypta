@@ -1,16 +1,16 @@
 <script lang="ts">
   import { SlideToggle } from '@skeletonlabs/skeleton'
   import { catalogStore } from './store'
-  import { globalFolderStore } from '$lib/utitlities/ephemera'
+  import { globalFolderIdStore } from '$lib/utitlities/ephemera'
 
   function handleDisplayNameChange(e: InputEvent) {
     const target = e.target as HTMLInputElement
-    catalogStore.setDisplayName($globalFolderStore, target.value)
+    catalogStore.setDisplayName($globalFolderIdStore, target.value)
   }
 
   function handleShowLockedCardsChange(e: InputEvent) {
     const target = e.target as HTMLInputElement
-    catalogStore.setShowLockedCard($globalFolderStore, target.checked)
+    catalogStore.setShowLockedCard($globalFolderIdStore, target.checked)
   }
 </script>
 
@@ -21,7 +21,7 @@
     <label class="label">
       <span>Folder name</span>
       <input
-        value={($catalogStore)[$globalFolderStore].displayName}
+        value={($catalogStore)[$globalFolderIdStore].displayName}
         on:change={handleDisplayNameChange}
         class="input"
         type="text"
@@ -29,7 +29,7 @@
     </label>
     <SlideToggle
       name="showLockedCards"
-      checked={($catalogStore)[$globalFolderStore].showLockedCard}
+      checked={($catalogStore)[$globalFolderIdStore].showLockedCard}
       on:change={handleShowLockedCardsChange}
     >
       Show locked cards

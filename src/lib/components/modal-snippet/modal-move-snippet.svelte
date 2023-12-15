@@ -1,6 +1,6 @@
 <script lang="ts">
   import { foldersStore } from '$lib/components/modal-settings/store'
-  import { globalFolderStore } from '$lib/utitlities/ephemera'
+  import { globalFolderIdStore } from '$lib/utitlities/ephemera'
   import { modalDestinationFolderStore, modalSnippetStore } from './store'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
   import { getModalStore } from '@skeletonlabs/skeleton';
@@ -8,10 +8,10 @@
   const modalStore = getModalStore()
 
   let shouldBeDisabled = false
-  $: shouldBeDisabled = $modalDestinationFolderStore === $globalFolderStore
+  $: shouldBeDisabled = $modalDestinationFolderStore === $globalFolderIdStore
 
   async function move() {
-    await localSnippetsStore.move($modalSnippetStore, $globalFolderStore, $modalDestinationFolderStore)
+    await localSnippetsStore.move($modalSnippetStore, $globalFolderIdStore, $modalDestinationFolderStore)
     modalStore.close()
   }
 </script>
@@ -24,7 +24,7 @@
     <!--suppress HtmlUnknownAttribute -->
     <select
       class="select"
-      value={$globalFolderStore}
+      value={$globalFolderIdStore}
       disabled
     >
       {#each $foldersStore as folder}

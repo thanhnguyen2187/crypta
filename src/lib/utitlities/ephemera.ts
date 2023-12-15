@@ -19,4 +19,4 @@ export function createTagsStore() {
 
 export const globalTagsStore = createTagsStore()
 export const globalSearchStore = writable<string>('')
-export const globalFolderStore = writable<string>('default')
+export const globalFolderIdStore = writable<string>('default')

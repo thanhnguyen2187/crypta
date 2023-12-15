@@ -1,13 +1,13 @@
 <script lang="ts">
   import { AppRail, AppRailAnchor, AppRailTile, getModalStore, popup } from '@skeletonlabs/skeleton'
   import { catalogStore, foldersStore } from '$lib/components/modal-settings/store';
-  import { globalFolderStore } from '$lib/utitlities/ephemera'
+  import { globalFolderIdStore } from '$lib/utitlities/ephemera'
   import { createNewFolder } from '$lib/utitlities/persistence'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
 
   const modalStore = getModalStore()
 
-  let currentTile = $globalFolderStore
+  let currentTile = $globalFolderIdStore
 
   type TileAction = {
     text: string
@@ -55,7 +55,7 @@
         response: (answer: boolean) => {
           if (answer) {
             catalogStore.delete(folderId)
-            $globalFolderStore = 'default'
+            $globalFolderIdStore = 'default'
             currentTile = 'default'
           }
         },
@@ -74,7 +74,7 @@
     const folder = createNewFolder()
     folder.position = ($foldersStore).length + 1
     catalogStore.upsert(folder)
-    $globalFolderStore = folder.id
+    $globalFolderIdStore = folder.id
     currentTile = folder.id
 
     actionRename.callback(folder.id)
@@ -106,10 +106,10 @@
       bind:group={currentTile}
       name={folder.id}
       value={folder.id}
-      on:click={() => $globalFolderStore = folder.id}
+      on:click={() => $globalFolderIdStore = folder.id}
       class="relative"
     >
-      {#if folder.id === $globalFolderStore}
+      {#if folder.id === $globalFolderIdStore}
         <!--
         We need `stopPropagation` since without it, the click would be received
         by the // parent `AppRailTle`, which reset the whole element's state and
