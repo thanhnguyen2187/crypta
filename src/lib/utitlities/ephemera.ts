@@ -31,19 +31,23 @@ export async function createGlobalStateStore(): Promise<GlobalStateStore> {
     addTag: (tag: string) => {
       tags.add(tag)
       state.tags = Array.from(tags)
+      writeGlobalState(state).then()
       store.set(state)
     },
     removeTag: (tag: string) => {
       tags.delete(tag)
       state.tags = Array.from(tags)
+      writeGlobalState(state).then()
       store.set(state)
     },
     setSearchInput: (input: string) => {
       state.searchInput = input
+      writeGlobalState(state).then()
       store.set(state)
     },
     setFolderId: (folderId: string) => {
       state.folderId = folderId
+      writeGlobalState(state).then()
       store.set(state)
     },
   }

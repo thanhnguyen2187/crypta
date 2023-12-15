@@ -19,7 +19,7 @@
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
   import ModalMoveSnippet from '$lib/components/modal-snippet/modal-move-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
-  import { globalStateStore, globalTagsStore } from '$lib/utitlities/ephemera'
+  import { globalStateStore } from '$lib/utitlities/ephemera'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
 
   initializeStores()
@@ -50,8 +50,8 @@
       </svelte:fragment>
       <div
         class="input-group input-group-divider"
-        class:grid-cols-[auto_1fr]={($globalTagsStore).size === 0}
-        class:grid-cols-[auto_1fr_auto]={($globalTagsStore).size !== 0}
+        class:grid-cols-[auto_1fr]={$globalStateStore.tags.length === 0}
+        class:grid-cols-[auto_1fr_auto]={$globalStateStore.tags.length !== 0}
       >
         <div class="input-group-shim">
           <i class="fa-solid fa-search"></i>
@@ -64,10 +64,10 @@
         <div
           class="flex gap-1"
         >
-          {#each $globalTagsStore as tag}
+          {#each $globalStateStore.tags as tag}
             <button
               class="chip variant-filled"
-              on:click={() => globalTagsStore.remove(tag)}
+              on:click={() => globalStateStore.removeTag(tag)}
             >
               {tag}
             </button>

@@ -5,7 +5,7 @@
   import { createNewSnippet, encryptSnippet, decryptSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { localSnippetsStore } from './store'
-  import { globalTagsStore } from '$lib/utitlities/ephemera'
+  import { globalStateStore } from '$lib/utitlities/ephemera'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
 
@@ -189,7 +189,7 @@
 
     snippet.text = text
     // noinspection TypeScriptValidateTypes
-    snippet.tags = Array.from($globalTagsStore)
+    snippet.tags = Array.from($globalStateStore.tags)
     await localSnippetsStore.upsert(snippet)
     modalSnippetStore.set(snippet)
     modalStore.trigger({
@@ -290,8 +290,10 @@
       {#each snippet.tags as tag}
         <button
           class="chip variant-filled"
-          on:click={() => globalTagsStore.add(tag)}
-        >{tag}</button>
+          on:click={() => globalStateStore.addTag(tag)}
+        >
+          {tag}
+        </button>
       {/each}
 
       {#if snippet.tags.length === 0}
