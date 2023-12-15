@@ -44,9 +44,9 @@
 
 <AppShell>
   <svelte:fragment slot="header">
-    <AppBar gridColumns="grid-cols-3">
+    <AppBar gridColumns="grid-cols-1 md:grid-cols-3">
       <svelte:fragment slot="lead">
-        <div class=""></div>
+        <div class="hidden md:visible"></div>
       </svelte:fragment>
       <div
         class="input-group input-group-divider"
