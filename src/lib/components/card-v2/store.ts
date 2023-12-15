@@ -1,18 +1,17 @@
 import { derived } from 'svelte/store'
-import { globalSearchStore, globalTagsStore } from '$lib/utitlities/ephemera'
+import { globalStateStore, globalTagsStore } from '$lib/utitlities/ephemera'
 import { createLocalSnippetStore } from '$lib/utitlities/persistence'
 
 export const localSnippetsStore = await createLocalSnippetStore()
 export const displaySnippetsStore = derived(
-  [localSnippetsStore, globalTagsStore, globalSearchStore],
-  ([localSnippets, globalTags, globalSearch]) => {
-    globalSearch = globalSearch.toLowerCase()
+  [localSnippetsStore, globalTagsStore, globalStateStore],
+  ([localSnippets, globalTags, globalState]) => {
     const filteredSnippets = localSnippets.filter(
       snippet => {
         const snippetTags = new Set(snippet.tags)
         const searchingFound =
-          snippet.name.toLowerCase().includes(globalSearch) ||
-          snippet.text.toLowerCase().includes(globalSearch)
+          snippet.name.toLowerCase().includes(globalState.searchInput) ||
+          snippet.text.toLowerCase().includes(globalState.searchInput)
         // make sure that the snippet's tags include every global tag
         const taggingFound = Array
         .from(globalTags.keys())

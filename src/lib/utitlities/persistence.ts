@@ -260,7 +260,11 @@ export async function readGlobalState(): Promise<GlobalState> {
   // use default global state if the file is not found
   return Object.assign(
     {},
-    defaultGlobalState,
+    {
+      folderId: 'default',
+      tags: [],
+      searchInput: '',
+    },
     savedState,
   )
 }

@@ -1,10 +1,10 @@
 import { writable } from 'svelte/store'
-import type { Readable } from 'svelte/store'
-import { readGlobalState } from '$lib/utitlities/persistence'
+import type { Writable, Readable, Updater } from 'svelte/store'
+import { readGlobalState, writeGlobalState } from '$lib/utitlities/persistence'
 import type { GlobalState } from '$lib/utitlities/persistence'
 
 export type GlobalStateStore =
-  Readable<GlobalState> &
+  Writable<GlobalState> &
   {
     addTag: (tag: string) => void
     removeTag: (tag: string) => void
@@ -19,6 +19,15 @@ export async function createGlobalStateStore(): Promise<GlobalStateStore> {
 
   return {
     subscribe: store.subscribe,
+    set(value: GlobalState) {
+      writeGlobalState(value).then()
+      store.set(value)
+    },
+    update(updater: Updater<GlobalState>) {
+      const value = updater(state)
+      writeGlobalState(value).then()
+      store.set(value)
+    },
     addTag: (tag: string) => {
       tags.add(tag)
       state.tags = Array.from(tags)
@@ -60,3 +69,4 @@ export function createTagsStore() {
 export const globalTagsStore = createTagsStore()
 export const globalSearchStore = writable<string>('')
 export const globalFolderIdStore = writable<string>('default')
+export const globalStateStore = await createGlobalStateStore()

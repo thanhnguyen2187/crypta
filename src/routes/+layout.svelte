@@ -20,7 +20,7 @@
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
   import ModalMoveSnippet from '$lib/components/modal-snippet/modal-move-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
-  import { globalSearchStore, globalTagsStore } from '$lib/utitlities/ephemera'
+  import { globalStateStore, globalTagsStore } from '$lib/utitlities/ephemera'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
 
   initializeStores()
@@ -58,7 +58,11 @@
         <div class="input-group-shim">
           <i class="fa-solid fa-search"></i>
         </div>
-        <input type="text" placeholder="Search..." bind:value={$globalSearchStore}/>
+        <input
+          type="text"
+          placeholder="Search..."
+          bind:value={$globalStateStore.searchInput}
+        />
         <div
           class="flex gap-1"
         >
