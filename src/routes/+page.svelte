@@ -3,7 +3,7 @@
   import autoAnimate from '@formkit/auto-animate'
   import { displaySnippetsStore } from '$lib/components/card-v2/store'
 
-  import { hello } from '$lib'
+  import { hello } from '$lib/sqlite/browser'
 
   hello()
 
