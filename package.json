@@ -8,7 +8,8 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test": "vitest"
+    "test": "vitest",
+    "postinstall": "cp node_modules/wa-sqlite/dist/*.wasm node_modules/.vite/deps"
   },
   "devDependencies": {
     "@skeletonlabs/skeleton": "^2.5.1",
@@ -37,6 +38,7 @@
     "@fortawesome/fontawesome-free": "^6.5.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@shopify/draggable": "^1.1.1",
-    "@types/wicg-file-system-access": "^2023.10.1"
+    "@types/wicg-file-system-access": "^2023.10.1",
+    "wa-sqlite": "rhashimoto/wa-sqlite"
   }
 }
