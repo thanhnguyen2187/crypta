@@ -3,6 +3,10 @@
   import autoAnimate from '@formkit/auto-animate'
   import { displaySnippetsStore } from '$lib/components/card-v2/store'
 
+  import { hello } from '$lib'
+
+  hello()
+
 </script>
 
 <style>
