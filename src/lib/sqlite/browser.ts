@@ -10,9 +10,10 @@ export async function hello() {
   const sqlite3 = SQLite.Factory(module)
   sqlite3.vfs_register(IDBBatchAtomicVFS)
   const db = await sqlite3.open_v2('mydb')
+  const queryContent = (await import('../../../queries/01__snippet_creation.sql?raw')).default
   await sqlite3.exec(
     db,
-    `SELECT 'Hello world!'`,
+    queryContent,
     (row, columns) => {
       console.log(row)
     }
