@@ -8,8 +8,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test": "vitest",
-    "postinstall": "cp node_modules/wa-sqlite/dist/*.wasm node_modules/.vite/deps"
+    "test": "vitest"
   },
   "devDependencies": {
     "@skeletonlabs/skeleton": "^2.5.1",
