@@ -26,9 +26,27 @@ async function createQueryExecutor(api: SQLiteAPI, databaseName: string): Promis
     execute(query: string, callback: ResultCallback | undefined): Promise<number> {
       return api.exec(db, query, callback)
     },
+    executeResult(query: string): Promise<any> {
+      return new Promise(
+        (resolve) => {}
+      )
+    },
     close() {
       api.close(db)
     }
   }
 }
 
+type MigrationQueryMap = {[userVersion: number]: string}
+const UserVersionToQueryName = {
+  0: '0000_new_the_initiative.sql',
+}
+
+async function migrate(executor: QueryExecutor, migrationQueryMap: MigrationQueryMap) {
+  const currentUserVersion = await executor.execute(
+    'PRAGMA user_version;',
+    (row) => {
+
+    }
+  )
+}
