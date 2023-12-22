@@ -3,9 +3,16 @@
   import autoAnimate from '@formkit/auto-animate'
   import { displaySnippetsStore } from '$lib/components/card-v2/store'
 
-  import { hello } from '$lib/sqlite/browser'
+  // import { hello } from '$lib/sqlite/browser'
+  import { createQueryExecutor, createSQLiteAPI, migrate } from '$lib/sqlite/query-executor'
 
-  hello()
+  (async () => {
+    const sqlite3 = await createSQLiteAPI()
+    const executor = await createQueryExecutor(sqlite3, 'test')
+    const result = await executor.executeResult('PRAGMA user_version;')
+    debugger
+    console.log(result)
+  })()
 
 </script>
 
