@@ -5,6 +5,8 @@ CREATE TABLE `folders` (
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP
 );
+-- IMPORTANT: assure that the default folder always exist at first
+INSERT INTO `folders`(id, name, position) VALUES ('default', 'Default', 0);
 --> statement-breakpoint
 CREATE TABLE `snippet_tags` (
 	`id` text PRIMARY KEY NOT NULL,
