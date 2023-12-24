@@ -4,7 +4,7 @@
   import { displaySnippetsStore } from '$lib/components/card-v2/store'
 
   // import { hello } from '$lib/sqlite/browser'
-  import { createQueryExecutor, createSQLiteAPI, migrate } from '$lib/sqlite/query-executor'
+  import { createQueryExecutor, createSQLiteAPI } from '$lib/sqlite/query-executor'
 
   (async () => {
     const sqlite3 = await createSQLiteAPI()
