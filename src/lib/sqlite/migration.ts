@@ -3,6 +3,7 @@ import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { fetchRawString } from '$lib/utitlities/fetch-raw-string';
 import { folders } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
+import { localDb } from '$lib/sqlite/global';
 
 export type MigrationQueryMap = {[userVersion: number]: string}
 
@@ -24,6 +25,9 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
     currentUserVersion += 1
     await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
   }
+
+  debugger
+  await localDb.run(sql`PRAGMA user_version;`)
 }
 
 export async function v0DataImport(executor: QueryExecutor) {
