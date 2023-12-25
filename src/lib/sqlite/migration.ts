@@ -1,6 +1,8 @@
 import type { QueryExecutor } from './query-executor'
 import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { fetchRawString } from '$lib/utitlities/fetch-raw-string';
+import { folders } from '$lib/sqlite/schema'
+import { sql } from 'drizzle-orm'
 
 export type MigrationQueryMap = {[userVersion: number]: string}
 
@@ -27,4 +29,18 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
 export async function v0DataImport(executor: QueryExecutor) {
   const catalog = await readCatalog()
   const snippets = await readSnippets()
+
+  Object.entries(catalog).map(
+    ([folderId, folder], index) => {
+      return {
+        id: folderId,
+        name: folder.displayName,
+        position: index,
+      }
+    }
+  ).forEach(
+    (record) => {
+      const query = sql`insert into folders`
+    }
+  )
 }
