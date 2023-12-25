@@ -26,8 +26,7 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
     await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
   }
 
-  debugger
-  await localDb.run(sql`PRAGMA user_version;`)
+  await localDb.run(sql`SELECT * FROM folders WHERE id = ${'\'default\'; DROP TABLE folders;'}`)
 }
 
 export async function v0DataImport(executor: QueryExecutor) {
