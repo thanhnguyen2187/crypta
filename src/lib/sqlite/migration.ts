@@ -19,7 +19,7 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
     const migrationQuery = await fetchRawString(`queries/${migrationQueryName}`)
     await executor.execute(migrationQuery)
     if (currentUserVersion === 0) {
-      // await v0DataImport(localDb)
+      await v0DataImport(localDb)
       const name = '0000_seed_default_folder.sql'
       const seedFolderQuery = await fetchRawString(`queries/${name}`)
       await executor.execute(seedFolderQuery)
@@ -30,7 +30,7 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
   }
 
   // debugger
-  await v0DataImport(localDb)
+  // await v0DataImport(localDb)
   console.log(await localDb.select().from(folders))
   console.log(await localDb.select().from(snippets))
 }
@@ -50,15 +50,7 @@ export async function v0DataImport(db: SqliteRemoteDatabase) {
     await db
     .insert(folders)
     .values(record)
-    // .onConflictDoNothing()
-    .onConflictDoUpdate({
-      target: folders.id,
-      set: {
-        name: sql`excluded.name`,
-        position: sql`excluded.position`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
-      },
-    })
+    .onConflictDoNothing()
   }
 
   for (const folderRecord of folderRecords) {
