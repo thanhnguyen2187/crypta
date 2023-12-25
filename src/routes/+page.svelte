@@ -5,13 +5,11 @@
 
   // import { hello } from '$lib/sqlite/browser'
   import { createQueryExecutor, createSQLiteAPI } from '$lib/sqlite/query-executor'
+  import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
+  import { executor } from '$lib/sqlite/global'
 
   (async () => {
-    const sqlite3 = await createSQLiteAPI()
-    const executor = await createQueryExecutor(sqlite3, 'test')
-    const result = await executor.executeResult('PRAGMA user_version;')
-    debugger
-    console.log(result)
+    await migrate(executor, defaultMigrationQueryMap)
   })()
 
 </script>

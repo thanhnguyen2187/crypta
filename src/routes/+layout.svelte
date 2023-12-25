@@ -22,6 +22,8 @@
   import { globalStateStore } from '$lib/utitlities/ephemera'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
   import TabGroupFolder from '$lib/components/tab-group-folder/tab-group-folder.svelte'
+  import { onDestroy } from 'svelte'
+  import { executor } from '$lib/sqlite/global'
 
   initializeStores()
   const modalStore = getModalStore()
@@ -34,6 +36,9 @@
     moveSnippet: {ref: ModalMoveSnippet},
   }
 
+  onDestroy(() => {
+    executor.close()
+  })
 </script>
 
 <svelte:head>

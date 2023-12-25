@@ -1,20 +1,30 @@
 import type { QueryExecutor } from './query-executor'
-import { readSnippets } from '$lib/utitlities/persistence';
+import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
+import { fetchRawString } from '$lib/utitlities/fetch-raw-string';
 
-type MigrationQueryMap = {[userVersion: number]: string}
+export type MigrationQueryMap = {[userVersion: number]: string}
 
-const defaultMigrationQueryMap = {
-  0: '',
+export const defaultMigrationQueryMap: MigrationQueryMap = {
+  0: '0000_calm_gamma_corps.sql',
 }
 
 export async function migrate(executor: QueryExecutor, migrationQueryMap: MigrationQueryMap) {
   let [[currentUserVersion]] = await executor.executeResult('PRAGMA user_version;') as [[number]]
   while (migrationQueryMap[currentUserVersion]) {
-    const query = migrationQueryMap[currentUserVersion]
-    await executor.execute(query)
+    const migrationQueryName = migrationQueryMap[currentUserVersion]
+    const migrationQuery = await fetchRawString(`queries/${migrationQueryName}`)
+    await executor.execute(migrationQuery)
+    if (currentUserVersion === 0) {
+      const name = '0000_seed_default_folder.sql'
+      const seedFolderQuery = await fetchRawString(`queries/${name}`)
+      await executor.execute(seedFolderQuery)
+    }
     currentUserVersion += 1
+    await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
   }
 }
 
 export async function v0DataImport(executor: QueryExecutor) {
+  const catalog = await readCatalog()
+  const snippets = await readSnippets()
 }
