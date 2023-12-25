@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "a92c5e85-0221-42e0-9b71-66c149c7a5fa",
-  "prevId": "7a579fe5-7f63-4f6a-984c-61ebceace5d0",
+  "id": "8109837d-1e7b-4e4b-bde9-47f5a40db080",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "folders": {
       "name": "folders",

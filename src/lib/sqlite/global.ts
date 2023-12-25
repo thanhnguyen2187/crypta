@@ -1,4 +1,4 @@
 import { createQueryExecutor, createSQLiteAPI } from './query-executor'
 
-const sqlite3 = await createSQLiteAPI()
-const executor = createQueryExecutor(sqlite3, 'crypta')
+export const sqlite3 = await createSQLiteAPI()
+export const executor = await createQueryExecutor(sqlite3, 'crypta')
