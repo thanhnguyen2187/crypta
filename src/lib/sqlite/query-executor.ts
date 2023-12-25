@@ -2,12 +2,12 @@ import SQLiteESMFactory from '/wa-sqlite-async.mjs?url'
 import * as SQLite from 'wa-sqlite'
 // @ts-ignore
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
+import { sql } from 'drizzle-orm';
 
 type ResultCallback = (row: SQLiteCompatibleType[], columns: string[]) => void
 
 export type QueryExecutor = {
-  execute(query: string, callback?: ResultCallback): Promise<number>
-  executeResult(query: string): Promise<SQLiteCompatibleType[][]>
+  execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
   close(): void
 }
 
@@ -20,26 +20,21 @@ export async function createSQLiteAPI(): Promise<SQLiteAPI> {
   return sqlite3
 }
 
-export async function createQueryExecutor(api: SQLiteAPI, databaseName: string): Promise<QueryExecutor> {
-  const db = await api.open_v2(databaseName)
+export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: string): Promise<QueryExecutor> {
+  const db = await sqlite3.open_v2(databaseName)
   return {
-    execute(query: string, callback: ResultCallback | undefined): Promise<number> {
-      return api.exec(db, query, callback)
-    },
-    executeResult(query: string): Promise<SQLiteCompatibleType[][]> {
-      return new Promise(
-        (resolve, reject) => {
-          const rows: SQLiteCompatibleType[][] = []
-          api.exec(db, query, (row, columns) => {
-            rows.push(row)
-          }).then(() => {
-            resolve(rows)
-          }).catch(reject)
+    async execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]> {
+      const rows = []
+      for await (const stmt of sqlite3.statements(db, query)) {
+        params.forEach((param, index) => sqlite3.bind(stmt, index + 1, param))
+        while (await sqlite3.step(stmt) === SQLite.SQLITE_ROW) {
+          rows.push(sqlite3.row(stmt))
         }
-      )
+      }
+      return rows
     },
     close() {
-      api.close(db)
+      sqlite3.close(db)
     }
   }
 }

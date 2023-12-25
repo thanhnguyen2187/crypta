@@ -1,9 +1,9 @@
 import type { QueryExecutor } from './query-executor'
 import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { fetchRawString } from '$lib/utitlities/fetch-raw-string';
-import { folders } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
 import { localDb } from '$lib/sqlite/global';
+import { folders } from '$lib/sqlite/schema';
 
 export type MigrationQueryMap = {[userVersion: number]: string}
 
@@ -12,7 +12,7 @@ export const defaultMigrationQueryMap: MigrationQueryMap = {
 }
 
 export async function migrate(executor: QueryExecutor, migrationQueryMap: MigrationQueryMap) {
-  let [[currentUserVersion]] = await executor.executeResult('PRAGMA user_version;') as [[number]]
+  let [[currentUserVersion]] = await executor.execute('PRAGMA user_version') as [[number]]
   while (migrationQueryMap[currentUserVersion]) {
     const migrationQueryName = migrationQueryMap[currentUserVersion]
     const migrationQuery = await fetchRawString(`queries/${migrationQueryName}`)
@@ -23,10 +23,11 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
       await executor.execute(seedFolderQuery)
     }
     currentUserVersion += 1
+    // TODO: investigate why using `?` within the query doesn't work
     await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
   }
 
-  await localDb.run(sql`SELECT * FROM folders WHERE id = ${'\'default\'; DROP TABLE folders;'}`)
+  // console.log(await localDb.select().from(folders))
 }
 
 export async function v0DataImport(executor: QueryExecutor) {
