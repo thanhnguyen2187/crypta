@@ -3,7 +3,8 @@ import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { fetchRawString } from '$lib/utitlities/fetch-raw-string';
 import { sql } from 'drizzle-orm'
 import { localDb } from '$lib/sqlite/global';
-import { folders } from '$lib/sqlite/schema';
+import { folders, snippets } from '$lib/sqlite/schema';
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 
 export type MigrationQueryMap = {[userVersion: number]: string}
 
@@ -18,6 +19,7 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
     const migrationQuery = await fetchRawString(`queries/${migrationQueryName}`)
     await executor.execute(migrationQuery)
     if (currentUserVersion === 0) {
+      // await v0DataImport(localDb)
       const name = '0000_seed_default_folder.sql'
       const seedFolderQuery = await fetchRawString(`queries/${name}`)
       await executor.execute(seedFolderQuery)
@@ -27,14 +29,15 @@ export async function migrate(executor: QueryExecutor, migrationQueryMap: Migrat
     await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
   }
 
-  // console.log(await localDb.select().from(folders))
+  // debugger
+  await v0DataImport(localDb)
+  console.log(await localDb.select().from(folders))
+  console.log(await localDb.select().from(snippets))
 }
 
-export async function v0DataImport(executor: QueryExecutor) {
+export async function v0DataImport(db: SqliteRemoteDatabase) {
   const catalog = await readCatalog()
-  const snippets = await readSnippets()
-
-  Object.entries(catalog).map(
+  const folderRecords = Object.entries(catalog).map(
     ([folderId, folder], index) => {
       return {
         id: folderId,
@@ -42,9 +45,34 @@ export async function v0DataImport(executor: QueryExecutor) {
         position: index,
       }
     }
-  ).forEach(
-    (record) => {
-      const query = sql`insert into folders`
-    }
   )
+  for (const record of folderRecords) {
+    await db
+    .insert(folders)
+    .values(record)
+    // .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: folders.id,
+      set: {
+        name: sql`excluded.name`,
+        position: sql`excluded.position`,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      },
+    })
+  }
+
+  for (const folderRecord of folderRecords) {
+    const snippetRecords = await readSnippets(folderRecord.id)
+    for (const snippetRecord of snippetRecords) {
+      await db
+      .insert(snippets)
+      .values({
+        ...snippetRecord,
+        folderId: folderRecord.id,
+        createdAt: sql`DATETIME(${snippetRecord.createdAt}, 'unixepoch')`,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .onConflictDoNothing()
+    }
+  }
 }
