@@ -1,6 +1,10 @@
 import { writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 import { globalFolderIdStore, globalStateStore } from '$lib/utitlities/ephemera'
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import { snippets as table_snippets } from '$lib/sqlite/schema'
+import { sql } from 'drizzle-orm'
 
 export type Snippet = {
   id: string
@@ -144,8 +148,15 @@ export async function decryptSnippet(oldSnippet: Snippet, password: string): Pro
   }
 }
 
+export type SnippetStore = Readable<Snippet[]> &
+  {
+    clone: (snippet: Snippet) => Promise<void>
+    upsert: (snippet: Snippet) => Promise<void>
+    remove: (id: string) => Promise<void>
+    move: (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => Promise<void>
+  }
 
-export async function createLocalSnippetStore() {
+export async function createLocalSnippetStore(): Promise<SnippetStore> {
   let snippets: Snippet[] = []
   let folderId: string = 'default'
   const store = writable(snippets)
@@ -213,6 +224,33 @@ export async function createLocalSnippetStore() {
       }
       set(snippets)
     },
+  }
+}
+
+export async function createLocalSnippetStoreV2(db: SqliteRemoteDatabase): Promise<SnippetStore> {
+  let snippets: Snippet[] = []
+  let folderId: string = 'default'
+  const store = writable(snippets)
+  const {subscribe, set, update} = store
+  globalStateStore.subscribe(
+    async (state) => {
+      const dbSnippets = await
+        db
+        .select()
+        .from(table_snippets)
+        .where(sql`folder_id = ${state.folderId}`)
+      console.log(dbSnippets)
+      folderId = state.folderId
+      set(snippets)
+    }
+  )
+
+  return {
+    subscribe,
+    clone: async (snippet: Snippet) => {},
+    upsert: async (snippet: Snippet) => {},
+    remove: async (id: string) => {},
+    move: async (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => {},
   }
 }
 

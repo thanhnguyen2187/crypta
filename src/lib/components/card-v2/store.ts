@@ -1,8 +1,10 @@
 import { derived } from 'svelte/store'
 import { globalStateStore } from '$lib/utitlities/ephemera'
-import { createLocalSnippetStore } from '$lib/utitlities/persistence'
+import { createLocalSnippetStore, createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
+import { localDb } from '$lib/sqlite/global'
 
-export const localSnippetsStore = await createLocalSnippetStore()
+// export const localSnippetsStore = await createLocalSnippetStore()
+export const localSnippetsStore = await createLocalSnippetStoreV2(localDb)
 export const displaySnippetsStore = derived(
   [localSnippetsStore, globalStateStore],
   ([localSnippets, globalState]) => {

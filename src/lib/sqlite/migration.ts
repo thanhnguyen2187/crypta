@@ -18,6 +18,7 @@ export async function migrate(
   migrationQueryMap: MigrationQueryMap,
   queriesStringMap: QueriesStringMap,
 ) {
+  debugger
   let [currentUserVersion] = await db.get<[number]>(sql`PRAGMA user_version`)
   while (migrationQueryMap[currentUserVersion]) {
     const migrationQueryPath = migrationQueryMap[currentUserVersion]
@@ -43,6 +44,10 @@ export async function migrate(
     currentUserVersion += 1
     await db.run(sql.raw(`PRAGMA user_version = ${currentUserVersion}`))
   }
+
+  console.log(await db.select().from(folders))
+  console.log(await db.select().from(snippets))
+  console.log(await db.select().from(snippet_tags))
 }
 
 export async function v0DataImport(db: SqliteRemoteDatabase) {
