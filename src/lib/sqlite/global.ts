@@ -4,7 +4,10 @@ import { drizzle } from 'drizzle-orm/sqlite-proxy'
 
 export async function createLocalDb(executor: QueryExecutor) {
   return drizzle(async (queryString, params, method) => {
+    console.log(queryString)
+    console.log(params)
     const result = await executor.execute(queryString, ...params)
+    console.log(result)
     if (method === 'get' && result.length > 0) {
       return {rows: result[0]}
     }
@@ -14,4 +17,6 @@ export async function createLocalDb(executor: QueryExecutor) {
 
 export const sqlite3 = await createSQLiteAPI()
 export const executor = await createQueryExecutor(sqlite3, 'crypta')
+// export const executor2 = await createQueryExecutor(sqlite3, 'crypta')
 export const localDb = await createLocalDb(executor)
+// export const localDb2 = await createLocalDb(executor2)

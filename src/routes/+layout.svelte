@@ -22,8 +22,6 @@
   import { globalStateStore } from '$lib/utitlities/ephemera'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
   import TabGroupFolder from '$lib/components/tab-group-folder/tab-group-folder.svelte'
-  import { onDestroy } from 'svelte'
-  import { executor } from '$lib/sqlite/global'
 
   initializeStores()
   const modalStore = getModalStore()
@@ -36,14 +34,30 @@
     moveSnippet: {ref: ModalMoveSnippet},
   }
 
-  onDestroy(() => {
-    executor.close()
+  import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
+  import { executor, localDb } from '$lib/sqlite/global'
+  import { defaultQueriesStringMap } from '$lib/sqlite/migration'
+  import { onDestroy, onMount } from 'svelte'
+
+  onMount(async () => {
+    await migrate(localDb, defaultMigrationQueryMap, defaultQueriesStringMap)
   })
+  onDestroy(async () => {
+    await executor.close()
+  })
+
 </script>
 
 <svelte:head>
   <title>Crypta</title>
 </svelte:head>
+
+<svelte:window
+  on:load={async () => {
+  }}
+  on:beforeunload={async () => {
+  }}
+/>
 
 <Modal components={modalRegistry} />
 <Toast />

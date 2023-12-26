@@ -1,11 +1,14 @@
 import SQLiteESMFactory from '/wa-sqlite-async.mjs?url'
+// import SQLiteESMFactory from '/wa-sqlite.mjs?url'
 import * as SQLite from 'wa-sqlite'
 // @ts-ignore
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
+// @ts-ignore
+import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
 
 export type QueryExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
-  close(): void
+  close(): Promise<void>
 }
 
 export async function createSQLiteAPI(): Promise<SQLiteAPI> {
@@ -13,6 +16,7 @@ export async function createSQLiteAPI(): Promise<SQLiteAPI> {
   const module = await SQLiteESMFactory()
   const sqlite3 = SQLite.Factory(module)
   const vfs = new IDBBatchAtomicVFS()
+  // const vfs = new OriginPrivateFileSystemVFS()
   sqlite3.vfs_register(vfs, true)
   return sqlite3
 }
@@ -30,8 +34,8 @@ export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: stri
       }
       return rows
     },
-    close() {
-      sqlite3.close(db)
+    async close() {
+      await sqlite3.close(db)
     }
   }
 }
