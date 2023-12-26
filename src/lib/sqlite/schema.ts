@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, real, unique } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 export const snippets = sqliteTable(
@@ -47,5 +47,8 @@ export const snippet_tags = sqliteTable(
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
   },
+  (t) => ({
+    unq: unique('unique__snippet_id__tag_text').on(t.snippet_id, t.tag_text),
+  })
 )
 

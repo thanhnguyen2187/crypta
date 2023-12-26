@@ -2,7 +2,7 @@ import type { QueryExecutor } from './query-executor'
 import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { sql } from 'drizzle-orm'
 import { localDb } from '$lib/sqlite/global'
-import { folders, snippets } from './schema'
+import { folders, snippet_tags, snippets } from './schema'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 
 export type MigrationQueryMap = {[userVersion: number]: string}
@@ -10,6 +10,7 @@ export type QueriesStringMap = {[path: string]: string}
 
 export const defaultMigrationQueryMap: MigrationQueryMap = {
   0: '/db/0000_calm_gamma_corps.sql',
+  1: '/db/0001_low_silver_surfer.sql',
 }
 export const defaultQueriesStringMap: QueriesStringMap =
   import.meta.glob('/db/*.sql', {as: 'raw', eager: true})
@@ -29,10 +30,12 @@ export async function migrate(
     }
     await executor.execute(migrationQueryString)
     if (currentUserVersion === 0) {
-      await v0DataImport(localDb)
       const path = '/db/0000_seed_default_folder.sql'
       const seedFolderQuery = queriesStringMap[path]
       await executor.execute(seedFolderQuery)
+    }
+    if (currentUserVersion === 1) {
+      await v0DataImport(localDb)
     }
     currentUserVersion += 1
     // TODO: investigate why using `?` within the query doesn't work
@@ -42,6 +45,7 @@ export async function migrate(
   debugger
   console.log(await localDb.select().from(folders))
   console.log(await localDb.select().from(snippets))
+  console.log(await localDb.select().from(snippet_tags))
 }
 
 export async function v0DataImport(db: SqliteRemoteDatabase) {
@@ -74,6 +78,17 @@ export async function v0DataImport(db: SqliteRemoteDatabase) {
         updatedAt: sql`CURRENT_TIMESTAMP`,
       })
       .onConflictDoNothing()
+
+      for (const tag of snippetRecord.tags) {
+        await db
+        .insert(snippet_tags)
+        .values({
+          id: crypto.randomUUID(),
+          snippet_id: snippetRecord.id,
+          tag_text: tag,
+        })
+        .onConflictDoNothing()
+      }
     }
   }
 }
