@@ -4,11 +4,11 @@
   import { displaySnippetsStore } from '$lib/components/card-v2/store'
 
   import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
-  import { executor } from '$lib/sqlite/global'
+  import { localDb } from '$lib/sqlite/global'
   import { defaultQueriesStringMap } from '$lib/sqlite/migration.js';
 
   (async () => {
-    await migrate(executor, defaultMigrationQueryMap, defaultQueriesStringMap)
+    await migrate(localDb, defaultMigrationQueryMap, defaultQueriesStringMap)
   })()
 
 </script>
