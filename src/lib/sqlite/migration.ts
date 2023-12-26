@@ -41,6 +41,7 @@ export async function migrate(
       await executor.execute(seedFolderQuery)
     }
     // TODO: investigate why using `?` within the query doesn't work
+    currentUserVersion += 1
     await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
   }
 }
@@ -71,7 +72,9 @@ export async function v0DataImport(db: SqliteRemoteDatabase) {
       .values({
         ...snippetRecord,
         folderId: folderRecord.id,
-        createdAt: sql`DATETIME(${snippetRecord.createdAt}, 'unixepoch')`,
+        // We need to divide by 1000 since JavaScript's timestamp is in
+        // nanosecond instead of millisecond.
+        createdAt: sql`DATETIME(${(snippetRecord.createdAt / 1000).toFixed()}, 'unixepoch')`,
         updatedAt: sql`CURRENT_TIMESTAMP`,
       })
       .onConflictDoNothing()
