@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX `unique__snippet_id__tag_text` ON `snippet_tags` (`snippet_id`,`tag_text`);

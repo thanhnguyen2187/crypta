@@ -9,8 +9,7 @@ export type MigrationQueryMap = {[userVersion: number]: string}
 export type QueriesStringMap = {[path: string]: string}
 
 export const defaultMigrationQueryMap: MigrationQueryMap = {
-  0: '/db/0000_calm_gamma_corps.sql',
-  1: '/db/0001_low_silver_surfer.sql',
+  0: '/db/0000_sloppy_strong_guy.sql',
 }
 export const defaultQueriesStringMap: QueriesStringMap =
   import.meta.glob('/db/*.sql', {as: 'raw', eager: true})
@@ -30,22 +29,20 @@ export async function migrate(
     }
     await executor.execute(migrationQueryString)
     if (currentUserVersion === 0) {
+      try {
+        await v0DataImport(localDb)
+      }
+      catch (e) {
+        console.error('migrate: unable to import v0 data')
+        console.error(e)
+      }
       const path = '/db/0000_seed_default_folder.sql'
       const seedFolderQuery = queriesStringMap[path]
       await executor.execute(seedFolderQuery)
     }
-    if (currentUserVersion === 1) {
-      await v0DataImport(localDb)
-    }
-    currentUserVersion += 1
     // TODO: investigate why using `?` within the query doesn't work
     await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
   }
-
-  debugger
-  console.log(await localDb.select().from(folders))
-  console.log(await localDb.select().from(snippets))
-  console.log(await localDb.select().from(snippet_tags))
 }
 
 export async function v0DataImport(db: SqliteRemoteDatabase) {
