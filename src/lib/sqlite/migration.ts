@@ -1,7 +1,6 @@
 import type { QueryExecutor } from './query-executor'
 import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { sql } from 'drizzle-orm'
-import { localDb } from '$lib/sqlite/global'
 import { folders, snippet_tags, snippets } from './schema'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 
@@ -30,7 +29,7 @@ export async function migrate(
     await db.run(sql.raw(migrationQueryString))
     if (currentUserVersion === 0) {
       try {
-        await v0DataImport(localDb)
+        await v0DataImport(db)
       }
       catch (e) {
         console.error('migrate: unable to import v0 data')
