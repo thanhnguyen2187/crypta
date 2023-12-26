@@ -3,13 +3,12 @@
   import autoAnimate from '@formkit/auto-animate'
   import { displaySnippetsStore } from '$lib/components/card-v2/store'
 
-  // import { hello } from '$lib/sqlite/browser'
-  import { createQueryExecutor, createSQLiteAPI } from '$lib/sqlite/query-executor'
   import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
   import { executor } from '$lib/sqlite/global'
+  import { defaultQueriesStringMap } from '$lib/sqlite/migration.js';
 
   (async () => {
-    await migrate(executor, defaultMigrationQueryMap)
+    await migrate(executor, defaultMigrationQueryMap, defaultQueriesStringMap)
   })()
 
 </script>
