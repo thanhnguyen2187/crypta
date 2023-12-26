@@ -15,11 +15,11 @@ export const defaultQueriesStringMap: QueriesStringMap =
   import.meta.glob('/db/*.sql', {as: 'raw', eager: true})
 
 export async function migrate(
-  executor: QueryExecutor,
+  db: SqliteRemoteDatabase,
   migrationQueryMap: MigrationQueryMap,
   queriesStringMap: QueriesStringMap,
 ) {
-  let [[currentUserVersion]] = await executor.execute('PRAGMA user_version') as [[number]]
+  let [currentUserVersion] = await db.get<[number]>(sql`PRAGMA user_version`)
   while (migrationQueryMap[currentUserVersion]) {
     const migrationQueryPath = migrationQueryMap[currentUserVersion]
     const migrationQueryString = queriesStringMap[migrationQueryPath]
@@ -27,7 +27,7 @@ export async function migrate(
       console.error(`migrate: could not find query string of ${migrationQueryPath}`)
       return
     }
-    await executor.execute(migrationQueryString)
+    await db.run(sql.raw(migrationQueryString))
     if (currentUserVersion === 0) {
       try {
         await v0DataImport(localDb)
@@ -38,11 +38,11 @@ export async function migrate(
       }
       const path = '/db/0000_seed_default_folder.sql'
       const seedFolderQuery = queriesStringMap[path]
-      await executor.execute(seedFolderQuery)
+      await db.run(sql.raw(seedFolderQuery))
     }
     // TODO: investigate why using `?` within the query doesn't work
     currentUserVersion += 1
-    await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
+    await db.run(sql.raw(`PRAGMA user_version = ${currentUserVersion}`))
   }
 }
 
