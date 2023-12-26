@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import type { Writable, Readable, Updater } from 'svelte/store'
+import type { Writable, Updater } from 'svelte/store'
 import { readGlobalState, writeGlobalState } from '$lib/utitlities/persistence'
 import type { GlobalState } from '$lib/utitlities/persistence'
 
