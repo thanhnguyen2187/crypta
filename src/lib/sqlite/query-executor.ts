@@ -2,9 +2,6 @@ import SQLiteESMFactory from '/wa-sqlite-async.mjs?url'
 import * as SQLite from 'wa-sqlite'
 // @ts-ignore
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
-import { sql } from 'drizzle-orm';
-
-type ResultCallback = (row: SQLiteCompatibleType[], columns: string[]) => void
 
 export type QueryExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
