@@ -37,19 +37,19 @@ export const snippet_tags = sqliteTable(
   'snippet_tags',
   {
     id: text('id').primaryKey(),
-    snippet_id: text('snippet_id').references(
+    snippetId: text('snippet_id').references(
       () => snippets.id,
       {
         onDelete: 'cascade',
         onUpdate: 'cascade',
       },
     ).notNull(),
-    tag_text: text('tag_text').notNull(),
+    tagText: text('tag_text').notNull(),
     updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
     createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
   },
   (t) => ({
-    unq: unique('unique__snippet_id__tag_text').on(t.snippet_id, t.tag_text),
+    unq: unique('unique__snippet_id__tag_text').on(t.snippetId, t.tagText),
   })
 )
 

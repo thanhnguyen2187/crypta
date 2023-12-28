@@ -3,7 +3,7 @@ import type { Writable, Readable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 import { globalFolderIdStore, globalStateStore } from '$lib/utitlities/ephemera'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
-import { snippets as table_snippets } from '$lib/sqlite/schema'
+import { snippet_tags, snippets as table_snippets } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
 import type { MigrationState } from '$lib/sqlite/migration'
 
@@ -246,8 +246,20 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
           db
           .select()
           .from(table_snippets)
-          // @ts-ignore
           .where(sql`folder_id = ${globalState.folderId}`)
+        const tags = await
+          db
+          .select()
+          .from(snippet_tags)
+          .where(sql`snippet_id IN ${dbSnippets.map(dbSnippet => dbSnippet.id)}`)
+        const tagsMap: {[id: string]: string[]} = {}
+        for (const tag of tags) {
+          if (tagsMap[tag.snippetId]) {
+            tagsMap[tag.snippetId].push(tag.tagText)
+          } else {
+            tagsMap[tag.snippetId] = [tag.tagText]
+          }
+        }
         const snippets: Snippet[] = dbSnippets.map(
           (dbSnippet) => {
             return {
@@ -257,7 +269,7 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
               text: dbSnippet.text,
               position: dbSnippet.position,
               encrypted: dbSnippet.encrypted,
-              tags: [],
+              tags: tagsMap[dbSnippet.id] ?? [],
               createdAt: 0,
               updatedAt: 0,
             }
