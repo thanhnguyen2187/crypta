@@ -1,10 +1,11 @@
-import { writable } from 'svelte/store'
-import type { Readable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
+import type { Writable, Readable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 import { globalFolderIdStore, globalStateStore } from '$lib/utitlities/ephemera'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { snippets as table_snippets } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
+import type { MigrationState } from '$lib/sqlite/migration'
 
 export type Snippet = {
   id: string
@@ -227,21 +228,43 @@ export async function createLocalSnippetStore(): Promise<SnippetStore> {
   }
 }
 
-export async function createLocalSnippetStoreV2(db: SqliteRemoteDatabase): Promise<SnippetStore> {
+export async function createLocalSnippetStoreV2(migrationStateStore: Writable<MigrationState>, db: SqliteRemoteDatabase): Promise<SnippetStore> {
   let snippets: Snippet[] = []
   let folderId: string = 'default'
   const store = writable(snippets)
   const {subscribe, set, update} = store
-  globalStateStore.subscribe(
-    async (state) => {
-      const dbSnippets = await
-        db
-        .select()
-        .from(table_snippets)
-        .where(sql`folder_id = ${state.folderId}`)
-      console.log(dbSnippets)
-      folderId = state.folderId
-      set(snippets)
+  const pairStore = derived(
+    [migrationStateStore, globalStateStore],
+    ([migrationState, globalState]) => {
+      return [migrationState, globalState]
+    }
+  )
+  pairStore.subscribe(
+    async ([migrationState, globalState]) => {
+      if (migrationState === 'done') {
+        const dbSnippets = await
+          db
+          .select()
+          .from(table_snippets)
+          // @ts-ignore
+          .where(sql`folder_id = ${globalState.folderId}`)
+        const snippets: Snippet[] = dbSnippets.map(
+          (dbSnippet) => {
+            return {
+              id: dbSnippet.id,
+              name: dbSnippet.name,
+              language: dbSnippet.language,
+              text: dbSnippet.text,
+              position: dbSnippet.position,
+              encrypted: dbSnippet.encrypted,
+              tags: [],
+              createdAt: 0,
+              updatedAt: 0,
+            }
+          }
+        )
+        store.set(snippets)
+      }
     }
   )
 
