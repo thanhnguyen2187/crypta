@@ -3,6 +3,8 @@ import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { sql } from 'drizzle-orm'
 import { folders, snippet_tags, snippets } from './schema'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
+import { writable } from 'svelte/store'
+import type { Writable } from 'svelte/store'
 
 export type MigrationQueryMap = {[userVersion: number]: string}
 export type QueriesStringMap = {[path: string]: string}
@@ -13,12 +15,16 @@ export const defaultMigrationQueryMap: MigrationQueryMap = {
 export const defaultQueriesStringMap: QueriesStringMap =
   import.meta.glob('/db/*.sql', {as: 'raw', eager: true})
 
+export type MigrationState = 'not-started' | 'running' | 'done'
+export const migrationStateStore = writable<MigrationState>('not-started')
+
 export async function migrate(
   db: SqliteRemoteDatabase,
+  stateStore: Writable<MigrationState>,
   migrationQueryMap: MigrationQueryMap,
   queriesStringMap: QueriesStringMap,
 ) {
-  debugger
+  stateStore.set('running')
   let [currentUserVersion] = await db.get<[number]>(sql`PRAGMA user_version`)
   while (migrationQueryMap[currentUserVersion]) {
     const migrationQueryPath = migrationQueryMap[currentUserVersion]
@@ -48,6 +54,7 @@ export async function migrate(
   console.log(await db.select().from(folders))
   console.log(await db.select().from(snippets))
   console.log(await db.select().from(snippet_tags))
+  stateStore.set('done')
 }
 
 export async function v0DataImport(db: SqliteRemoteDatabase) {
