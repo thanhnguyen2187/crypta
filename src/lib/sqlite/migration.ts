@@ -10,7 +10,7 @@ export type MigrationQueryMap = {[userVersion: number]: string}
 export type QueriesStringMap = {[path: string]: string}
 
 export const defaultMigrationQueryMap: MigrationQueryMap = {
-  0: '/db/0000_sloppy_strong_guy.sql',
+  0: '/db/0000_mushy_black_queen.sql',
 }
 export const defaultQueriesStringMap: QueriesStringMap =
   import.meta.glob('/db/*.sql', {as: 'raw', eager: true})
@@ -51,9 +51,6 @@ export async function migrate(
     await db.run(sql.raw(`PRAGMA user_version = ${currentUserVersion}`))
   }
 
-  console.log(await db.select().from(folders))
-  console.log(await db.select().from(snippets))
-  console.log(await db.select().from(snippet_tags))
   stateStore.set('done')
 }
 
@@ -94,9 +91,8 @@ export async function v0DataImport(db: SqliteRemoteDatabase) {
         await db
         .insert(snippet_tags)
         .values({
-          id: crypto.randomUUID(),
-          snippet_id: snippetRecord.id,
-          tag_text: tag,
+          snippetId: snippetRecord.id,
+          tagText: tag,
         })
         .onConflictDoNothing()
       }
