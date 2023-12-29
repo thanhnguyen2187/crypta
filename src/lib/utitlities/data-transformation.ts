@@ -1,5 +1,5 @@
-import type { queryTagsBySnippetIds, querySnippetsByFolderId } from '$lib/sqlite/queries'
-import type { Flatten, ValueType } from './typing'
+import type { snippet_tags } from '$lib/sqlite/schema'
+import type { snippets } from '$lib/sqlite/schema'
 
 export type DisplaySnippet = {
   id: string
@@ -14,8 +14,8 @@ export type DisplaySnippet = {
 }
 
 export type TagsMap = {[id: string]: string[]}
-export type Tags = ValueType<ReturnType<typeof queryTagsBySnippetIds>>
-export type DbSnippet = Flatten<ValueType<ReturnType<typeof querySnippetsByFolderId>>>
+export type Tags = (typeof snippet_tags.$inferSelect)[]
+export type DbSnippet = typeof snippets.$inferSelect
 
 export function buildTagsMap(tags: Tags): TagsMap {
   const tagsMap: TagsMap = {}

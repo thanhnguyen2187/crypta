@@ -1,6 +1,7 @@
 <script lang="ts">
   import { AppRail, AppRailAnchor, AppRailTile, getModalStore, popup } from '@skeletonlabs/skeleton'
-  import { catalogStore, foldersStore } from './store';
+  import { catalogStore, foldersStore, foldersStoreV2 } from './store'
+  import type { DisplayFolder } from './store'
   import { globalStateStore } from '$lib/utitlities/ephemera'
   import { createNewFolder } from '$lib/utitlities/persistence'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
@@ -12,21 +13,22 @@
   type TileAction = {
     text: string
     faIconClass: string
-    callback: (folderId: string) => void
+    callback: (folder: DisplayFolder) => void
   }
   const actionRename: TileAction = {
     text: 'Rename',
     faIconClass: 'fa-edit',
-    callback: (folderId: string) => {
+    callback: (folder: DisplayFolder) => {
       modalStore.trigger({
         type: 'prompt',
         title: 'Enter new folder name',
-        value: $catalogStore[folderId].displayName,
+        value: folder.name,
         response: (name: string | false) => {
           if (!name) {
             return
           }
-          catalogStore.setDisplayName(folderId, name)
+          folder.name = name
+          foldersStoreV2.upsert(folder)
         },
       })
     },
@@ -44,19 +46,16 @@
   const actionDelete: TileAction = {
     text: 'Delete',
     faIconClass: 'fa-trash',
-    callback: (folderId: string) => {
-      // noinspection TypeScriptUnresolvedReference
+    callback: (folder: DisplayFolder) => {
       modalStore.trigger({
         type: 'confirm',
         title: 'Are you sure about this action?',
         body:
-         `The folder named "${$catalogStore[folderId].displayName}" with
+         `The folder named "${folder.name}" with
          ${$localSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
-            catalogStore.delete(folderId)
-            $globalStateStore.folderId = 'default'
-            currentTile = 'default'
+            foldersStoreV2.delete(folder.id)
           }
         },
       })
@@ -71,19 +70,22 @@
   ]
 
   function newFolder() {
-    const folder = createNewFolder()
-    folder.position = ($foldersStore).length + 1
-    catalogStore.upsert(folder)
+    const folder: DisplayFolder = {
+      id: crypto.randomUUID(),
+      name: 'Untitled',
+      position: $foldersStoreV2.length,
+    }
     $globalStateStore.folderId = folder.id
     currentTile = folder.id
 
-    actionRename.callback(folder.id)
+    foldersStoreV2.upsert(folder).then()
+    actionRename.callback(folder)
   }
 
 </script>
 
 <AppRail class="hidden md:block">
-  {#each $foldersStore as folder}
+  {#each $foldersStoreV2 as folder}
     <div
       data-popup="rail-tile-actions-{folder.id}"
       class="z-10"
@@ -91,7 +93,7 @@
       <ul class="list-nav variant-filled gap-2 rounded-container-token">
         {#each actions as action}
           <li>
-            <button class="w-full" on:click={() => action.callback(folder.id)}>
+            <button class="w-full" on:click={() => action.callback(folder)}>
               <span>
                 <i class="fa-solid {action.faIconClass}"></i>
               </span>
@@ -128,7 +130,7 @@
         </button>
       {/if}
       <span>
-        {folder.displayName}
+        {folder.name}
       </span>
     </AppRailTile>
   {/each}
