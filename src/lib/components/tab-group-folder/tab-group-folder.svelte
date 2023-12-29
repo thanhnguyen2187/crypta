@@ -1,9 +1,9 @@
 <script lang="ts">
   import { AppRailTile, getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
-  import { globalStateStore } from '$lib/utitlities/ephemera';
-  import { catalogStore, foldersStore } from '$lib/components/sidebar-folder/store';
-  import { localSnippetsStore } from '$lib/components/card-v2/store';
-  import { createNewFolder } from '$lib/utitlities/persistence';
+  import { globalStateStore } from '$lib/utitlities/ephemera'
+  import { catalogStore, foldersStore } from '$lib/components/sidebar-folder/store'
+  import { localSnippetsStore } from '$lib/components/card-v2/store'
+  import { createNewFolder } from '$lib/utitlities/persistence'
   let currentTab = $globalStateStore.folderId
 
   const modalStore = getModalStore()
