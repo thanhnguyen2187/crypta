@@ -6,8 +6,17 @@ import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { snippet_tags, snippets as table_snippets } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
 import type { MigrationState } from '$lib/sqlite/migration'
-import { querySnippetsByFolderId, queryTagsBySnippetIds } from '$lib/sqlite/queries';
-import { buildTagsMap, dbSnippetToDisplaySnippet } from '$lib/utitlities/data-transformation';
+import {
+  querySnippetsByFolderId,
+  queryTagsBySnippetIds,
+  upsertSnippet,
+  deleteSnippet as deleteSnippet_, upsertTags, clearTags,
+} from '$lib/sqlite/queries';
+import {
+  buildTagsMap,
+  dbSnippetToDisplaySnippet,
+  displaySnippetToDbSnippet
+} from '$lib/utitlities/data-transformation';
 
 export type Snippet = {
   id: string
@@ -232,6 +241,7 @@ export async function createLocalSnippetStore(): Promise<SnippetStore> {
 
 export async function createLocalSnippetStoreV2(migrationStateStore: Writable<MigrationState>, db: SqliteRemoteDatabase): Promise<SnippetStore> {
   let snippets: Snippet[] = []
+  let folderId = 'default'
   const store = writable(snippets)
   const {subscribe, set, update} = store
   const stores = derived(
@@ -241,14 +251,17 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
     }
   )
   stores.subscribe(
+    // TODO: fix the typing of `globalState` and `migrationState`, which both
+    //       have the type `GlobalState | MigrationState`
     async ([globalState, migrationState]) => {
       if (migrationState === 'done') {
-        // @ts-ignore
-        const dbSnippets = await querySnippetsByFolderId(db, globalState.folderId)
+        folderId = (globalState as GlobalState).folderId
+
+        const dbSnippets = await querySnippetsByFolderId(db, folderId)
         const snippetIds = dbSnippets.map(snippet => snippet.id)
         const tags = await queryTagsBySnippetIds(db, snippetIds)
         const tagsMap = buildTagsMap(tags)
-        const snippets: Snippet[] = dbSnippets.map(
+        snippets = dbSnippets.map(
           (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, tagsMap)
         )
         store.set(snippets)
@@ -258,10 +271,53 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
 
   return {
     subscribe,
-    clone: async (snippet: Snippet) => {},
-    upsert: async (snippet: Snippet) => {},
-    remove: async (id: string) => {},
-    move: async (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => {},
+    clone: async (snippet: Snippet) => {
+      const clonedSnippet: Snippet = {
+        ...snippet,
+        id: crypto.randomUUID(),
+        position: snippets.length + 1,
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
+      }
+      const dbSnippet = displaySnippetToDbSnippet(folderId, clonedSnippet)
+      await upsertSnippet(db, dbSnippet)
+      await upsertTags(db, clonedSnippet.id, snippet.tags)
+      snippets.push(clonedSnippet)
+
+      set(snippets)
+    },
+    upsert: async (snippet: Snippet) => {
+      const dbSnippet = displaySnippetToDbSnippet(folderId, snippet)
+      await upsertSnippet(db, dbSnippet)
+      await clearTags(db, snippet.id)
+      await upsertTags(db, snippet.id, snippet.tags)
+      const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
+      if (index === -1) {
+        snippets.push(snippet)
+        set(snippets)
+        return
+      }
+
+      snippets[index] = snippet
+      set(snippets)
+    },
+    remove: async (id: string) => {
+      await deleteSnippet_(db, id)
+      const index = snippets.findIndex(snippet => snippet.id === id)
+      snippets.splice(index, 1)
+
+      set(snippets)
+    },
+    move: async (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => {
+      const dbSnippet = displaySnippetToDbSnippet(sourceFolderId, movingSnippet)
+      dbSnippet.folderId = destinationFolderId
+      await upsertSnippet(db, dbSnippet)
+
+      const index = snippets.findIndex(snippet => snippet.id === movingSnippet.id)
+      snippets.splice(index, 1)
+
+      set(snippets)
+    },
   }
 }
 
