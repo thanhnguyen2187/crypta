@@ -6,6 +6,8 @@ import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { snippet_tags, snippets as table_snippets } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
 import type { MigrationState } from '$lib/sqlite/migration'
+import { querySnippetsByFolderId, queryTagsBySnippetIds } from '$lib/sqlite/queries';
+import { buildTagsMap, dbSnippetToDisplaySnippet } from '$lib/utitlities/data-transformation';
 
 export type Snippet = {
   id: string
@@ -230,50 +232,24 @@ export async function createLocalSnippetStore(): Promise<SnippetStore> {
 
 export async function createLocalSnippetStoreV2(migrationStateStore: Writable<MigrationState>, db: SqliteRemoteDatabase): Promise<SnippetStore> {
   let snippets: Snippet[] = []
-  let folderId: string = 'default'
   const store = writable(snippets)
   const {subscribe, set, update} = store
-  const pairStore = derived(
-    [migrationStateStore, globalStateStore],
-    ([migrationState, globalState]) => {
-      return [migrationState, globalState]
+  const stores = derived(
+    [globalStateStore, migrationStateStore],
+    ([globalState, migrationState]: [GlobalState, MigrationState]) => {
+      return [globalState, migrationState]
     }
   )
-  pairStore.subscribe(
-    async ([migrationState, globalState]) => {
+  stores.subscribe(
+    async ([globalState, migrationState]) => {
       if (migrationState === 'done') {
-        const dbSnippets = await
-          db
-          .select()
-          .from(table_snippets)
-          .where(sql`folder_id = ${globalState.folderId}`)
-        const tags = await
-          db
-          .select()
-          .from(snippet_tags)
-          .where(sql`snippet_id IN ${dbSnippets.map(dbSnippet => dbSnippet.id)}`)
-        const tagsMap: {[id: string]: string[]} = {}
-        for (const tag of tags) {
-          if (tagsMap[tag.snippetId]) {
-            tagsMap[tag.snippetId].push(tag.tagText)
-          } else {
-            tagsMap[tag.snippetId] = [tag.tagText]
-          }
-        }
+        // @ts-ignore
+        const dbSnippets = await querySnippetsByFolderId(db, globalState.folderId)
+        const snippetIds = dbSnippets.map(snippet => snippet.id)
+        const tags = await queryTagsBySnippetIds(db, snippetIds)
+        const tagsMap = buildTagsMap(tags)
         const snippets: Snippet[] = dbSnippets.map(
-          (dbSnippet) => {
-            return {
-              id: dbSnippet.id,
-              name: dbSnippet.name,
-              language: dbSnippet.language,
-              text: dbSnippet.text,
-              position: dbSnippet.position,
-              encrypted: dbSnippet.encrypted,
-              tags: tagsMap[dbSnippet.id] ?? [],
-              createdAt: 0,
-              updatedAt: 0,
-            }
-          }
+          (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, tagsMap)
         )
         store.set(snippets)
       }
