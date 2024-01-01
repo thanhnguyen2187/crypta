@@ -5,6 +5,7 @@ import * as SQLite from 'wa-sqlite'
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
+import { executor } from '$lib/sqlite/global';
 
 export type QueryExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -23,16 +24,19 @@ export async function createSQLiteAPI(): Promise<SQLiteAPI> {
 
 export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: string): Promise<QueryExecutor> {
   const db = await sqlite3.open_v2(databaseName)
+  async function executeFn(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]> {
+    const rows = []
+    for await (const stmt of sqlite3.statements(db, query)) {
+      params.forEach((param, index) => sqlite3.bind(stmt, index + 1, param))
+      while (await sqlite3.step(stmt) === SQLite.SQLITE_ROW) {
+        rows.push(sqlite3.row(stmt))
+      }
+    }
+    return rows
+  }
   return {
     async execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]> {
-      const rows = []
-      for await (const stmt of sqlite3.statements(db, query)) {
-        params.forEach((param, index) => sqlite3.bind(stmt, index + 1, param))
-        while (await sqlite3.step(stmt) === SQLite.SQLITE_ROW) {
-          rows.push(sqlite3.row(stmt))
-        }
-      }
-      return rows
+      return navigator.locks.request('crypta_executor', (lock) => executeFn(query, ...params))
     },
     async close() {
       await sqlite3.close(db)

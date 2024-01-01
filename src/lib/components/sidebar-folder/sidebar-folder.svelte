@@ -23,12 +23,12 @@
         type: 'prompt',
         title: 'Enter new folder name',
         value: folder.name,
-        response: (name: string | false) => {
+        response: async (name: string | false) => {
           if (!name) {
             return
           }
           folder.name = name
-          foldersStoreV2.upsert(folder)
+          await foldersStoreV2.upsert(folder)
         },
       })
     },
@@ -69,16 +69,16 @@
     actionDelete,
   ]
 
-  function newFolder() {
+  async function newFolder() {
     const folder: DisplayFolder = {
       id: crypto.randomUUID(),
       name: 'Untitled',
-      position: $foldersStoreV2.length,
+      position: $foldersStoreV2.length + 1,
     }
     $globalStateStore.folderId = folder.id
     currentTile = folder.id
 
-    foldersStoreV2.upsert(folder).then()
+    await foldersStoreV2.upsert(folder)
     actionRename.callback(folder)
   }
 
