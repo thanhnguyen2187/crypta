@@ -1,11 +1,13 @@
 import { derived, writable } from 'svelte/store'
-import type { Readable } from 'svelte/store'
+import type { Readable, Writable } from 'svelte/store'
 import { defaultCatalog, readCatalog, writeCatalog } from '$lib/utitlities/persistence'
 import type { Catalog, Folder } from '$lib/utitlities/persistence'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 import { folders as folders_table } from '$lib/sqlite/schema'
 import { deleteFolder, queryFolders, upsertFolder } from '$lib/sqlite/queries';
 import { localDb } from '$lib/sqlite/global';
+import type { MigrationState } from '$lib/sqlite/migration';
+import { migrationStateStore } from '$lib/sqlite/migration';
 
 export type CatalogStore = Readable<Catalog> &
   {
@@ -56,16 +58,24 @@ export async function createCatalogStore(): Promise<CatalogStore> {
   }
 }
 
-export async function createFoldersStoreV2(db: SqliteRemoteDatabase): Promise<FoldersStoreV2> {
-  const folders = await queryFolders(db)
-  const displayFolders: DisplayFolder[] = folders.map(
-    dbFolder => ({
-      id: dbFolder.id,
-      name: dbFolder.name,
-      position: dbFolder.position,
-    })
-  )
+export async function createFoldersStoreV2(db: SqliteRemoteDatabase, migrationStateStore: Writable<MigrationState>): Promise<FoldersStoreV2> {
+  let displayFolders: DisplayFolder[] = []
   const {subscribe, set} = writable(displayFolders)
+  migrationStateStore.subscribe(
+    async (migrationState) => {
+      if (migrationState === 'done') {
+        const folders = await queryFolders(db)
+        displayFolders = folders.map(
+          dbFolder => ({
+            id: dbFolder.id,
+            name: dbFolder.name,
+            position: dbFolder.position,
+          })
+        )
+        set(displayFolders)
+      }
+    }
+  )
 
   return {
     subscribe,
@@ -104,5 +114,5 @@ export const foldersStore = derived(
     )
   }
 )
-export const foldersStoreV2 = await createFoldersStoreV2(localDb)
+export const foldersStoreV2 = await createFoldersStoreV2(localDb, migrationStateStore)
 

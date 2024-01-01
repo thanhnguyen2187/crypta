@@ -71,15 +71,15 @@ export async function upsertFolder(db: SqliteRemoteDatabase, dbFolder: typeof fo
   return db
     .insert(folders)
     .values(dbFolder)
-    .onConflictDoNothing()
-    // .onConflictDoUpdate({
-    //   target: folders.id,
-    //   set: {
-    //     name: sql`excluded.name`,
-    //     position: sql`excluded.position`,
-    //     // updatedAt: sql`CURRENT_TIMESTAMP`,
-    //   }
-    // })
+    // .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: folders.id,
+      set: {
+        name: sql`excluded.name`,
+        position: sql`excluded.position`,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      }
+    })
 }
 
 export async function deleteFolder(db: SqliteRemoteDatabase, id: string) {
