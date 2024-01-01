@@ -36,6 +36,10 @@ export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: stri
   }
   return {
     async execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]> {
+      // We split to an `executeFn` and use Web Locks API since `wa-sqlite`
+      // doesn't allow concurrent usage of `SQLiteESMFactory`.
+      //
+      // Also see this issue: https://github.com/rhashimoto/wa-sqlite/issues/139
       return navigator.locks.request('crypta_executor', (lock) => executeFn(query, ...params))
     },
     async close() {
