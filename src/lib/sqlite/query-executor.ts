@@ -5,7 +5,6 @@ import * as SQLite from 'wa-sqlite'
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
-import { executor } from '$lib/sqlite/global';
 
 export type QueryExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -47,4 +46,3 @@ export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: stri
     }
   }
 }
-
