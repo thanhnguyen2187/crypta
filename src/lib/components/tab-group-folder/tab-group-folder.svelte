@@ -55,6 +55,8 @@
         response: (answer: boolean) => {
           if (answer) {
             foldersStoreV2.delete(folder.id)
+            $globalStateStore.folderId = 'default'
+            currentTab = 'default'
           }
         },
       })
