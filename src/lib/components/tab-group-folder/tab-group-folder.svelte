@@ -1,9 +1,9 @@
 <script lang="ts">
   import { AppRailTile, getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
   import { globalStateStore } from '$lib/utitlities/ephemera'
-  import { catalogStore, foldersStore } from '$lib/components/sidebar-folder/store'
+  import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
+  import type { DisplayFolder } from '$lib/components/sidebar-folder/store'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
-  import { createNewFolder } from '$lib/utitlities/persistence'
   let currentTab = $globalStateStore.folderId
 
   const modalStore = getModalStore()
@@ -11,21 +11,22 @@
   type TileAction = {
     text: string
     faIconClass: string
-    callback: (folderId: string) => void
+    callback: (folder: DisplayFolder) => void
   }
   const actionRename: TileAction = {
     text: 'Rename',
     faIconClass: 'fa-edit',
-    callback: (folderId: string) => {
+    callback: (folder: DisplayFolder) => {
       modalStore.trigger({
         type: 'prompt',
         title: 'Enter new folder name',
-        value: $catalogStore[folderId].displayName,
-        response: (name: string | false) => {
+        value: folder.name,
+        response: async (name: string | false) => {
           if (!name) {
             return
           }
-          catalogStore.setDisplayName(folderId, name)
+          folder.name = name
+          await foldersStoreV2.upsert(folder)
         },
       })
     },
@@ -43,19 +44,17 @@
   const actionDelete: TileAction = {
     text: 'Delete',
     faIconClass: 'fa-trash',
-    callback: (folderId: string) => {
+    callback: (folder: DisplayFolder) => {
       // noinspection TypeScriptUnresolvedReference
       modalStore.trigger({
         type: 'confirm',
         title: 'Are you sure about this action?',
         body:
-          `The folder named "${$catalogStore[folderId].displayName}" with
+          `The folder named "${folder.name}" with
          ${$localSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
-            catalogStore.delete(folderId)
-            $globalStateStore.folderId = 'default'
-            currentTab = 'default'
+            foldersStoreV2.delete(folder.id)
           }
         },
       })
@@ -70,18 +69,22 @@
   ]
 
   function newFolder() {
-    const folder = createNewFolder()
-    folder.position = ($foldersStore).length + 1
-    catalogStore.upsert(folder)
+    const folder: DisplayFolder = {
+      id: crypto.randomUUID(),
+      name: 'Untitled',
+      position: $foldersStoreV2.length + 1,
+    }
+    folder.position = $foldersStoreV2.length + 1
+    foldersStoreV2.upsert(folder)
     $globalStateStore.folderId = folder.id
     currentTab = folder.id
 
-    actionRename.callback(folder.id)
+    actionRename.callback(folder)
   }
 </script>
 
 <TabGroup class="block md:hidden">
-  {#each $foldersStore as folder}
+  {#each $foldersStoreV2 as folder}
     <div
       data-popup="tab-actions-{folder.id}"
       class="z-10"
@@ -89,7 +92,7 @@
       <ul class="list-nav variant-filled gap-2 rounded-container-token">
         {#each actions as action}
           <li>
-            <button class="w-full" on:click={() => action.callback(folder.id)}>
+            <button class="w-full" on:click={() => action.callback(folder)}>
               <span>
                 <i class="fa-solid {action.faIconClass}"></i>
               </span>
@@ -105,7 +108,7 @@
       name={folder.id}
       value={folder.id}
       on:click={() => $globalStateStore.folderId = folder.id}>
-        <span>{folder.displayName}</span>
+        <span>{folder.name}</span>
         {#if folder.id === $globalStateStore.folderId}
           <button
             class="ml-2 fa-solid fa-ellipsis-h z-10"
