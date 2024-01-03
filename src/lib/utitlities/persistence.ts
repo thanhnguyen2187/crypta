@@ -247,6 +247,7 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
   const stores = derived(
     [globalStateStore, migrationStateStore],
     ([globalState, migrationState]: [GlobalState, MigrationState]) => {
+      folderId = globalState.folderId
       return [globalState, migrationState]
     }
   )
@@ -255,8 +256,6 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
     //       have the type `GlobalState | MigrationState`
     async ([globalState, migrationState]) => {
       if (migrationState === 'done') {
-        folderId = (globalState as GlobalState).folderId
-
         const dbSnippets = await querySnippetsByFolderId(db, folderId)
         const snippetIds = dbSnippets.map(snippet => snippet.id)
         const tags = await queryTagsBySnippetIds(db, snippetIds)
@@ -289,8 +288,10 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
     upsert: async (snippet: Snippet) => {
       const dbSnippet = displaySnippetToDbSnippet(folderId, snippet)
       await upsertSnippet(db, dbSnippet)
-      await clearTags(db, snippet.id)
-      await upsertTags(db, snippet.id, snippet.tags)
+      if (snippet.tags && snippet.tags.length > 0) {
+        await clearTags(db, snippet.id)
+        await upsertTags(db, snippet.id, snippet.tags)
+      }
       const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
       if (index === -1) {
         snippets.push(snippet)
