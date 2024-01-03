@@ -115,4 +115,3 @@ export const foldersStore = derived(
   }
 )
 export const foldersStoreV2 = await createFoldersStoreV2(localDb, migrationStateStore)
-
