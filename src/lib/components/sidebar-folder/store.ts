@@ -1,21 +1,10 @@
-import { derived, writable } from 'svelte/store'
+import { writable } from 'svelte/store'
 import type { Readable, Writable } from 'svelte/store'
-import { defaultCatalog, readCatalog, writeCatalog } from '$lib/utitlities/persistence'
-import type { Catalog, Folder } from '$lib/utitlities/persistence'
-import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
-import { folders as folders_table } from '$lib/sqlite/schema'
-import { deleteFolder, queryFolders, upsertFolder } from '$lib/sqlite/queries';
-import { localDb } from '$lib/sqlite/global';
-import type { MigrationState } from '$lib/sqlite/migration';
-import { migrationStateStore } from '$lib/sqlite/migration';
-
-export type CatalogStore = Readable<Catalog> &
-  {
-    upsert: (folder: Folder) => void
-    delete: (id: string) => void
-    setDisplayName: (id: string, displayName: string) => void
-    setShowLockedCard: (id: string, showLockedCard: boolean) => void
-  }
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import { deleteFolder, queryFolders, upsertFolder } from '$lib/sqlite/queries'
+import { localDb } from '$lib/sqlite/global'
+import type { MigrationState } from '$lib/sqlite/migration'
+import { migrationStateStore } from '$lib/sqlite/migration'
 
 export type DisplayFolder = {
   id: string
@@ -27,36 +16,6 @@ export type FoldersStoreV2 = Readable<DisplayFolder[]> &
     upsert: (folder: DisplayFolder) => Promise<void>
     delete: (id: string) => Promise<void>
   }
-
-export async function createCatalogStore(): Promise<CatalogStore> {
-  const catalog = await readCatalog()
-  const store = writable(catalog)
-  const {update, subscribe, set} = store
-
-  return {
-    subscribe,
-    upsert: (folder: Folder) => {
-      catalog[folder.id] = folder
-      writeCatalog(catalog)
-      set(catalog)
-    },
-    delete: (id: string) => {
-      delete catalog[id]
-      writeCatalog(catalog)
-      set(catalog)
-    },
-    setDisplayName: (id: string, displayName: string) => {
-      catalog[id].displayName = displayName
-      writeCatalog(catalog)
-      set(catalog)
-    },
-    setShowLockedCard: (id: string, showLockedCard: boolean) => {
-      catalog[id].showLockedCard = showLockedCard
-      writeCatalog(catalog)
-      set(catalog)
-    },
-  }
-}
 
 export async function createFoldersStoreV2(db: SqliteRemoteDatabase, migrationStateStore: Writable<MigrationState>): Promise<FoldersStoreV2> {
   let displayFolders: DisplayFolder[] = []
@@ -100,18 +59,4 @@ export async function createFoldersStoreV2(db: SqliteRemoteDatabase, migrationSt
   }
 }
 
-export const catalogStore = await createCatalogStore()
-export const foldersStore = derived(
-  catalogStore,
-  (catalog: Catalog) => {
-    return Object.entries(catalog).map(
-      ([id, data]) => {
-        return {
-          id: id,
-          displayName: data.displayName,
-        }
-      }
-    )
-  }
-)
 export const foldersStoreV2 = await createFoldersStoreV2(localDb, migrationStateStore)
