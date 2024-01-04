@@ -2,7 +2,6 @@
   import CardV2 from '$lib/components/card-v2/card-v2.svelte'
   import autoAnimate from '@formkit/auto-animate'
   import { displaySnippetsStore } from '$lib/components/card-v2/store'
-
 </script>
 
 <style>

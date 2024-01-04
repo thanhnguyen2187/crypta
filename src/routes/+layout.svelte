@@ -34,11 +34,30 @@
     moveSnippet: {ref: ModalMoveSnippet},
   }
 
+  import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
+  import { executor, localDb } from '$lib/sqlite/global'
+  import { defaultQueriesStringMap, migrationStateStore } from '$lib/sqlite/migration'
+  import { onDestroy, onMount } from 'svelte'
+
+  onMount(async () => {
+    await migrate(localDb, migrationStateStore, defaultMigrationQueryMap, defaultQueriesStringMap)
+  })
+  onDestroy(async () => {
+    await executor.close()
+  })
+
 </script>
 
 <svelte:head>
   <title>Crypta</title>
 </svelte:head>
+
+<svelte:window
+  on:load={async () => {
+  }}
+  on:beforeunload={async () => {
+  }}
+/>
 
 <Modal components={modalRegistry} />
 <Toast />

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { foldersStore } from '$lib/components/sidebar-folder/store'
+  import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
   import { globalStateStore } from '$lib/utitlities/ephemera'
   import { modalDestinationFolderStore, modalSnippetStore } from './store'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
@@ -27,9 +27,9 @@
       value={$globalStateStore.folderId}
       disabled
     >
-      {#each $foldersStore as folder}
+      {#each $foldersStoreV2 as folder}
         <option value={folder.id}>
-          {folder.displayName}
+          {folder.name}
         </option>
       {/each}
     </select>
@@ -40,9 +40,9 @@
       class="select"
       bind:value={$modalDestinationFolderStore}
     >
-      {#each $foldersStore as folder}
+      {#each $foldersStoreV2 as folder}
         <option value={folder.id}>
-          {folder.displayName}
+          {folder.name}
         </option>
       {/each}
     </select>
@@ -51,6 +51,7 @@
     class="flex justify-between"
   >
     <div></div>
+    <!--suppress HtmlWrongAttributeValue -->
     <button
       class="btn variant-filled"
       disabled={shouldBeDisabled}
