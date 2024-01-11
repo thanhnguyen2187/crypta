@@ -20,6 +20,7 @@
 
   function upsertWithTags() {
     snippet.tags = snippet.tags
+    debugger
     localSnippetsStore.upsert(snippet)
   }
 
