@@ -2,7 +2,7 @@
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
   import { format } from '$lib/utitlities/date'
-  import { onDestroy, onMount } from 'svelte'
+  import { onMount } from 'svelte'
   import type { Snippet } from '$lib/utitlities/persistence'
   import { createNewSnippet } from '$lib/utitlities/persistence'
   import { getModalStore, InputChip } from '@skeletonlabs/skeleton'
