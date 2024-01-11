@@ -280,7 +280,9 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
       }
       const dbSnippet = displaySnippetToDbSnippet(folderId, clonedSnippet)
       await upsertSnippet(db, dbSnippet)
-      await upsertTags(db, clonedSnippet.id, snippet.tags)
+      if (snippet.tags.length > 0) {
+        await upsertTags(db, clonedSnippet.id, snippet.tags)
+      }
       snippets.push(clonedSnippet)
 
       set(snippets)
