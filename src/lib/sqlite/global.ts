@@ -14,6 +14,4 @@ export async function createLocalDb(executor: QueryExecutor) {
 
 export const sqlite3 = await createSQLiteAPI()
 export const executor = await createQueryExecutor(sqlite3, 'crypta')
-// export const executor2 = await createQueryExecutor(sqlite3, 'crypta')
 export const localDb = await createLocalDb(executor)
-// export const localDb2 = await createLocalDb(executor2)

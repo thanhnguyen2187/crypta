@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AppRailTile, getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
+  import { getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
   import { globalStateStore } from '$lib/utitlities/ephemera'
   import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
   import type { DisplayFolder } from '$lib/components/sidebar-folder/store'

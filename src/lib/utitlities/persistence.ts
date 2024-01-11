@@ -1,16 +1,16 @@
 import { derived, writable } from 'svelte/store'
 import type { Writable, Readable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
-import { globalFolderIdStore, globalStateStore } from '$lib/utitlities/ephemera'
+import { globalStateStore } from '$lib/utitlities/ephemera'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
-import { snippet_tags, snippets as table_snippets } from '$lib/sqlite/schema'
-import { sql } from 'drizzle-orm'
 import type { MigrationState } from '$lib/sqlite/migration'
 import {
   querySnippetsByFolderId,
   queryTagsBySnippetIds,
   upsertSnippet,
-  deleteSnippet as deleteSnippet_, upsertTags, clearTags,
+  deleteSnippet as deleteSnippet_,
+  upsertTags,
+  clearTags,
 } from '$lib/sqlite/queries';
 import {
   buildTagsMap,
@@ -60,12 +60,6 @@ export const defaultCatalog: Catalog = {
   }
 }
 
-export const defaultGlobalState: GlobalState = {
-  folderId: 'default',
-  tags: [],
-  searchInput: '',
-}
-
 function generateFolderName(folderName: string): string {
   return `folder.${folderName}`
 }
@@ -98,34 +92,6 @@ export async function readSnippets(folderName: string = 'default'): Promise<Snip
   }
 
   return snippets as Snippet[]
-}
-
-/**
- * Make sure that the snippet's data is available after restart. Snippet's `id`
- * is used as the unique key.
- * */
-export async function persistSnippet(snippet: Snippet, folderName: string = 'default') {
-  const opfsRoot = await navigator.storage.getDirectory()
-  const folderHandle = await opfsRoot.getDirectoryHandle(
-    generateFolderName(folderName),
-    {create: true},
-  )
-  const fileHandle = await folderHandle.getFileHandle(`${snippet.id}.json`, {create: true})
-  const writable = await fileHandle.createWritable()
-  await writable.write(JSON.stringify(snippet))
-  await writable.close()
-}
-
-/**
- * Delete the snippet's data completely.
- * */
-export async function deleteSnippet(id: string, folderName: string = 'default') {
-  const opfsRoot = await navigator.storage.getDirectory()
-  const folderHandle = await opfsRoot.getDirectoryHandle(
-    generateFolderName(folderName),
-    {create: true},
-  )
-  await folderHandle.removeEntry(`${id}.json`)
 }
 
 export function createNewSnippet(): Snippet {
@@ -267,25 +233,6 @@ export async function readCatalog(): Promise<Catalog> {
     defaultCatalog,
     savedSettings,
   )
-}
-
-export async function writeCatalog(catalog: Catalog) {
-  const opfsRoot = await navigator.storage.getDirectory()
-  const fileHandle = await opfsRoot.getFileHandle('catalog.json', {create: true})
-  const writeable = await fileHandle.createWritable()
-  await writeable.write(JSON.stringify(catalog))
-  await writeable.close()
-}
-
-export function createNewFolder(): Folder {
-  return {
-    id: crypto.randomUUID(),
-    displayName: 'Untitled',
-    showLockedCard: true,
-    position: 0,
-    createdAt: new Date().getTime(),
-    updatedAt: new Date().getTime(),
-  }
 }
 
 export async function readGlobalState(): Promise<GlobalState> {
