@@ -204,6 +204,7 @@ export async function createLocalSnippetStoreV2(migrationStateStore: Writable<Mi
         ...snippet,
         id: crypto.randomUUID(),
         position: snippets.length + 1,
+        tags: snippet.tags.slice(),
         createdAt: new Date().getTime(),
         updatedAt: new Date().getTime(),
       }
