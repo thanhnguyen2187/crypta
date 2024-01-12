@@ -8,7 +8,8 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test": "vitest"
+    "test": "vitest",
+    "dev-db": "sqliterg --mem-db crypta"
   },
   "devDependencies": {
     "@skeletonlabs/skeleton": "^2.5.1",
