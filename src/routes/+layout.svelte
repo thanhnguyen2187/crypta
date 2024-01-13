@@ -52,18 +52,17 @@
   <title>Crypta</title>
 </svelte:head>
 
-<svelte:window
-  on:load={async () => {
-  }}
-  on:beforeunload={async () => {
-  }}
-/>
-
 <Modal components={modalRegistry} />
 <Toast />
 
 <div class="absolute left-5 bottom-4">
-  <button class="btn btn-icon variant-filled">
+  <button
+    class="btn btn-icon variant-filled"
+    on:click={() => modalStore.trigger({
+      type: 'component',
+      component: 'settings',
+    })}
+  >
     <i class="fa-solid fa-xl fa-gear"></i>
   </button>
 </div>
