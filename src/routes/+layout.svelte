@@ -1,15 +1,13 @@
 <script lang="ts">
-  import "../app.postcss";
+  import "../app.postcss"
   import {
     AppBar,
-    AppRail,
-    AppRailTile,
     AppShell,
     getModalStore,
     initializeStores,
     Modal,
-    popup, Toast,
-  } from '@skeletonlabs/skeleton';
+    Toast,
+  } from '@skeletonlabs/skeleton'
   import type { ModalComponent } from '@skeletonlabs/skeleton'
   import '@fortawesome/fontawesome-free/css/fontawesome.css'
   import '@fortawesome/fontawesome-free/css/brands.css'
@@ -19,6 +17,7 @@
   import ModalSnippet from '$lib/components/modal-snippet/modal-snippet.svelte'
   import ModalMoveSnippet from '$lib/components/modal-snippet/modal-move-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
+  import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
   import { globalStateStore } from '$lib/utitlities/ephemera'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
   import TabGroupFolder from '$lib/components/tab-group-folder/tab-group-folder.svelte'
@@ -32,6 +31,7 @@
     snippet: {ref: ModalSnippet},
     locker: {ref: ModalLocker},
     moveSnippet: {ref: ModalMoveSnippet},
+    settings: {ref: ModalSettings},
   }
 
   import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
@@ -61,6 +61,12 @@
 
 <Modal components={modalRegistry} />
 <Toast />
+
+<div class="absolute left-5 bottom-4">
+  <button class="btn btn-icon variant-filled">
+    <i class="fa-solid fa-xl fa-gear"></i>
+  </button>
+</div>
 
 <AppShell>
   <svelte:fragment slot="header">
