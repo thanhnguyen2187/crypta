@@ -225,13 +225,13 @@ export async function readCatalog(): Promise<Catalog> {
   const fileHandle = await opfsRoot.getFileHandle('catalog.json', {create: true})
   const file = await fileHandle.getFile()
   const text = await file.text()
-  const savedSettings = text ? JSON.parse(text) : {}
+  const savedCatalog = text ? JSON.parse(text) : {}
 
   // use default catalog if the file is not found
   return Object.assign(
     {},
     defaultCatalog,
-    savedSettings,
+    savedCatalog,
   )
 }
 
