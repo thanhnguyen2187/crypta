@@ -1,5 +1,18 @@
 <script lang="ts">
   import { settingsStore } from '$lib/utitlities/ephemera'
+  import { logsStore, logToLine } from './store'
+  import { onMount } from 'svelte';
+
+  onMount(() => {
+    const log = {
+      date: new Date().getTime(),
+      content: `Read settings from OPFS ${JSON.stringify($settingsStore)}`
+    }
+    $logsStore.push(log)
+  })
+
+  let logsContent = ''
+  $: logsContent = $logsStore.map(logToLine).join('\n')
 </script>
 
 <div
@@ -42,11 +55,14 @@
         class="textarea font-mono"
         readonly="readonly"
         rows="7"
-      >- No server URL detected</textarea>
+      >{logsContent}</textarea>
     </label>
   </section>
   <footer class="card-footer flex gap-2 justify-end">
-    <button class="btn variant-filled">
+    <button
+      class="btn variant-filled"
+      on:click={() => $logsStore.length = 0}
+    >
       <i class="fa-solid fa-trash"></i>
       <span>Clear Logs</span>
     </button>
