@@ -1,7 +1,8 @@
 <script lang="ts">
   import { settingsStore } from '$lib/utitlities/ephemera'
   import { logsStore, logToLine } from './store'
-  import { onMount } from 'svelte';
+  import { onMount } from 'svelte'
+  import { Tab, TabGroup } from '@skeletonlabs/skeleton'
 
   onMount(() => {
     const log = {
@@ -13,6 +14,22 @@
 
   let logsContent = ''
   $: logsContent = $logsStore.map(logToLine).join('\n')
+
+  let currentTab: 'connection' | 'logging' = 'connection'
+  const tabs = [
+    {
+      id: 'connection',
+      name: 'Connection',
+    },
+    {
+      id: 'data',
+      name: 'Data',
+    },
+    {
+      id: 'logging',
+      name: 'Logging',
+    },
+  ]
 </script>
 
 <div
@@ -23,6 +40,23 @@
   >
     <i class="fa-xl fa-solid fa-close"></i>
   </button>
+  <TabGroup class="card-header">
+    <Tab
+      bind:group={currentTab}
+      name="connection"
+      value="connection"
+    >
+      <span>Connection</span>
+    </Tab>
+    <Tab
+      bind:group={currentTab}
+      name="logging"
+      value="logging"
+    >
+      <span>Logging</span>
+    </Tab>
+  </TabGroup>
+
   <section class="m-4 flex flex-col gap-2">
     <label class="label">
       <span>Server URL</span>

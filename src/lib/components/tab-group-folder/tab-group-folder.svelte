@@ -109,18 +109,19 @@
       bind:group={currentTab}
       name={folder.id}
       value={folder.id}
-      on:click={() => $globalStateStore.folderId = folder.id}>
-        <span>{folder.name}</span>
-        {#if folder.id === $globalStateStore.folderId}
-          <button
-            class="ml-2 fa-solid fa-ellipsis-h z-10"
-            on:click|stopPropagation={() => {}}
-            use:popup={{
-              event: 'click',
-              target: 'tab-actions-'+ folder.id,
-              placement: 'bottom',
-            }}
-          ></button>
+      on:click={() => $globalStateStore.folderId = folder.id}
+    >
+      <span>{folder.name}</span>
+      {#if folder.id === $globalStateStore.folderId}
+        <button
+          class="ml-2 fa-solid fa-ellipsis-h z-10"
+          on:click|stopPropagation={() => {}}
+          use:popup={{
+            event: 'click',
+            target: 'tab-actions-'+ folder.id,
+            placement: 'bottom',
+          }}
+        ></button>
       {/if}
     </Tab>
   {/each}
