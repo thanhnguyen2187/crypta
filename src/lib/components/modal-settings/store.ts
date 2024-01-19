@@ -2,12 +2,45 @@ import { writable } from 'svelte/store'
 import type { Updater, Writable } from 'svelte/store'
 
 export type Log = {
-  date: number
-  content: string
+  date: Date
+  content: string | object
 }
 
-export const logsStore = writable<Log[]>([])
+export type LogsStore = Writable<Log[]> &
+  {
+    addLog(content: string | object): void
+  }
+
+export function createLogsStore(): LogsStore {
+  let logs: Log[] = []
+  const store = writable<Log[]>([])
+
+  return {
+    set(value: Log[]) {
+      logs = value
+      store.set(value)
+    },
+    update(updater: Updater<Log[]>) {
+      logs = updater(logs)
+      store.set(logs)
+    },
+    subscribe: store.subscribe,
+    addLog(content: string | object) {
+      const newLog: Log = {
+        date: new Date(),
+        content,
+      }
+      logs.push(newLog)
+      store.set(logs)
+    }
+  }
+}
+
+export const logsStore = createLogsStore()
 
 export function logToLine(log: Log): string {
-  return `${(new Date(log.date)).toLocaleString()}: ${log.content}`
+  const logContentStr = typeof log.content === 'string'
+    ? log.content
+    : JSON.stringify(log.content)
+  return `${log.date.toLocaleString()}: ${logContentStr}`
 }
