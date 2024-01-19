@@ -55,7 +55,7 @@
 <Modal components={modalRegistry} />
 <Toast />
 
-<div class="absolute left-5 bottom-4">
+<div class="absolute left-5 bottom-4 z-10">
   <button
     class="btn btn-icon variant-filled"
     on:click={() => modalStore.trigger({
