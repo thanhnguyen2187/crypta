@@ -60,7 +60,7 @@ export async function createSettingsStore(): Promise<SettingsStore> {
     update(updater: Updater<Settings>) {
       settings = updater(settings)
       writeSettings(settings).then()
-      store.update(updater)
+      store.set(settings)
     },
   }
 }
