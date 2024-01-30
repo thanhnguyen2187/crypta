@@ -23,7 +23,7 @@ export const displaySnippetsStore = derived(
     )
     filteredSnippets.sort(
       (snippet1, snippet2) => {
-        return snippet1.position - snippet2.position
+        return snippet2.updatedAt - snippet1.updatedAt
       }
     )
     return filteredSnippets
