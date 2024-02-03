@@ -11,6 +11,16 @@ export type LogsStore = Writable<Log[]> &
     addLog(content: string | object): void
   }
 
+export type InputState = {
+  display: 'none' | 'warning' | 'error' | 'success'
+  message: string
+}
+
+export const defaultInputState: InputState = {
+  display: 'none',
+  message: '',
+}
+
 export function createLogsStore(): LogsStore {
   let logs: Log[] = []
   const store = writable<Log[]>([])
@@ -37,6 +47,8 @@ export function createLogsStore(): LogsStore {
 }
 
 export const logsStore = createLogsStore()
+
+export const inputStateStore = writable<InputState>(defaultInputState)
 
 export function logToLine(log: Log): string {
   const logContentStr = typeof log.content === 'string'
