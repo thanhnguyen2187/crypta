@@ -1,44 +1,31 @@
 export type Params = {[key: string]: any}
 
-export type Transaction = {
-  noFail?: boolean
-} & (
-  {
-    query: string
-  } |
-  {
-    statement: string
-  }
-) & (
-  {
-    values?: Params | string[]
-  } |
-  {
-    valuesBatch?: Params[]
-  }
-)
+export type Transaction =
+  { noFail?: boolean } &
+  (
+    { query: string } |
+    { statement: string }
+  ) &
+  (
+    { values?: Params | string[] } |
+    { valuesBatch?: Params[] }
+  )
 
 export type Request = {
   credentials?: {
     user: string
     password: string
   }
-  transaction: []
+  transaction: Transaction[]
 }
 
-export type ResultTrue = {
-  success: true,
-} & (
-  {
-    resultSet: any[]
-  } |
-  {
-    rowsUpdated: number
-  } |
-  {
-    rowsUpdatedBatch: number[]
-  }
-)
+export type ResultTrue =
+  { success: true } &
+  (
+    { resultSet: any[] } |
+    { rowsUpdated: number } |
+    { rowsUpdatedBatch: number[] }
+  )
 
 export type ResultFalse = {
   success: false
