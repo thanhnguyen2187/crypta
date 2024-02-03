@@ -3,6 +3,7 @@
   import { logsStore, inputStateStore, logToLine } from './store'
   import { onDestroy, onMount } from 'svelte'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
+  import { createSqlitergExecutor, sqliteExecutorStore } from '$lib/sqlite/sqliterg'
 
   const modalStore = getModalStore()
 
@@ -15,6 +16,7 @@
 
   let currentTab: 'connection' | 'logging' = 'connection'
   let connectableURL = false
+  let correctAuth = false
   $: {
     (() => {
       if (!connectableURL) {
@@ -22,15 +24,21 @@
         $inputStateStore.message = 'Could not connect to the designated URL!'
         return
       }
+      if (!correctAuth) {
+        $inputStateStore.display = 'warning'
+        $inputStateStore.message = 'Wrong user name or password!'
+        return
+      }
 
       $inputStateStore.display = 'success'
-      $inputStateStore.message = 'Connected successfully!'
+      $inputStateStore.message = 'Connected successfully.'
     })()
   }
 
   const unsubscribeSettings = settingsStore.subscribe(
     async (settings) => {
       connectableURL = await isConnectable(settings.serverURL)
+      correctAuth = await isCorrectAuthentication(settings.serverURL, settings.username, settings.password)
     }
   )
 
@@ -39,23 +47,22 @@
       const response = await fetch(
         url,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            transaction: [
-              {
-                query: 'SELECT 1;'
-              }
-            ]
-          })
-        },
+          method: 'HEAD',
+          mode: 'no-cors',
+        }
       )
-      console.log(response)
       return true
+    } catch (e) {
+      return false
     }
-    catch (e) {
+  }
+
+  async function isCorrectAuthentication(url: string, username: string, password: string): Promise<boolean> {
+    try {
+      const executor = $sqliteExecutorStore
+      const response = await executor.execute('SELECT 1', {})
+      return response.results.length === 1
+    } catch (e) {
       return false
     }
   }
