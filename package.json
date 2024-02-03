@@ -9,7 +9,7 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest",
-    "dev-db": "sqliterg --mem-db crypta"
+    "dev-db": "sqliterg --serve-dir db/sqliterg-static --mem-db crypta::db/sqliterg.conf.yml"
   },
   "devDependencies": {
     "@skeletonlabs/skeleton": "^2.5.1",
