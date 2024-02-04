@@ -31,7 +31,10 @@ export async function migrate(
       console.error(`migrate: could not find query string of ${migrationQueryPath}`)
       return
     }
-    await db.run(sql.raw(migrationQueryString))
+    const statements = migrationQueryString.split(';').filter(statement => statement.length > 0)
+    for (const statement of statements) {
+      await db.run(sql.raw(statement))
+    }
     if (currentUserVersion === 0) {
       try {
         await dataImportFn(db)

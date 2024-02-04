@@ -34,11 +34,16 @@ export type ResultFalse = {
   error: string
 }
 
+export type ResponseExecuteStatement = {
+  reqIdx: number
+  message: string
+}
+
 export type Result = ResultTrue | ResultFalse
 
 export type Response = {
   results: Result[]
-}
+} | ResponseExecuteStatement
 
 export type SqlitergExecutor = {
   isReachable(): Promise<boolean>
@@ -93,12 +98,15 @@ export function createSqlitergExecutor(
             {
               query: 'SELECT 1'
             }
-          ]
+          ],
         })
-        return response.results[0].success
+        if ('results' in response) {
+          return response.results[0].success
+        }
       } catch (e) {
         return false
       }
+      throw Error('isAuthenticated: unreachable code')
     },
     async execute(queryOrStatement: string, params: Params | any[]): Promise<Response> {
       const queryOrStatementLowered = queryOrStatement.toLowerCase()
@@ -131,6 +139,10 @@ export function createSqlitergExecutor(
 export async function createRemoteDb(executor: SqlitergExecutor) {
   return drizzle(async (queryString, params, method) => {
     const response = await executor.execute(queryString, params)
+    if ('reqIdx' in response) {
+      console.warn('createRemoteDb.drizzle execution ', response)
+      return {rows: []}
+    }
     if (response.results.length === 0 || !response.results[0].success) {
       return {rows: []}
     }
