@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { createSqlitergExecutor } from './sqliterg'
+import { createRemoteDb, createSqlitergExecutor } from './sqliterg'
+import { sql } from 'drizzle-orm';
 
 // IMPORTANT: `yarn dev-db` should be run before the tests are executed
 describe('executor', () => {
@@ -28,5 +29,54 @@ describe('executor', () => {
     )
     expect(await executor.isReachable()).toBe(true)
     expect(await executor.isAuthenticated()).toBe(true)
+  })
+  it('basic query', async () => {
+    const executor = createSqlitergExecutor(
+      'http://127.0.0.1:12321/crypta',
+      'crypta',
+      'crypta',
+    )
+
+    {
+      const result = await executor.execute('SELECT 1', [])
+      expect(result.results[0]).toEqual({
+        resultSet: [
+          {
+            "1": 1,
+          },
+        ],
+        success: true,
+      })
+    }
+    {
+      const result = await executor.execute('PRAGMA user_version', [])
+      expect(result.results[0]).toEqual({
+        resultSet: [
+          {
+            user_version: 0,
+          },
+        ],
+        success: true,
+      })
+    }
+  })
+})
+
+describe('remote database', () => {
+  it('basic query', async () => {
+    const executor = createSqlitergExecutor(
+      'http://127.0.0.1:12321/crypta',
+      'crypta',
+      'crypta',
+    )
+    const remoteDb = await createRemoteDb(executor)
+    {
+      const result = await remoteDb.get(sql`PRAGMA user_version`)
+      expect(result).toEqual([0])
+    }
+    {
+      const result = await remoteDb.get(sql`SELECT 1`)
+      expect(result).toEqual([1])
+    }
   })
 })
