@@ -56,13 +56,18 @@ export function createSqlitergExecutor(
       {
         method: 'POST',
         headers: {
+          // We need this to make testing works, as `fetch` of Vite would use
+          // `Accept-Encoding: br, gzip, deflate`. It conflicts with the HTTP
+          // server used by `sqliterg`, and make the underlying function unable
+          // to decode the response.
+          'Accept-Encoding': '*',
           'Content-Type': 'application/json',
           'Authorization': `Basic ${authBase64}`,
         },
         body: JSON.stringify(request)
       },
     )
-    return await response.json()
+    return response.json()
   }
   return {
     async isReachable(): Promise<boolean> {
