@@ -42,6 +42,8 @@ export type Response = {
 }
 
 export type SqlitergExecutor = {
+  isReachable(): Promise<boolean>
+  isAuthenticated(): Promise<boolean>
   execute(queryOrStatement: string, params: Params | any[]): Promise<Response>
 }
 
@@ -66,6 +68,34 @@ export function createSqlitergExecutor(
     return await response.json()
   }
   return {
+    async isReachable(): Promise<boolean> {
+      try {
+        const response = await fetch(
+          url,
+          {
+            method: 'HEAD',
+            mode: 'no-cors',
+          }
+        )
+        return true
+      } catch (e) {
+        return false
+      }
+    },
+    async isAuthenticated(): Promise<boolean> {
+      try {
+        const response = await send({
+          transaction: [
+            {
+              query: 'SELECT 1'
+            }
+          ]
+        })
+        return response.results[0].success
+      } catch (e) {
+        return false
+      }
+    },
     async execute(queryOrStatement: string, params: Params | any[]): Promise<Response> {
       const queryOrStatementLowered = queryOrStatement.toLowerCase()
       let request: Request = {
@@ -94,7 +124,7 @@ export function createSqlitergExecutor(
   }
 }
 
-export const sqliteExecutorStore = derived(
+export const sqlitergExecutorStore = derived(
   settingsStore,
   (settings) => {
     return createSqlitergExecutor(

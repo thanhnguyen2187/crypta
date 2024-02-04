@@ -3,28 +3,26 @@
   import { logsStore, inputStateStore, logToLine } from './store'
   import { onDestroy, onMount } from 'svelte'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
-  import { createSqlitergExecutor, sqliteExecutorStore } from '$lib/sqlite/sqliterg'
+  import { createSqlitergExecutor, sqlitergExecutorStore } from '$lib/sqlite/sqliterg'
 
   const modalStore = getModalStore()
 
   onMount(() => {
-    logsStore.addLog(`Read settings from OPFS ${JSON.stringify($settingsStore)}`)
+    logsStore.addLog(`Read serverURL from OPFS ${$settingsStore.serverURL}`)
   })
 
   let logsContent = ''
   $: logsContent = $logsStore.map(logToLine).join('\n')
 
   let currentTab: 'connection' | 'logging' = 'connection'
-  let connectableURL = false
-  let correctAuth = false
   $: {
-    (() => {
-      if (!connectableURL) {
+    (async () => {
+      if (!await $sqlitergExecutorStore.isReachable()) {
         $inputStateStore.display = 'warning'
         $inputStateStore.message = 'Could not connect to the designated URL!'
         return
       }
-      if (!correctAuth) {
+      if (!await $sqlitergExecutorStore.isAuthenticated()) {
         $inputStateStore.display = 'warning'
         $inputStateStore.message = 'Wrong user name or password!'
         return
@@ -35,41 +33,7 @@
     })()
   }
 
-  const unsubscribeSettings = settingsStore.subscribe(
-    async (settings) => {
-      connectableURL = await isConnectable(settings.serverURL)
-      correctAuth = await isCorrectAuthentication(settings.serverURL, settings.username, settings.password)
-    }
-  )
-
-  async function isConnectable(url: string): Promise<boolean> {
-    try {
-      const response = await fetch(
-        url,
-        {
-          method: 'HEAD',
-          mode: 'no-cors',
-        }
-      )
-      return true
-    } catch (e) {
-      return false
-    }
-  }
-
-  async function isCorrectAuthentication(url: string, username: string, password: string): Promise<boolean> {
-    try {
-      const executor = $sqliteExecutorStore
-      const response = await executor.execute('SELECT 1', {})
-      return response.results.length === 1
-    } catch (e) {
-      return false
-    }
-  }
-
-  onDestroy(() => {
-    unsubscribeSettings()
-  })
+  onDestroy(() => {})
 </script>
 
 <div
