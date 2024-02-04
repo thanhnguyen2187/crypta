@@ -105,6 +105,3 @@ export async function createGlobalStateStore(): Promise<GlobalStateStore> {
     },
   }
 }
-
-export const globalStateStore = await createGlobalStateStore()
-export const settingsStore = await createSettingsStore()

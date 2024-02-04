@@ -5,7 +5,7 @@
   import { createNewSnippet, encryptSnippet, decryptSnippet } from '$lib/utitlities/persistence'
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
   import { localSnippetsStore } from './store'
-  import { globalStateStore } from '$lib/utitlities/ephemera'
+  import { globalStateStore } from '$lib/utitlities/global'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
 

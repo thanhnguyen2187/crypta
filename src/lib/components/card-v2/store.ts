@@ -1,5 +1,5 @@
 import { derived } from 'svelte/store'
-import { globalStateStore } from '$lib/utitlities/ephemera'
+import { globalStateStore } from '$lib/utitlities/global'
 import { createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
 import { localDb } from '$lib/sqlite/global'
 import { migrationStateStore } from '$lib/sqlite/migration'

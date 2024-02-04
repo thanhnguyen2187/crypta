@@ -18,7 +18,7 @@
   import ModalMoveSnippet from '$lib/components/modal-snippet/modal-move-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
-  import { globalStateStore } from '$lib/utitlities/ephemera'
+  import { globalStateStore } from '$lib/utitlities/global'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
   import TabGroupFolder from '$lib/components/tab-group-folder/tab-group-folder.svelte'
 

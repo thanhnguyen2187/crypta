@@ -2,7 +2,7 @@
   import { AppRail, AppRailAnchor, AppRailTile, getModalStore, popup } from '@skeletonlabs/skeleton'
   import { foldersStoreV2 } from './store'
   import type { DisplayFolder } from './store'
-  import { globalStateStore } from '$lib/utitlities/ephemera'
+  import { globalStateStore } from '$lib/utitlities/global'
   import { localSnippetsStore } from '$lib/components/card-v2/store'
 
   const modalStore = getModalStore()

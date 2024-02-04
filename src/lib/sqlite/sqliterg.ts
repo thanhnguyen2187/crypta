@@ -1,6 +1,3 @@
-import { derived } from 'svelte/store';
-import { settingsStore } from '$lib/utitlities/ephemera';
-
 export type Params = {[key: string]: any}
 
 export type Transaction =
@@ -124,13 +121,3 @@ export function createSqlitergExecutor(
   }
 }
 
-export const sqlitergExecutorStore = derived(
-  settingsStore,
-  (settings) => {
-    return createSqlitergExecutor(
-      settings.serverURL,
-      settings.username,
-      settings.password,
-    )
-  }
-)

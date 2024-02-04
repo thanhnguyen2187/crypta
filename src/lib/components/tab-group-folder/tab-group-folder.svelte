@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
-  import { globalStateStore } from '$lib/utitlities/ephemera'
+  import { globalStateStore } from '$lib/utitlities/global'
   import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
   import type { DisplayFolder } from '$lib/components/sidebar-folder/store'
   import { localSnippetsStore } from '$lib/components/card-v2/store'

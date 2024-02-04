@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { settingsStore } from '$lib/utitlities/ephemera'
+  import { settingsStore } from '$lib/utitlities/global'
   import { logsStore, inputStateStore, logToLine } from './store'
   import { onDestroy, onMount } from 'svelte'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
-  import { createSqlitergExecutor, sqlitergExecutorStore } from '$lib/sqlite/sqliterg'
+  import { sqlitergExecutorStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 
