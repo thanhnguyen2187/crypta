@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, expectTypeOf, assertType } from 'vitest'
 import { createRemoteDb, createSqlitergExecutor } from './sqliterg'
+import type { ResponseExecuteError } from './sqliterg'
 import { migrate, defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
 import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
@@ -43,6 +44,10 @@ describe('executor', () => {
 
     {
       const result = await executor.execute('SELECT 1', [])
+      expectTypeOf(result).not.toEqualTypeOf<ResponseExecuteError>()
+      if (!('results' in result)) {
+        return
+      }
       expect(result.results[0]).toEqual({
         resultSet: [
           {
@@ -54,6 +59,10 @@ describe('executor', () => {
     }
     {
       const result = await executor.execute('PRAGMA user_version', [])
+      expectTypeOf(result).not.toEqualTypeOf<ResponseExecuteError>()
+      if (!('results' in result)) {
+        return
+      }
       expect(result.results[0]).toEqual({
         resultSet: [
           {
