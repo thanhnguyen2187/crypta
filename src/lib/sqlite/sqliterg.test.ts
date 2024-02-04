@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { createRemoteDb, createSqlitergExecutor } from './sqliterg'
-import { sql } from 'drizzle-orm';
+import { migrate, defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
+import type { MigrationState } from './migration'
+import { sql } from 'drizzle-orm'
+import { writable } from 'svelte/store'
 
 // IMPORTANT: `yarn dev-db` should be run before the tests are executed
 describe('executor', () => {
@@ -62,7 +65,7 @@ describe('executor', () => {
   })
 })
 
-describe('remote database', () => {
+describe('remote database', async () => {
   it('basic query', async () => {
     const executor = createSqlitergExecutor(
       'http://127.0.0.1:12321/crypta',
@@ -77,6 +80,37 @@ describe('remote database', () => {
     {
       const result = await remoteDb.get(sql`SELECT 1`)
       expect(result).toEqual([1])
+    }
+  })
+  it('migration', async () => {
+    const executor = createSqlitergExecutor(
+      'http://127.0.0.1:12321/crypta',
+      'crypta',
+      'crypta',
+    )
+    const remoteDb = await createRemoteDb(executor)
+    const dummyStateStore = writable<MigrationState>('not-started')
+    const dummyDataImportFn = async () => {}
+
+    await migrate(
+      remoteDb,
+      dummyStateStore,
+      dummyDataImportFn,
+      defaultMigrationQueryMap,
+      defaultQueriesStringMap,
+    )
+
+    {
+      const result = await remoteDb.get(sql`PRAGMA user_version`)
+      expect(result).toEqual([1])
+    }
+    {
+      // const result = await remoteDb.get(sql`SELECT * FROM snippets`)
+      // expect(result).toEqual([])
+    }
+    {
+      // const result = await remoteDb.get(sql`SELECT * FROM folders`)
+      // expect(result).toEqual([])
     }
   })
 })

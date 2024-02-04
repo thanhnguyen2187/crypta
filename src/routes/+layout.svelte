@@ -35,12 +35,13 @@
   }
 
   import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
+  import { v0DataImport } from '$lib/utitlities/persistence'
   import { executor, localDb } from '$lib/sqlite/global'
   import { defaultQueriesStringMap, migrationStateStore } from '$lib/sqlite/migration'
   import { onDestroy, onMount } from 'svelte'
 
   onMount(async () => {
-    await migrate(localDb, migrationStateStore, defaultMigrationQueryMap, defaultQueriesStringMap)
+    await migrate(localDb, migrationStateStore, v0DataImport, defaultMigrationQueryMap, defaultQueriesStringMap)
   })
   onDestroy(async () => {
     await executor.close()

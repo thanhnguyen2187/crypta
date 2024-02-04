@@ -1,7 +1,4 @@
-import type { QueryExecutor } from './query-executor'
-import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { sql } from 'drizzle-orm'
-import { folders, snippet_tags, snippets } from './schema'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 import { writable } from 'svelte/store'
 import type { Writable } from 'svelte/store'
@@ -21,6 +18,7 @@ export const migrationStateStore = writable<MigrationState>('not-started')
 export async function migrate(
   db: SqliteRemoteDatabase,
   stateStore: Writable<MigrationState>,
+  dataImportFn: (db: SqliteRemoteDatabase) => Promise<void>,
   migrationQueryMap: MigrationQueryMap,
   queriesStringMap: QueriesStringMap,
 ) {
@@ -36,7 +34,7 @@ export async function migrate(
     await db.run(sql.raw(migrationQueryString))
     if (currentUserVersion === 0) {
       try {
-        await v0DataImport(db)
+        await dataImportFn(db)
       }
       catch (e) {
         console.error('migrate: unable to import v0 data')
@@ -54,48 +52,3 @@ export async function migrate(
   stateStore.set('done')
 }
 
-export async function v0DataImport(db: SqliteRemoteDatabase) {
-  const catalog = await readCatalog()
-  const folderRecords = Object.entries(catalog).map(
-    ([folderId, folder], index) => {
-      return {
-        id: folderId,
-        name: folder.displayName,
-        position: index,
-      }
-    }
-  )
-  for (const record of folderRecords) {
-    await db
-    .insert(folders)
-    .values(record)
-    .onConflictDoNothing()
-  }
-
-  for (const folderRecord of folderRecords) {
-    const snippetRecords = await readSnippets(folderRecord.id)
-    for (const snippetRecord of snippetRecords) {
-      await db
-      .insert(snippets)
-      .values({
-        ...snippetRecord,
-        folderId: folderRecord.id,
-        // We need to divide by 1000 since JavaScript's timestamp is in
-        // nanosecond instead of millisecond.
-        createdAt: sql`DATETIME(${(snippetRecord.createdAt / 1000).toFixed()}, 'unixepoch')`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
-      })
-      .onConflictDoNothing()
-
-      for (const tag of snippetRecord.tags) {
-        await db
-        .insert(snippet_tags)
-        .values({
-          snippetId: snippetRecord.id,
-          tagText: tag,
-        })
-        .onConflictDoNothing()
-      }
-    }
-  }
-}
