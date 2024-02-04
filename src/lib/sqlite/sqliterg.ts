@@ -34,16 +34,18 @@ export type ResultFalse = {
   error: string
 }
 
-export type ResponseExecuteStatement = {
+export type ResponseExecuteError = {
   reqIdx: number
   message: string
 }
 
 export type Result = ResultTrue | ResultFalse
 
-export type Response = {
-  results: Result[]
-} | ResponseExecuteStatement
+export type Response =
+  {
+    results: Result[]
+  } |
+  ResponseExecuteError
 
 export type SqlitergExecutor = {
   isReachable(): Promise<boolean>
