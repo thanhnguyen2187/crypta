@@ -1,11 +1,11 @@
-import { createQueryExecutor, createSQLiteAPI } from './query-executor'
-import type { QueryExecutor } from './query-executor'
+import { createQueryExecutor, createSQLiteAPI } from './wa-sqlite'
+import type { WASqliteExecutor } from './wa-sqlite'
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import { derived } from 'svelte/store';
 import { settingsStore } from '$lib/utitlities/global';
 import { createSqlitergExecutor } from '$lib/sqlite/sqliterg';
 
-export async function createLocalDb(executor: QueryExecutor) {
+export async function createLocalDb(executor: WASqliteExecutor) {
   return drizzle(async (queryString, params, method) => {
     const result = await executor.execute(queryString, ...params)
     if (method === 'get' && result.length > 0) {

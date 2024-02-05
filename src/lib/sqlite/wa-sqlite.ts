@@ -5,7 +5,7 @@ import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
 
-export type QueryExecutor = {
+export type WASqliteExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
   close(): Promise<void>
 }
@@ -31,7 +31,7 @@ export async function createSQLiteAPI(): Promise<SQLiteAPI> {
   return sqlite3
 }
 
-export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: string): Promise<QueryExecutor> {
+export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: string): Promise<WASqliteExecutor> {
   const db = await sqlite3.open_v2(databaseName)
   async function executeFn(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]> {
     const rows = []
