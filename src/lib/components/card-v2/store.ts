@@ -4,7 +4,7 @@ import { createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
 import { localDb } from '$lib/sqlite/global'
 import { migrationStateStore } from '$lib/sqlite/migration'
 
-export const localSnippetsStore = await createLocalSnippetStoreV2(migrationStateStore, localDb)
+export const localSnippetsStore = await createLocalSnippetStoreV2(migrationStateStore, globalStateStore, localDb)
 export const displaySnippetsStore = derived(
   [localSnippetsStore, globalStateStore],
   ([localSnippets, globalState]) => {

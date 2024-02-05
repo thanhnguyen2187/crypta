@@ -1,7 +1,6 @@
 import { derived, writable } from 'svelte/store'
 import type { Writable, Readable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
-import { globalStateStore } from '$lib/utitlities/global'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import type { MigrationState } from '$lib/sqlite/migration'
 import {
@@ -137,7 +136,11 @@ export type SnippetStore =
     move: (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => Promise<void>
   }
 
-export async function createLocalSnippetStoreV2(migrationStateStore: Writable<MigrationState>, db: SqliteRemoteDatabase): Promise<SnippetStore> {
+export async function createLocalSnippetStoreV2(
+  migrationStateStore: Writable<MigrationState>,
+  globalStateStore: Writable<GlobalState>,
+  db: SqliteRemoteDatabase,
+): Promise<SnippetStore> {
   let snippets: Snippet[] = []
   let folderId = 'default'
   const store = writable(snippets)
