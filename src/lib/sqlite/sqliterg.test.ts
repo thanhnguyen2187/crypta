@@ -134,7 +134,7 @@ describe('remote snippet store', async () => {
       tags: [],
       searchInput: '',
     })
-    const dummyExecutorStore = writable<SqlitergExecutor>(createAvailableExecutor())
+    const dummyExecutorStore = writable<SqlitergExecutor>(createUnreachableExecutor())
     const remoteSnippetStore = await createRemoteSnippetStore(
       dummyGlobalStore,
       dummyExecutorStore,
@@ -175,6 +175,7 @@ describe('remote snippet store', async () => {
       dummyExecutorStore,
     )
     await waitUntil(remoteSnippetStore.isAvailable)
+    await remoteSnippetStore.clear()
 
     const newSnippet = createNewSnippet()
     await remoteSnippetStore.upsert(newSnippet)
