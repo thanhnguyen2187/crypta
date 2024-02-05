@@ -1,4 +1,9 @@
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
+import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
+import { writable } from 'svelte/store'
+import type { MigrationState } from '$lib/sqlite/migration'
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import type { Snippet, SnippetStore } from '$lib/utitlities/persistence'
 
 export type Params = {[key: string]: any}
 
@@ -105,6 +110,10 @@ export function createSqlitergExecutor(
         if ('results' in response) {
           return response.results[0].success
         }
+        if ('reqIdx' in response) {
+          console.warn('createSqlitergExecutor.isAuthenticated', response)
+          return false
+        }
       } catch (e) {
         return false
       }
@@ -138,7 +147,7 @@ export function createSqlitergExecutor(
   }
 }
 
-export async function createRemoteDb(executor: SqlitergExecutor) {
+export function createRemoteDb(executor: SqlitergExecutor) {
   return drizzle(async (queryString, params, method) => {
     const response = await executor.execute(queryString, params)
     if ('reqIdx' in response) {
@@ -162,3 +171,84 @@ export async function createRemoteDb(executor: SqlitergExecutor) {
   })
 }
 
+export type RemoteSnippetStore =
+  SnippetStore &
+  {
+    isAvailable(): Promise<boolean>
+  }
+
+export async function createRemoteSnippetStore(
+  migrationStateStore: Writable<MigrationState>,
+  executorStore: Readable<SqlitergExecutor>,
+): Promise<RemoteSnippetStore> {
+  let remoteDb: SqliteRemoteDatabase
+  let executor: SqlitergExecutor
+  let migrationState: MigrationState
+  const executorUnsubscribeFn = executorStore.subscribe(
+    executor_ => {
+      executor = executor_
+      remoteDb = createRemoteDb(executor)
+    }
+  )
+  const migrationStateUnsubscribeFn = migrationStateStore.subscribe(
+    state => {
+      migrationState = state
+    }
+  )
+
+  const snippets: Snippet[] = []
+  const snippetsStore = writable(snippets)
+
+  async function isAvailable(): Promise<boolean> {
+    const reachable = await executor.isReachable()
+    if (!reachable) {
+      return false
+    }
+    const authenticated = await executor.isAuthenticated()
+    if (!authenticated) {
+      return false
+    }
+
+    return true
+  }
+
+  return {
+    subscribe(
+      run: Subscriber<Snippet[]>,
+      invalidate?: Invalidator<Snippet[]>,
+    ): Unsubscriber {
+      const baseUnsubscribeFn = snippetsStore.subscribe(run, invalidate)
+
+      return () => {
+        baseUnsubscribeFn()
+        executorUnsubscribeFn()
+        migrationStateUnsubscribeFn()
+      }
+    },
+    async clone() {
+      if (migrationState !== 'done') {
+        return
+      }
+      const availability = await isAvailable()
+      if (!availability) {
+        return
+      }
+    },
+    async upsert(snippet: Snippet) {
+      if (migrationState !== 'done') {
+        return
+      }
+    },
+    async remove(id: string) {
+      if (migrationState !== 'done') {
+        return
+      }
+    },
+    async move(
+      movingSnippet: Snippet,
+      sourceFolderId: string,
+      destinationFolderId: string,
+    ) {},
+    isAvailable,
+  }
+}

@@ -1,11 +1,12 @@
 import { describe, it, expect, expectTypeOf, assertType } from 'vitest'
-import { createRemoteDb, createSqlitergExecutor } from './sqliterg'
+import { createRemoteDb, createRemoteSnippetStore, createSqlitergExecutor } from './sqliterg'
 import type { ResponseExecuteError } from './sqliterg'
 import { migrate, defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
 import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
-import { writable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
 import { folders } from '$lib/sqlite/schema'
+import type { Settings } from '$lib/utitlities/ephemera'
 
 // IMPORTANT: `yarn dev-db` should be run before the tests are executed
 describe('executor', () => {
@@ -75,14 +76,14 @@ describe('executor', () => {
   })
 })
 
-describe('remote database', async () => {
+describe('remote database', () => {
   it('basic query', async () => {
     const executor = createSqlitergExecutor(
       'http://127.0.0.1:12321/crypta',
       'crypta',
       'crypta',
     )
-    const remoteDb = await createRemoteDb(executor)
+    const remoteDb = createRemoteDb(executor)
     {
       const result = await remoteDb.get(sql`SELECT 1`)
       expect(result).toEqual([1])
@@ -94,7 +95,7 @@ describe('remote database', async () => {
       'crypta',
       'crypta',
     )
-    const remoteDb = await createRemoteDb(executor)
+    const remoteDb = createRemoteDb(executor)
     const dummyStateStore = writable<MigrationState>('not-started')
     const dummyDataImportFn = async () => {}
 
@@ -123,7 +124,7 @@ describe('remote database', async () => {
         id: folders.id,
         name: folders.name,
         position: folders.position,
-      }).from(folders)
+      }).from(folders).where(sql`id = ${'default'}`)
       expect(result.length).toBeGreaterThan(0)
       const record = result[0]
       expect(record).toContain({
@@ -131,6 +132,62 @@ describe('remote database', async () => {
         name: 'Default',
         position: 0,
       })
+    }
+  })
+})
+
+describe('remote snippet store', async () => {
+  it('availability', async () => {
+    const dummyStateStore = writable<MigrationState>('not-started')
+    const dummySettingsStore = writable<Settings>({
+      serverURL: '',
+      username: '',
+      password: '',
+    })
+    const dummyExecutorStore = derived(
+      dummySettingsStore,
+      (settings) => createSqlitergExecutor(
+        settings.serverURL,
+        settings.username,
+        settings.password,
+      )
+    )
+    const remoteSnippetStore = await createRemoteSnippetStore(
+      dummyStateStore,
+      dummyExecutorStore,
+    )
+
+    // unreachable server
+    dummySettingsStore.set({
+      serverURL: 'http://127.0.0.1:12322/crypta',
+      username: '',
+      password: '',
+    })
+    {
+      const availability = await remoteSnippetStore.isAvailable()
+      expect(availability).toBe(false)
+    }
+
+    // reachable server with wrong authentication
+    dummySettingsStore.set({
+      serverURL: 'http://127.0.0.1:12321/crypta',
+      username: 'crypta',
+      password: 'wrong password',
+    })
+    {
+      const availability = await remoteSnippetStore.isAvailable()
+      expect(availability).toBe(false)
+    }
+
+    // available server
+    dummySettingsStore.set({
+      serverURL: 'http://127.0.0.1:12321/crypta',
+      username: 'crypta',
+      password: 'crypta',
+    })
+    {
+      const availability = await remoteSnippetStore.isAvailable()
+      expect(availability).toBe(true)
     }
   })
 })
