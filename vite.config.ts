@@ -8,6 +8,7 @@ export default defineConfig({
 	base: '/crypta/',
 	optimizeDeps: {},
 	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
+		include: ['src/**/*.{test,spec}.{js,ts}'],
+		environment: 'jsdom',
 	},
 });

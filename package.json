@@ -9,9 +9,10 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "test": "vitest",
-    "dev-db": "sqliterg --serve-dir db/sqliterg-static --mem-db crypta::db/sqliterg.conf.yml"
+    "dev-db": "sqliterg --serve-dir db/sqliterg-static --db /tmp/crypta.db::db/sqliterg.conf.yml"
   },
   "devDependencies": {
+    "@peculiar/webcrypto": "^1.4.5",
     "@skeletonlabs/skeleton": "^2.5.1",
     "@skeletonlabs/tw-plugin": "^0.2.4",
     "@sveltejs/adapter-auto": "^2.0.0",
@@ -20,6 +21,7 @@
     "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.14",
     "drizzle-kit": "^0.20.7",
+    "jsdom": "^24.0.0",
     "postcss": "^8.4.24",
     "postcss-load-config": "^4.0.1",
     "svelte": "^4.0.5",

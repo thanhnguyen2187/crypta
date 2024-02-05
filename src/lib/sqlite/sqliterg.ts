@@ -1,9 +1,10 @@
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
-import { writable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
 import type { MigrationState } from '$lib/sqlite/migration'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
-import type { Snippet, SnippetStore } from '$lib/utitlities/persistence'
+import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
+import { createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
 
 export type Params = {[key: string]: any}
 
@@ -177,27 +178,31 @@ export type RemoteSnippetStore =
     isAvailable(): Promise<boolean>
   }
 
+export type RemoteAvailabilityStore =
+  Readable<boolean> &
+  {
+    isAvailable(): Promise<boolean>
+  }
+
 export async function createRemoteSnippetStore(
   migrationStateStore: Writable<MigrationState>,
+  globalStateStore: Writable<GlobalState>,
   executorStore: Readable<SqlitergExecutor>,
 ): Promise<RemoteSnippetStore> {
   let remoteDb: SqliteRemoteDatabase
   let executor: SqlitergExecutor
-  let migrationState: MigrationState
+  let underlyingStore: SnippetStore
   const executorUnsubscribeFn = executorStore.subscribe(
-    executor_ => {
+    async (executor_) => {
       executor = executor_
       remoteDb = createRemoteDb(executor)
+      underlyingStore = await createLocalSnippetStoreV2(
+        migrationStateStore,
+        globalStateStore,
+        remoteDb,
+      )
     }
   )
-  const migrationStateUnsubscribeFn = migrationStateStore.subscribe(
-    state => {
-      migrationState = state
-    }
-  )
-
-  const snippets: Snippet[] = []
-  const snippetsStore = writable(snippets)
 
   async function isAvailable(): Promise<boolean> {
     const reachable = await executor.isReachable()
@@ -205,6 +210,7 @@ export async function createRemoteSnippetStore(
       return false
     }
     const authenticated = await executor.isAuthenticated()
+    // noinspection RedundantIfStatementJS
     if (!authenticated) {
       return false
     }
@@ -217,38 +223,46 @@ export async function createRemoteSnippetStore(
       run: Subscriber<Snippet[]>,
       invalidate?: Invalidator<Snippet[]>,
     ): Unsubscriber {
-      const baseUnsubscribeFn = snippetsStore.subscribe(run, invalidate)
+      const baseUnsubscribeFn = underlyingStore.subscribe(run, invalidate)
 
       return () => {
         baseUnsubscribeFn()
         executorUnsubscribeFn()
-        migrationStateUnsubscribeFn()
       }
     },
-    async clone() {
-      if (migrationState !== 'done') {
+    async clone(snippet: Snippet) {
+      if (!await isAvailable()) {
         return
       }
-      const availability = await isAvailable()
-      if (!availability) {
-        return
-      }
+
+      await underlyingStore.clone(snippet)
     },
     async upsert(snippet: Snippet) {
-      if (migrationState !== 'done') {
+      if (!await isAvailable()) {
         return
       }
+
+      await underlyingStore.clone(snippet)
     },
     async remove(id: string) {
-      if (migrationState !== 'done') {
+      if (!await isAvailable()) {
         return
       }
+
+      await underlyingStore.remove(id)
     },
     async move(
       movingSnippet: Snippet,
       sourceFolderId: string,
       destinationFolderId: string,
-    ) {},
+    ) {
+      if (!await isAvailable()) {
+        return
+      }
+
+      await underlyingStore.move(movingSnippet, sourceFolderId, destinationFolderId)
+    },
     isAvailable,
   }
 }
+

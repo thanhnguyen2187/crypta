@@ -8,7 +8,17 @@ import { sql } from 'drizzle-orm'
 
 export async function querySnippetsByFolderId(db: SqliteRemoteDatabase, folderId: string) {
   return db
-    .select()
+    .select({
+      id: snippets.id,
+      folderId: snippets.folderId,
+      name: snippets.name,
+      language: snippets.language,
+      text: snippets.text,
+      encrypted: snippets.encrypted,
+      position: snippets.position,
+      updatedAt: snippets.updatedAt,
+      createdAt: snippets.createdAt,
+    })
     .from(snippets)
     .where(sql`folder_id = ${folderId}`)
 }
