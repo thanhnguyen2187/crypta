@@ -5,7 +5,13 @@ import type { MigrationState } from '$lib/sqlite/migration'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import { createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
-import { querySnippetsByFolderId, upsertSnippet } from '$lib/sqlite/queries'
+import {
+  clearTags,
+  deleteSnippet as deleteSnippet_,
+  querySnippetsByFolderId,
+  upsertSnippet,
+  upsertTags
+} from '$lib/sqlite/queries'
 import { dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 
 export type Params = {[key: string]: any}
@@ -178,12 +184,7 @@ export type RemoteSnippetStore =
   SnippetStore &
   {
     isAvailable(): Promise<boolean>
-  }
-
-export type RemoteAvailabilityStore =
-  Readable<boolean> &
-  {
-    isAvailable(): Promise<boolean>
+    refresh(): Promise<void>
   }
 
 export async function createRemoteSnippetStore(
@@ -202,6 +203,18 @@ export async function createRemoteSnippetStore(
   // Can look at this commit for more detail:
   // https://github.com/thanhnguyen2187/crypta/pull/38/commits/157990972cef749af703e0c799026661a436eb5d
   const snippetsStore = writable<Snippet[]>(snippets)
+  const globalStateUnsubscribeFn = globalStateStore.subscribe(
+    (globalState) => {
+      folderId = globalState.folderId
+    }
+  )
+  async function refresh() {
+    const dbSnippets = await querySnippetsByFolderId(remoteDb, folderId)
+    snippets = dbSnippets.map(
+      (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, {})
+    )
+    snippetsStore.set(snippets)
+  }
   const executorUnsubscribeFn = executorStore.subscribe(
     async (executor_) => {
       executor = executor_
@@ -212,11 +225,7 @@ export async function createRemoteSnippetStore(
       }
 
       remoteDb = createRemoteDb(executor)
-      const dbSnippets = await querySnippetsByFolderId(remoteDb, get(globalStateStore).folderId)
-      snippets = dbSnippets.map(
-        (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, {})
-      )
-      snippetsStore.set(snippets)
+      await refresh()
     }
   )
 
@@ -248,27 +257,64 @@ export async function createRemoteSnippetStore(
       return () => {
         baseUnsubscribeFn()
         executorUnsubscribeFn()
+        globalStateUnsubscribeFn()
       }
     },
     async clone(snippet: Snippet) {
       if (!await isAvailable()) {
         return
       }
+
+      const clonedSnippet: Snippet = {
+        ...snippet,
+        id: crypto.randomUUID(),
+        position: snippets.length + 1,
+        tags: snippet.tags.slice(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
+      }
+      const dbSnippet = displaySnippetToDbSnippet(folderId, clonedSnippet)
+      await upsertSnippet(remoteDb, dbSnippet)
+      if (snippet.tags.length > 0) {
+        await upsertTags(remoteDb, clonedSnippet.id, snippet.tags)
+      }
+      snippets.push(clonedSnippet)
+
+      snippetsStore.set(snippets)
     },
     async upsert(snippet: Snippet) {
       if (!await isAvailable()) {
         return
       }
 
-      snippets.push(snippet)
-      snippetsStore.set(snippets)
       const dbSnippet = displaySnippetToDbSnippet('default', snippet)
       await upsertSnippet(remoteDb, dbSnippet)
+      snippets.push(snippet)
+      snippetsStore.set(snippets)
+      if (snippet.tags && snippet.tags.length > 0) {
+        await clearTags(remoteDb, snippet.id)
+        await upsertTags(remoteDb, snippet.id, snippet.tags)
+      }
+      const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
+      if (index === -1) {
+        snippets.push(snippet)
+        snippetsStore.set(snippets)
+        return
+      }
+
+      snippets[index] = snippet
+      snippetsStore.set(snippets)
     },
     async remove(id: string) {
       if (!await isAvailable()) {
         return
       }
+
+      await deleteSnippet_(remoteDb, id)
+      const index = snippets.findIndex(snippet => snippet.id === id)
+      snippets.splice(index, 1)
+
+      snippetsStore.set(snippets)
     },
     async move(
       movingSnippet: Snippet,
@@ -278,8 +324,18 @@ export async function createRemoteSnippetStore(
       if (!await isAvailable()) {
         return
       }
+
+      const dbSnippet = displaySnippetToDbSnippet(sourceFolderId, movingSnippet)
+      dbSnippet.folderId = destinationFolderId
+      await upsertSnippet(remoteDb, dbSnippet)
+
+      const index = snippets.findIndex(snippet => snippet.id === movingSnippet.id)
+      snippets.splice(index, 1)
+
+      snippetsStore.set(snippets)
     },
     isAvailable,
+    refresh,
   }
 }
 
