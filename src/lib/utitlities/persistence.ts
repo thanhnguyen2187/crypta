@@ -128,7 +128,8 @@ export async function decryptSnippet(oldSnippet: Snippet, password: string): Pro
   }
 }
 
-export type SnippetStore = Readable<Snippet[]> &
+export type SnippetStore =
+  Readable<Snippet[]> &
   {
     clone: (snippet: Snippet) => Promise<void>
     upsert: (snippet: Snippet) => Promise<void>
