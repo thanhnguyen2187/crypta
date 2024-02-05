@@ -182,6 +182,7 @@ describe('remote snippet store', async () => {
     const newSnippet = createNewSnippet()
     await remoteSnippetStore.upsert(newSnippet)
 
+    // TODO: check more thoroughly by comparing with result from database
     let snippets = get(remoteSnippetStore)
     expect(snippets.length).toBe(1)
     expect(snippets).toContainEqual(newSnippet)
