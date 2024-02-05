@@ -1,10 +1,12 @@
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
-import { derived, writable } from 'svelte/store'
+import { derived, get, writable } from 'svelte/store'
 import type { MigrationState } from '$lib/sqlite/migration'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import { createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
+import { querySnippetsByFolderId, upsertSnippet } from '$lib/sqlite/queries'
+import { dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 
 export type Params = {[key: string]: any}
 
@@ -191,16 +193,30 @@ export async function createRemoteSnippetStore(
 ): Promise<RemoteSnippetStore> {
   let remoteDb: SqliteRemoteDatabase
   let executor: SqlitergExecutor
-  let underlyingStore: SnippetStore
+  let snippets: Snippet[] = []
+  let folderId = ''
+  // Ideally, we can use an underlying store instead of duplicating the logic
+  // like this, but testing yields some really strange type error with `fetch`.
+  // Therefore, I resolved to this duplicated logic.
+  //
+  // Can look at this commit for more detail:
+  // https://github.com/thanhnguyen2187/crypta/pull/38/commits/157990972cef749af703e0c799026661a436eb5d
+  const snippetsStore = writable<Snippet[]>(snippets)
   const executorUnsubscribeFn = executorStore.subscribe(
     async (executor_) => {
       executor = executor_
+
+      const available = await isAvailable()
+      if (!available) {
+        return
+      }
+
       remoteDb = createRemoteDb(executor)
-      underlyingStore = await createLocalSnippetStoreV2(
-        migrationStateStore,
-        globalStateStore,
-        remoteDb,
+      const dbSnippets = await querySnippetsByFolderId(remoteDb, get(globalStateStore).folderId)
+      snippets = dbSnippets.map(
+        (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, {})
       )
+      snippetsStore.set(snippets)
     }
   )
 
@@ -210,8 +226,12 @@ export async function createRemoteSnippetStore(
       return false
     }
     const authenticated = await executor.isAuthenticated()
-    // noinspection RedundantIfStatementJS
     if (!authenticated) {
+      return false
+    }
+    const migrationDone = get(migrationStateStore) === 'done'
+    // noinspection RedundantIfStatementJS
+    if (!migrationDone) {
       return false
     }
 
@@ -223,7 +243,7 @@ export async function createRemoteSnippetStore(
       run: Subscriber<Snippet[]>,
       invalidate?: Invalidator<Snippet[]>,
     ): Unsubscriber {
-      const baseUnsubscribeFn = underlyingStore.subscribe(run, invalidate)
+      const baseUnsubscribeFn = snippetsStore.subscribe(run, invalidate)
 
       return () => {
         baseUnsubscribeFn()
@@ -234,22 +254,21 @@ export async function createRemoteSnippetStore(
       if (!await isAvailable()) {
         return
       }
-
-      await underlyingStore.clone(snippet)
     },
     async upsert(snippet: Snippet) {
       if (!await isAvailable()) {
         return
       }
 
-      await underlyingStore.clone(snippet)
+      snippets.push(snippet)
+      snippetsStore.set(snippets)
+      const dbSnippet = displaySnippetToDbSnippet('default', snippet)
+      await upsertSnippet(remoteDb, dbSnippet)
     },
     async remove(id: string) {
       if (!await isAvailable()) {
         return
       }
-
-      await underlyingStore.remove(id)
     },
     async move(
       movingSnippet: Snippet,
@@ -259,8 +278,6 @@ export async function createRemoteSnippetStore(
       if (!await isAvailable()) {
         return
       }
-
-      await underlyingStore.move(movingSnippet, sourceFolderId, destinationFolderId)
     },
     isAvailable,
   }

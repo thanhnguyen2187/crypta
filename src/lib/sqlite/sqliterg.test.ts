@@ -8,6 +8,7 @@ import { derived, get, writable } from 'svelte/store'
 import { folders } from '$lib/sqlite/schema'
 import type { Settings } from '$lib/utitlities/ephemera'
 import type { GlobalState } from '$lib/utitlities/persistence';
+import { createNewSnippet } from '$lib/utitlities/persistence'
 
 const TestServerURL = 'http://127.0.0.1:12322/crypta'
 const TestServerURLWrong = 'http://127.0.0.1:12323/crypta'
@@ -142,61 +143,61 @@ describe('remote snippet store', async () => {
       settings.password,
     )
   )
-  // const remoteSnippetStore = await createRemoteSnippetStore(
-  //   dummyStateStore,
-  //   dummyGlobalStore,
-  //   dummyExecutorStore,
-  // )
-  //
-  // it('availability', async () => {
-  //   // unreachable server
-  //   dummySettingsStore.set({
-  //     serverURL: 'http://127.0.0.1:12322/crypta',
-  //     username: '',
-  //     password: '',
-  //   })
-  //   {
-  //     const availability = await remoteSnippetStore.isAvailable()
-  //     expect(availability).toBe(false)
-  //   }
-  //
-  //   // reachable server with wrong authentication
-  //   dummySettingsStore.set({
-  //     serverURL: 'http://127.0.0.1:12321/crypta',
-  //     username: 'crypta',
-  //     password: 'wrong password',
-  //   })
-  //   {
-  //     const availability = await remoteSnippetStore.isAvailable()
-  //     expect(availability).toBe(false)
-  //   }
-  //
-  //   // available server
-  //   dummySettingsStore.set({
-  //     serverURL: 'http://127.0.0.1:12321/crypta',
-  //     username: 'crypta',
-  //     password: 'crypta',
-  //   })
-  //   {
-  //     const availability = await remoteSnippetStore.isAvailable()
-  //     expect(availability).toBe(true)
-  //   }
-  // })
-  // it('crud', async () => {
-  //   dummySettingsStore.set({
-  //     serverURL: 'http://127.0.0.1:12321/crypta',
-  //     username: 'crypta',
-  //     password: 'crypta',
-  //   })
-  //
-  //   // const availability = await remoteSnippetStore.isAvailable()
-  //   // expect(availability).toBe(true)
-  //
-  //   // let snippets = get(remoteSnippetStore)
-  //   // expect(snippets.length).toBe(0)
-  //   // const newSnippet = createNewSnippet()
-  //   // await remoteSnippetStore.upsert(newSnippet)
-  //   // snippets = get(remoteSnippetStore)
-  //   // expect(snippets.length).toBeGreaterThan(1)
-  // })
+  const remoteSnippetStore = await createRemoteSnippetStore(
+    dummyStateStore,
+    dummyGlobalStore,
+    dummyExecutorStore,
+  )
+
+  it('availability', async () => {
+    // unreachable server
+    dummySettingsStore.set({
+      serverURL: 'http://127.0.0.1:12322/crypta',
+      username: '',
+      password: '',
+    })
+    {
+      const availability = await remoteSnippetStore.isAvailable()
+      expect(availability).toBe(false)
+    }
+
+    // reachable server with wrong authentication
+    dummySettingsStore.set({
+      serverURL: 'http://127.0.0.1:12321/crypta',
+      username: 'crypta',
+      password: 'wrong password',
+    })
+    {
+      const availability = await remoteSnippetStore.isAvailable()
+      expect(availability).toBe(false)
+    }
+
+    // available server
+    dummySettingsStore.set({
+      serverURL: 'http://127.0.0.1:12321/crypta',
+      username: 'crypta',
+      password: 'crypta',
+    })
+    {
+      const availability = await remoteSnippetStore.isAvailable()
+      expect(availability).toBe(true)
+    }
+  })
+  it('crud', async () => {
+    dummySettingsStore.set({
+      serverURL: 'http://127.0.0.1:12321/crypta',
+      username: 'crypta',
+      password: 'crypta',
+    })
+
+    const availability = await remoteSnippetStore.isAvailable()
+    expect(availability).toBe(true)
+
+    let snippets = get(remoteSnippetStore)
+    expect(snippets.length).toBe(0)
+    const newSnippet = createNewSnippet()
+    await remoteSnippetStore.upsert(newSnippet)
+    snippets = get(remoteSnippetStore)
+    expect(snippets.length).toBeGreaterThan(0)
+  })
 })

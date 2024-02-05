@@ -1,5 +1,5 @@
 import { derived, writable } from 'svelte/store'
-import type { Writable, Readable } from 'svelte/store'
+import type { Readable, Writable, Invalidator, Subscriber, Unsubscriber } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import type { MigrationState } from '$lib/sqlite/migration'
@@ -144,7 +144,6 @@ export async function createLocalSnippetStoreV2(
   let snippets: Snippet[] = []
   let folderId = 'default'
   const store = writable(snippets)
-  const {subscribe, set, update} = store
   const stores = derived(
     [globalStateStore, migrationStateStore],
     ([globalState, migrationState]: [GlobalState, MigrationState]) => {
@@ -152,12 +151,12 @@ export async function createLocalSnippetStoreV2(
       return [globalState, migrationState]
     }
   )
-  stores.subscribe(
+  const pairUnsubscribeFn = stores.subscribe(
     // TODO: fix the typing of `globalState` and `migrationState`, which both
     //       have the type `GlobalState | MigrationState`
     async ([globalState, migrationState]) => {
       if (migrationState === 'done') {
-        const dbSnippets = await querySnippetsByFolderId(db, folderId)
+        const dbSnippets = await querySnippetsByFolderId(db, (globalState as GlobalState).folderId)
         const snippetIds = dbSnippets.map(snippet => snippet.id)
         const tags = await queryTagsBySnippetIds(db, snippetIds)
         const tagsMap = buildTagsMap(tags)
@@ -170,7 +169,17 @@ export async function createLocalSnippetStoreV2(
   )
 
   return {
-    subscribe,
+    subscribe(
+      run: Subscriber<Snippet[]>,
+      invalidate?: Invalidator<Snippet[]>,
+    ): Unsubscriber {
+      const baseUnsubscribeFn = store.subscribe(run, invalidate)
+
+      return () => {
+        pairUnsubscribeFn()
+        baseUnsubscribeFn()
+      }
+    },
     clone: async (snippet: Snippet) => {
       const clonedSnippet: Snippet = {
         ...snippet,
@@ -187,7 +196,7 @@ export async function createLocalSnippetStoreV2(
       }
       snippets.push(clonedSnippet)
 
-      set(snippets)
+      store.set(snippets)
     },
     upsert: async (snippet: Snippet) => {
       const dbSnippet = displaySnippetToDbSnippet(folderId, snippet)
@@ -199,19 +208,19 @@ export async function createLocalSnippetStoreV2(
       const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
       if (index === -1) {
         snippets.push(snippet)
-        set(snippets)
+        store.set(snippets)
         return
       }
 
       snippets[index] = snippet
-      set(snippets)
+      store.set(snippets)
     },
     remove: async (id: string) => {
       await deleteSnippet_(db, id)
       const index = snippets.findIndex(snippet => snippet.id === id)
       snippets.splice(index, 1)
 
-      set(snippets)
+      store.set(snippets)
     },
     move: async (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => {
       const dbSnippet = displaySnippetToDbSnippet(sourceFolderId, movingSnippet)
@@ -221,7 +230,7 @@ export async function createLocalSnippetStoreV2(
       const index = snippets.findIndex(snippet => snippet.id === movingSnippet.id)
       snippets.splice(index, 1)
 
-      set(snippets)
+      store.set(snippets)
     },
   }
 }
