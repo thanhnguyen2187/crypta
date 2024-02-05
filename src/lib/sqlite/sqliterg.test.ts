@@ -1,12 +1,11 @@
-import { describe, it, expect, expectTypeOf, assertType } from 'vitest'
-import { createRemoteDb, createRemoteSnippetStore, createSqlitergExecutor, SqlitergExecutor } from './sqliterg'
-import type { ResponseExecuteError } from './sqliterg'
+import { describe, it, expect, expectTypeOf } from 'vitest'
+import { createRemoteDb, createRemoteSnippetStore, createSqlitergExecutor } from './sqliterg'
+import type { SqlitergExecutor, ResponseExecuteError } from './sqliterg'
 import { migrate, defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
 import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
-import { derived, get, writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import { folders } from '$lib/sqlite/schema'
-import type { Settings } from '$lib/utitlities/ephemera'
 import type { GlobalState } from '$lib/utitlities/persistence';
 import { createNewSnippet } from '$lib/utitlities/persistence'
 
