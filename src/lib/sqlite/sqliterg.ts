@@ -8,6 +8,7 @@ import { createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
 import {
   clearTags,
   deleteSnippet as deleteSnippet_,
+  deleteAllSnippets,
   querySnippetsByFolderId,
   upsertSnippet,
   upsertTags
@@ -183,6 +184,7 @@ export function createRemoteDb(executor: SqlitergExecutor) {
 export type RemoteSnippetStore =
   SnippetStore &
   {
+    clear(): Promise<void>
     isAvailable(): Promise<boolean>
     refresh(): Promise<void>
   }
@@ -195,7 +197,7 @@ export async function createRemoteSnippetStore(
   let remoteDb: SqliteRemoteDatabase
   let executor: SqlitergExecutor
   let snippets: Snippet[] = []
-  let folderId = ''
+  let folderId = 'default'
   // Ideally, we can use an underlying store instead of duplicating the logic
   // like this, but testing yields some really strange type error with `fetch`.
   // Therefore, I resolved to this duplicated logic.
@@ -287,10 +289,8 @@ export async function createRemoteSnippetStore(
         return
       }
 
-      const dbSnippet = displaySnippetToDbSnippet('default', snippet)
+      const dbSnippet = displaySnippetToDbSnippet(folderId, snippet)
       await upsertSnippet(remoteDb, dbSnippet)
-      snippets.push(snippet)
-      snippetsStore.set(snippets)
       if (snippet.tags && snippet.tags.length > 0) {
         await clearTags(remoteDb, snippet.id)
         await upsertTags(remoteDb, snippet.id, snippet.tags)
@@ -333,6 +333,16 @@ export async function createRemoteSnippetStore(
       snippets.splice(index, 1)
 
       snippetsStore.set(snippets)
+    },
+    async clear() {
+      if (!await isAvailable()) {
+        return
+      }
+
+      snippets = []
+      snippetsStore.set(snippets)
+
+      await deleteAllSnippets(remoteDb)
     },
     isAvailable,
     refresh,

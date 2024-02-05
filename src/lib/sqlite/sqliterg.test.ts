@@ -193,19 +193,24 @@ describe('remote snippet store', async () => {
     const availability = await remoteSnippetStore.isAvailable()
     expect(availability).toBe(true)
 
+    await remoteSnippetStore.clear()
     await remoteSnippetStore.refresh()
 
-    let snippets = get(remoteSnippetStore)
     const newSnippet = createNewSnippet()
     await remoteSnippetStore.upsert(newSnippet)
 
-    snippets = get(remoteSnippetStore)
-    expect(snippets.length).toBeGreaterThan(0)
+    let snippets = get(remoteSnippetStore)
+    expect(snippets.length).toBe(1)
     expect(snippets).toContainEqual(newSnippet)
 
-    for(const snippet of snippets) {
-      await remoteSnippetStore.remove(snippet.id)
-    }
+    newSnippet.name = 'changed name'
+    await remoteSnippetStore.upsert(newSnippet)
+    snippets = get(remoteSnippetStore)
+    expect(snippets.length).toBe(1)
+    expect(snippets[0].name).toBe('changed name')
+
+    await remoteSnippetStore.remove(newSnippet.id)
+    snippets = get(remoteSnippetStore)
     expect(snippets.length).toBe(0)
   })
 })

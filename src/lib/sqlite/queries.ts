@@ -73,6 +73,11 @@ export async function deleteSnippet(db: SqliteRemoteDatabase, id: string) {
     .where(sql`id = ${id}`)
 }
 
+export async function deleteAllSnippets(db: SqliteRemoteDatabase) {
+  return db
+    .delete(snippets)
+}
+
 export async function queryFolders(db: SqliteRemoteDatabase) {
   return db.select().from(folders)
 }
