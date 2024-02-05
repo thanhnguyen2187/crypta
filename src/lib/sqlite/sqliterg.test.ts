@@ -5,10 +5,12 @@ import { migrate, defaultMigrationQueryMap, defaultQueriesStringMap } from './mi
 import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
 import { get, writable } from 'svelte/store'
-import { folders } from '$lib/sqlite/schema'
-import type { GlobalState } from '$lib/utitlities/persistence';
+import { snippets as snippets_, folders } from '$lib/sqlite/schema'
+import type { Folder, GlobalState } from '$lib/utitlities/persistence';
 import { createNewSnippet } from '$lib/utitlities/persistence'
 import { waitUntil } from '$lib/utitlities/wait-until';
+import type { DisplayFolder } from '$lib/components/sidebar-folder/store';
+import { deleteFolder, upsertFolder } from '$lib/sqlite/queries';
 
 enum Constants {
   ServerURL = 'http://127.0.0.1:12321/crypta',
@@ -193,5 +195,39 @@ describe('remote snippet store', async () => {
     await remoteSnippetStore.remove(newSnippet.id)
     snippets = get(remoteSnippetStore)
     expect(snippets.length).toBe(0)
+  })
+
+  it('special crud', async () => {
+    const dummyGlobalStore = writable<GlobalState>({
+      folderId: 'default',
+      tags: [],
+      searchInput: '',
+    })
+    const executor = createAvailableExecutor()
+    const dummyExecutorStore = writable<SqlitergExecutor>(executor)
+    const dummyRemoteDb = createRemoteDb(executor)
+    const remoteSnippetStore = await createRemoteSnippetStore(
+      dummyGlobalStore,
+      dummyExecutorStore,
+    )
+    await waitUntil(remoteSnippetStore.isAvailable)
+    await remoteSnippetStore.clear()
+
+    const newSnippet = createNewSnippet()
+    await remoteSnippetStore.upsert(newSnippet)
+    await remoteSnippetStore.clone(newSnippet)
+
+    const snippets = get(remoteSnippetStore)
+    expect(snippets.length).toBe(2)
+    expect(snippets[0].id).toEqual(newSnippet.id)
+    expect(snippets[1].id).not.toEqual(newSnippet.id)
+
+    await upsertFolder(dummyRemoteDb, {id: 'dummy', name: 'Dummy', position: 1})
+    await remoteSnippetStore.move(newSnippet, 'default', 'dummy')
+    const dbFolderId = await dummyRemoteDb.get(sql`SELECT folder_id FROM snippets WHERE id = ${newSnippet.id}`)
+    expect(dbFolderId).toEqual(['dummy'])
+
+    await remoteSnippetStore.clear()
+    await deleteFolder(dummyRemoteDb, 'dummy')
   })
 })
