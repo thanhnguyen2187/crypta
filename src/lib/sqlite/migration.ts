@@ -12,7 +12,7 @@ export const defaultMigrationQueryMap: MigrationQueryMap = {
 export const defaultQueriesStringMap: QueriesStringMap =
   import.meta.glob('/db/*.sql', {as: 'raw', eager: true})
 
-export type MigrationState = 'not-started' | 'running' | 'done'
+export type MigrationState = 'not-started' | 'running' | 'done' | 'error'
 export const migrationStateStore = writable<MigrationState>('not-started')
 
 export async function migrate(

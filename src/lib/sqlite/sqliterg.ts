@@ -4,7 +4,7 @@ import { derived, get, writable } from 'svelte/store'
 import type { MigrationState } from '$lib/sqlite/migration'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
-import { createLocalSnippetStoreV2 } from '$lib/utitlities/persistence'
+import { defaultMigrationQueryMap, defaultQueriesStringMap, migrate } from '$lib/sqlite/migration'
 import {
   clearTags,
   deleteSnippet as deleteSnippet_,
@@ -187,10 +187,10 @@ export type RemoteSnippetStore =
     clear(): Promise<void>
     isAvailable(): Promise<boolean>
     refresh(): Promise<void>
+    getMigrationStateStore(): Readable<string>
   }
 
 export async function createRemoteSnippetStore(
-  migrationStateStore: Writable<MigrationState>,
   globalStateStore: Writable<GlobalState>,
   executorStore: Readable<SqlitergExecutor>,
 ): Promise<RemoteSnippetStore> {
@@ -198,12 +198,13 @@ export async function createRemoteSnippetStore(
   let executor: SqlitergExecutor
   let snippets: Snippet[] = []
   let folderId = 'default'
+  let migrationStateStore: Writable<MigrationState> = writable('not-started')
   // Ideally, we can use an underlying store instead of duplicating the logic
   // like this, but testing yields some really strange type error with `fetch`.
   // Therefore, I resolved to this duplicated logic.
   //
   // Can look at this commit for more detail:
-  // https://github.com/thanhnguyen2187/crypta/pull/38/commits/157990972cef749af703e0c799026661a436eb5d
+  // https://github.com/thanhguyen2187/crypta/pull/38/commits/157990972cef749af703e0c799026661a436eb5d
   const snippetsStore = writable<Snippet[]>(snippets)
   const globalStateUnsubscribeFn = globalStateStore.subscribe(
     (globalState) => {
@@ -220,14 +221,23 @@ export async function createRemoteSnippetStore(
   const executorUnsubscribeFn = executorStore.subscribe(
     async (executor_) => {
       executor = executor_
-
-      const available = await isAvailable()
-      if (!available) {
-        return
+      if (await executor.isReachable() && await executor.isAuthenticated()) {
+        remoteDb = createRemoteDb(executor)
+        migrationStateStore.set('running')
+        try {
+          await migrate(
+            remoteDb,
+            writable<MigrationState>('not-started'),
+            async () => {},
+            defaultMigrationQueryMap,
+            defaultQueriesStringMap,
+          )
+          migrationStateStore.set('done')
+        } catch (e) {
+          console.error('createRemoteSnippetStore: executorStore.subscribe ', e)
+          migrationStateStore.set('error')
+        }
       }
-
-      remoteDb = createRemoteDb(executor)
-      await refresh()
     }
   )
 
@@ -240,7 +250,7 @@ export async function createRemoteSnippetStore(
     if (!authenticated) {
       return false
     }
-    const migrationDone = get(migrationStateStore) === 'done'
+    const migrationDone = (get(migrationStateStore) === 'done')
     // noinspection RedundantIfStatementJS
     if (!migrationDone) {
       return false
@@ -346,6 +356,9 @@ export async function createRemoteSnippetStore(
     },
     isAvailable,
     refresh,
+    getMigrationStateStore(): Readable<MigrationState> {
+      return migrationStateStore
+    }
   }
 }
 

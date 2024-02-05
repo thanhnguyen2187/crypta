@@ -8,6 +8,7 @@ import { get, writable } from 'svelte/store'
 import { folders } from '$lib/sqlite/schema'
 import type { GlobalState } from '$lib/utitlities/persistence';
 import { createNewSnippet } from '$lib/utitlities/persistence'
+import { waitUntil } from '$lib/utitlities/wait-until';
 
 enum Constants {
   ServerURL = 'http://127.0.0.1:12321/crypta',
@@ -128,7 +129,6 @@ describe('remote database', () => {
 
 describe('remote snippet store', async () => {
   it('availability', async () => {
-    const dummyStateStore = writable<MigrationState>('done')
     const dummyGlobalStore = writable<GlobalState>({
       folderId: 'default',
       tags: [],
@@ -136,7 +136,6 @@ describe('remote snippet store', async () => {
     })
     const dummyExecutorStore = writable<SqlitergExecutor>(createAvailableExecutor())
     const remoteSnippetStore = await createRemoteSnippetStore(
-      dummyStateStore,
       dummyGlobalStore,
       dummyExecutorStore,
     )
@@ -155,15 +154,16 @@ describe('remote snippet store', async () => {
       expect(availability).toBe(false)
     }
 
-    // available server
+    // available server & migration
     {
+      const migrationStateStore = remoteSnippetStore.getMigrationStateStore()
+      expect(get(migrationStateStore)).toBe('not-started')
       dummyExecutorStore.set(createAvailableExecutor())
-      const availability = await remoteSnippetStore.isAvailable()
-      expect(availability).toBe(true)
+      await waitUntil(remoteSnippetStore.isAvailable)
+      expect(get(migrationStateStore)).toBe('done')
     }
   })
   it('crud', async () => {
-    const dummyStateStore = writable<MigrationState>('done')
     const dummyGlobalStore = writable<GlobalState>({
       folderId: 'default',
       tags: [],
@@ -171,16 +171,10 @@ describe('remote snippet store', async () => {
     })
     const dummyExecutorStore = writable<SqlitergExecutor>(createAvailableExecutor())
     const remoteSnippetStore = await createRemoteSnippetStore(
-      dummyStateStore,
       dummyGlobalStore,
       dummyExecutorStore,
     )
-
-    const availability = await remoteSnippetStore.isAvailable()
-    expect(availability).toBe(true)
-
-    await remoteSnippetStore.clear()
-    await remoteSnippetStore.refresh()
+    await waitUntil(remoteSnippetStore.isAvailable)
 
     const newSnippet = createNewSnippet()
     await remoteSnippetStore.upsert(newSnippet)
