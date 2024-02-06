@@ -177,7 +177,7 @@ describe('remote snippet store', async () => {
       dummyExecutorStore,
     )
     await waitUntil(remoteSnippetStore.isAvailable)
-    await remoteSnippetStore.clear()
+    await remoteSnippetStore.clearAll()
 
     const newSnippet = createNewSnippet()
     await remoteSnippetStore.upsert(newSnippet)
@@ -212,7 +212,7 @@ describe('remote snippet store', async () => {
       dummyExecutorStore,
     )
     await waitUntil(remoteSnippetStore.isAvailable)
-    await remoteSnippetStore.clear()
+    await remoteSnippetStore.clearAll()
 
     const newSnippet = createNewSnippet()
     await remoteSnippetStore.upsert(newSnippet)
@@ -228,7 +228,7 @@ describe('remote snippet store', async () => {
     const dbFolderId = await dummyRemoteDb.get(sql`SELECT folder_id FROM snippets WHERE id = ${newSnippet.id}`)
     expect(dbFolderId).toEqual(['dummy'])
 
-    await remoteSnippetStore.clear()
+    await remoteSnippetStore.clearAll()
     await deleteFolder(dummyRemoteDb, 'dummy')
   })
 })

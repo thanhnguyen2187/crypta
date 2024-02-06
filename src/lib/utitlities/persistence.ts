@@ -130,10 +130,10 @@ export async function decryptSnippet(oldSnippet: Snippet, password: string): Pro
 export type SnippetStore =
   Readable<Snippet[]> &
   {
-    clone: (snippet: Snippet) => Promise<void>
-    upsert: (snippet: Snippet) => Promise<void>
-    remove: (id: string) => Promise<void>
-    move: (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => Promise<void>
+    clone(snippet: Snippet): Promise<void>
+    upsert(snippet: Snippet): Promise<void>
+    remove(id: string): Promise<void>
+    move(movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string): Promise<void>
   }
 
 export async function createLocalSnippetStoreV2(

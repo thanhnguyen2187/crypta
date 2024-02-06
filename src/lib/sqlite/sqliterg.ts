@@ -11,7 +11,8 @@ import {
   deleteAllSnippets,
   querySnippetsByFolderId,
   upsertSnippet,
-  upsertTags
+  upsertTags,
+  deleteSnippetsByFolder,
 } from '$lib/sqlite/queries'
 import { dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 
@@ -184,7 +185,8 @@ export function createRemoteDb(executor: SqlitergExecutor) {
 export type RemoteSnippetStore =
   SnippetStore &
   {
-    clear(): Promise<void>
+    clearAll(): Promise<void>
+    clearFolder(folderId: string): Promise<void>
     isAvailable(): Promise<boolean>
     refresh(): Promise<void>
     getMigrationStateStore(): Readable<string>
@@ -344,7 +346,17 @@ export async function createRemoteSnippetStore(
 
       snippetsStore.set(snippets)
     },
-    async clear() {
+    async clearFolder(folderId: string) {
+      if (!await isAvailable()) {
+        return
+      }
+
+      snippets = []
+      snippetsStore.set(snippets)
+
+      await deleteSnippetsByFolder(remoteDb, folderId)
+    },
+    async clearAll() {
       if (!await isAvailable()) {
         return
       }
