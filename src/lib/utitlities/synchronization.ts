@@ -21,14 +21,11 @@ type DataState =
 type DataStateMap = {[id: string]: DataState}
 
 type SnippetsDataStateStore =
-  Readable<DataStateMap> &
-  {
-    getState(snippetId: string): Promise<DataState>
-  }
+  Readable<DataStateMap>
 
 export function createSnippetsDataStateStore(
-  localStore: SnippetStore,
-  remoteStore: RemoteSnippetStore,
+  localStore: Readable<Snippet[]>,
+  remoteStore: Readable<Snippet[]>,
 ): SnippetsDataStateStore {
   const map = derived(
     [localStore, remoteStore],
@@ -57,12 +54,5 @@ export function createSnippetsDataStateStore(
 
   return {
     subscribe: map.subscribe,
-    async getState(snippetId: string): Promise<DataState> {
-      if (!await remoteStore.isAvailable()) {
-        return 'local-only'
-      }
-
-      return 'synchronized'
-    }
   }
 }
