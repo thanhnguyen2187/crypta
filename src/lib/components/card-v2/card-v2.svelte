@@ -219,6 +219,14 @@
 </div>
 
 <div
+  data-popup="card-synchronization-{snippet.id}"
+  class="z-10 card w-80 p-4 variant-filled-warning"
+>
+  Local data and remote data conflicted.
+  Please click to compare and resolve!
+</div>
+
+<div
   class="card p-4"
 >
   {#if snippet.id !== 'new-card'}
@@ -234,7 +242,7 @@
       <div class="flex gap-1">
         {#if state === 'unlocked' && unlockedVisibility === 'hidden'}
           <button
-            class="btn btn-sm variant-filled"
+            class="btn btn-icon variant-filled"
             use:clipboard={snippet.text}
             on:click={() => {
               hiddenCopyClass = 'fa-check'
@@ -244,14 +252,14 @@
             <i class="fa-solid {hiddenCopyClass}"></i>
           </button>
           <button
-            class="btn btn-sm variant-filled"
+            class="btn btn-icon variant-filled"
             on:click={() => unlockedVisibility = 'visible'}
           >
             <i class="fa-solid fa-eye"></i>
           </button>
         {:else if state === 'unlocked' && unlockedVisibility === 'visible'}
           <button
-            class="btn btn-sm variant-filled"
+            class="btn btn-icon variant-filled"
             on:click={() => unlockedVisibility = 'hidden'}
           >
             <i class="fa-solid fa-eye-slash"></i>
@@ -263,7 +271,7 @@
             target: 'card-actions-' + snippet.id,
             placement: 'right',
           }}
-          class="btn btn-sm variant-filled"
+          class="btn btn-icon variant-filled"
         >
           <i class="fa-xl fa-solid fa-ellipsis-v"></i>
         </button>
@@ -286,19 +294,31 @@
         />
       {/if}
     </section>
-    <footer class="card-footer flex gap-1">
-      {#each snippet.tags as tag}
-        <button
-          class="chip variant-filled"
-          on:click={() => globalStateStore.addTag(tag)}
-        >
-          {tag}
-        </button>
-      {/each}
+    <footer class="card-footer flex justify-between">
+      <div class="flex gap-1">
+        {#each snippet.tags as tag}
+          <button
+            class="chip variant-filled"
+            on:click={() => globalStateStore.addTag(tag)}
+          >
+            {tag}
+          </button>
+        {/each}
 
-      {#if snippet.tags.length === 0}
-        <span class="chip variant-ghost">no tag yet</span>
-      {/if}
+        {#if snippet.tags.length === 0}
+          <span class="chip variant-ghost">no tag yet</span>
+        {/if}
+      </div>
+      <button
+        class="btn btn-icon [&>*]:pointer-events-none variant-filled-warning"
+        use:popup={{
+          event: 'hover',
+          target: `card-synchronization-${snippet.id}`,
+          placement: 'top',
+        }}
+      >
+        <i class="fa-solid fa-code-compare"></i>
+      </button>
     </footer>
   {:else}
     <header
@@ -312,7 +332,7 @@
       </button>
     </section>
     <footer class="card-footer invisible">
-      <span class="chip variant-ghost">no tag yet</span>
+      <span class="chip variant-ghost"></span>
     </footer>
   {/if}
 </div>
