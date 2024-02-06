@@ -186,7 +186,7 @@ export type RemoteSnippetStore =
   SnippetStore &
   {
     clearAll(): Promise<void>
-    clearFolder(folderId: string): Promise<void>
+    clear(): Promise<void>
     isAvailable(): Promise<boolean>
     refresh(): Promise<void>
     getMigrationStateStore(): Readable<string>
@@ -346,7 +346,7 @@ export async function createRemoteSnippetStore(
 
       snippetsStore.set(snippets)
     },
-    async clearFolder(folderId: string) {
+    async clear() {
       if (!await isAvailable()) {
         return
       }
