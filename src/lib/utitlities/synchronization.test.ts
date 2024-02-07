@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { get, writable } from 'svelte/store'
 import { createSnippetsDataStateStore } from './synchronization'
 import type { Snippet } from './persistence'
+import { createQueryExecutor, createSQLiteAPI, createSQLiteAPIV2 } from '$lib/sqlite/wa-sqlite';
 
 function createDummySnippet(id: string, createdAt: number, updatedAt: number): Snippet {
   return {
@@ -71,4 +72,17 @@ describe('snippets data state store', () => {
       'b': 'conflicted',
     })
   })
+})
+
+describe('data manager', () => {
+  it('start', async () => {
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local')
+    // const response = await fetch('./wa-sqlite-async.wasm')
+    // console.log(await response.text())
+    // const localStore = createLocalSnippetStoreV2(
+    //   writable('not-started'),
+    //   writable({folderId: 'default', searchInput: '', tags: []}),
+    //   await createLocalDb(await createQueryExecutor(await createSQLiteAPI(), 'crypta')),
+    // )
+  }, {timeout: 30_000})
 })

@@ -22,6 +22,7 @@
     "autoprefixer": "^10.4.14",
     "drizzle-kit": "^0.20.7",
     "jsdom": "^24.0.0",
+    "msw": "^2.1.7",
     "postcss": "^8.4.24",
     "postcss-load-config": "^4.0.1",
     "svelte": "^4.0.5",

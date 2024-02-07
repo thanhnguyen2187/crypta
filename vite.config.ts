@@ -9,6 +9,7 @@ export default defineConfig({
 	optimizeDeps: {},
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
-		environment: 'jsdom',
+		// environment: 'jsdom',
+		setupFiles: 'src/lib/global-test-setup.ts',
 	},
 });

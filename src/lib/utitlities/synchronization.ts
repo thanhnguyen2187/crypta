@@ -1,7 +1,7 @@
 import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
 import type { Snippet, SnippetStore } from '$lib/utitlities/persistence';
 import type { RemoteSnippetStore } from '$lib/sqlite/sqliterg';
-import { derived, writable } from 'svelte/store';
+import { derived, get, writable } from 'svelte/store';
 
 /**
  * Represents data state of an in-memory record:
@@ -19,9 +19,18 @@ type DataState =
   | 'conflicted'
 
 type DataStateMap = {[id: string]: DataState}
+type SnippetMap = {[id: string]: Snippet}
 
 type SnippetsDataStateStore =
-  Readable<DataStateMap>
+  Readable<DataStateMap> &
+  {
+    localMap: Readable<SnippetMap>
+    remoteMap: Readable<SnippetMap>
+  }
+type SnippetsDataManager = {
+  start(): void
+  merge(snippet: Snippet): Promise<void>
+}
 
 export function createSnippetsDataStateStore(
   localStore: Readable<Snippet[]>,
@@ -51,8 +60,60 @@ export function createSnippetsDataStateStore(
       return map
     }
   )
+  const localMap = derived(
+    localStore,
+    (localSnippets) => {
+      const localMap: {[key: string]: Snippet} = {}
+      for (const localSnippet of localSnippets) {
+        localMap[localSnippet.id] = localSnippet
+      }
+      return localMap
+    }
+  )
+  const remoteMap = derived(
+    remoteStore,
+    (remoteSnippets) => {
+      const remoteMap: {[key: string]: Snippet} = {}
+      for (const remoteSnippet of remoteSnippets) {
+        remoteMap[remoteSnippet.id] = remoteSnippet
+      }
+      return remoteMap
+    }
+  )
 
   return {
     subscribe: map.subscribe,
+    localMap,
+    remoteMap,
+  }
+}
+
+export function createSnippetsDataManager(
+  localStore: SnippetStore,
+  remoteStore: RemoteSnippetStore,
+  stateStore: SnippetsDataStateStore,
+): SnippetsDataManager {
+  return {
+    start(): void {
+      setInterval(
+        async () => {
+          for (const [id, state] of Object.values(get(stateStore))) {
+            if (state === 'remote-only') {
+              const localSnippet = get(stateStore.remoteMap)[id]
+              await localStore.upsert(localSnippet)
+            }
+            if (state === 'local-only') {
+              const localSnippet = get(stateStore.localMap)[id]
+              await remoteStore.upsert(localSnippet)
+            }
+          }
+        },
+        5_000,
+      )
+    },
+    async merge(snippet: Snippet): Promise<void> {
+      await localStore.upsert(snippet)
+      await remoteStore.upsert(snippet)
+    }
   }
 }

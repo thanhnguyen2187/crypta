@@ -2,6 +2,7 @@ import SQLiteESMFactory from 'wa-sqlite/dist/wa-sqlite-async.mjs'
 import * as SQLite from 'wa-sqlite'
 // @ts-ignore
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
+import { MemoryAsyncVFS } from 'wa-sqlite/src/examples/MemoryAsyncVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
 
@@ -27,6 +28,30 @@ export async function createSQLiteAPI(): Promise<SQLiteAPI> {
   const sqlite3 = SQLite.Factory(module)
   const vfs = new IDBBatchAtomicVFS()
   // const vfs = new OriginPrivateFileSystemVFS()
+  sqlite3.vfs_register(vfs, true)
+  return sqlite3
+}
+
+export async function createSQLiteAPIV2(
+  wasmBaseURL: string,
+): Promise<SQLiteAPI> {
+  const module = await SQLiteESMFactory({
+    // We set this configuration to load WASM files from `/`. More specifically,
+    // they are `wa-sqlite.wasm` and `wa-sqlite-async.wasm`. The files are
+    // copied to `static/`, and served by Vite at `/`. Without this, the
+    // application would not work in "production environment" (static file
+    // serving on GitHub Pages).
+    //
+    // Also see explanation from `wa-sqlite`'s author:
+    // https://github.com/rhashimoto/wa-sqlite/issues/15
+    locateFile(file: string) {
+      return `${wasmBaseURL}/${file}`
+    }
+  })
+  const sqlite3 = SQLite.Factory(module)
+  const vfs = new MemoryAsyncVFS()
+  // const vfs = new OriginPrivateFileSystemVFS()
+  // @ts-ignore
   sqlite3.vfs_register(vfs, true)
   return sqlite3
 }
