@@ -2,8 +2,12 @@ import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
 import { get, writable } from 'svelte/store'
-import type { MigrationState } from '$lib/sqlite/migration'
-import { defaultMigrationQueryMap, defaultQueriesStringMap, migrate } from '$lib/sqlite/migration'
+import type { MigrationState, MigrationQueryMap, QueriesStringMap } from './migration'
+import {
+  defaultMigrationQueryMap,
+  defaultQueriesStringMap,
+  migrate,
+} from './migration'
 import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import {
   clearTags,
@@ -67,6 +71,7 @@ export type SqlitergExecutor = {
   isReachable(): Promise<boolean>
   isAuthenticated(): Promise<boolean>
   execute(queryOrStatement: string, params: Params | any[]): Promise<Response>
+  executeBatchStatements(statements: string[]): Promise<Response>
 }
 
 export function createSqlitergExecutor(
@@ -154,7 +159,61 @@ export function createSqlitergExecutor(
       }
 
       return await send(request)
+    },
+    async executeBatchStatements(statements: string[]): Promise<Response> {
+      const request: Request = {
+        transaction: statements.map((statement) => {
+          return {
+            statement: statement,
+          }
+        })
+      }
+      return await send(request)
     }
+  }
+}
+
+export async function migrateRemote(
+  executor: SqlitergExecutor,
+  migrationQueryMap: MigrationQueryMap,
+  queriesStringMap: QueriesStringMap,
+) {
+  const response = await executor.execute('PRAGMA user_version', {})
+  if (!('results' in response)) {
+    throw Error('migrateRemote: unreachable code - unable to get user_version')
+  }
+  if (response.results.length === 0) {
+    throw Error('migrateRemote: unreachable code - no result')
+  }
+  const result = response.results[0]
+  if (!result.success) {
+    throw Error('migrateRemote: unreachable code - failed result')
+  }
+  if (!('resultSet' in result)) {
+    throw Error('migrateRemote: unreachable code - no result set')
+  }
+
+  let [{user_version: currentUserVersion}] = result.resultSet
+  while (migrationQueryMap[currentUserVersion]) {
+    const migrationQueryPath = migrationQueryMap[currentUserVersion]
+    const migrationQueryString = queriesStringMap[migrationQueryPath]
+    if (!migrationQueryString) {
+      throw new Error(`migrate: could not find query string of ${migrationQueryPath}`)
+    }
+    const statements =
+      migrationQueryString
+      .split(';')
+      .filter(
+        statement => statement.trim().length > 0
+      )
+    await executor.executeBatchStatements(statements)
+    if (currentUserVersion === 0) {
+      const path = '/db/0000_seed_default_folder.sql'
+      const seedFolderQuery = queriesStringMap[path]
+      await executor.execute(seedFolderQuery, {})
+    }
+    currentUserVersion += 1
+    await executor.execute(`PRAGMA user_version = ${currentUserVersion}`, {})
   }
 }
 
@@ -223,22 +282,26 @@ export async function createRemoteSnippetStore(
   const executorUnsubscribeFn = executorStore.subscribe(
     async (executor_) => {
       executor = executor_
-      if (await executor.isReachable() && await executor.isAuthenticated()) {
+      if (
+        !await executor.isReachable() ||
+        !await executor.isAuthenticated()
+      ) {
+        migrationStateStore.set('not-started')
+        return
+      }
+
+      migrationStateStore.set('running')
+      try {
+        await migrateRemote(
+          executor,
+          defaultMigrationQueryMap,
+          defaultQueriesStringMap,
+        )
         remoteDb = createRemoteDb(executor)
-        migrationStateStore.set('running')
-        try {
-          await migrate(
-            remoteDb,
-            writable<MigrationState>('not-started'),
-            async () => {},
-            defaultMigrationQueryMap,
-            defaultQueriesStringMap,
-          )
-          migrationStateStore.set('done')
-        } catch (e) {
-          console.error('createRemoteSnippetStore: executorStore.subscribe ', e)
-          migrationStateStore.set('error')
-        }
+        migrationStateStore.set('done')
+      } catch (e) {
+        console.error('createRemoteSnippetStore: executorStore.subscribe ', e)
+        migrationStateStore.set('error')
       }
     }
   )

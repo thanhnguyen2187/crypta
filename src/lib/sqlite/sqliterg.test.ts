@@ -1,5 +1,5 @@
 import { describe, it, expect, expectTypeOf } from 'vitest'
-import { createRemoteDb, createRemoteSnippetStore, createSqlitergExecutor } from './sqliterg'
+import { createRemoteDb, createRemoteSnippetStore, createSqlitergExecutor, migrateRemote } from './sqliterg'
 import type { SqlitergExecutor, ResponseExecuteError } from './sqliterg'
 import { migrate, defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
 import type { MigrationState } from './migration'
@@ -67,12 +67,46 @@ describe('executor', () => {
       const result = await executor.execute('SELECT 1', [])
       expectTypeOf(result).not.toEqualTypeOf<ResponseExecuteError>()
       if (!('results' in result)) {
-        return
+        throw Error('test executor basic query: unreachable code')
       }
       expect(result.results[0]).toEqual({
         resultSet: [
           {
             "1": 1,
+          },
+        ],
+        success: true,
+      })
+    }
+  })
+  it('migrate remote', async () => {
+    const executor = createAvailableExecutor()
+    await migrateRemote(executor, defaultMigrationQueryMap, defaultQueriesStringMap)
+    {
+      const result = await executor.execute('PRAGMA user_version', [])
+      if (!('results' in result)) {
+        throw Error('test executor basic query: unreachable code')
+      }
+      expect(result.results[0]).toEqual({
+        resultSet: [
+          {
+            "user_version": 1,
+          },
+        ],
+        success: true,
+      })
+    }
+    {
+      const result = await executor.execute('SELECT id, name, position FROM folders', [])
+      if (!('results' in result)) {
+        throw Error('test executor basic query: unreachable code')
+      }
+      expect(result.results[0]).toEqual({
+        resultSet: [
+          {
+            id: 'default',
+            name: 'Default',
+            position: 0,
           },
         ],
         success: true,
@@ -158,6 +192,7 @@ describe('remote snippets store', async () => {
 
     // available server & migration
     {
+      dummyExecutorStore.set(createUnreachableExecutor())
       const migrationStateStore = remoteSnippetStore.migrationStateStore
       expect(get(migrationStateStore)).toBe('not-started')
       dummyExecutorStore.set(createAvailableExecutor())
