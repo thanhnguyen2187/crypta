@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { setupServer } from 'msw/node'
 import {
   createLocalDb,
-  createLocalSnippetStoreV2,
+  createLocalSnippetsStore,
   createQueryExecutor,
   createSQLiteAPIV2,
   migrateLocal
@@ -112,7 +112,7 @@ describe('local snippets store', async () => {
       defaultMigrationQueryMap,
       defaultQueriesStringMap,
     )
-    const localStore = await createLocalSnippetStoreV2(
+    const localStore = await createLocalSnippetsStore(
       dummyMigrationStateStore,
       dummyGlobalStateStore,
       localDb,
@@ -160,7 +160,7 @@ describe('local snippets store', async () => {
       defaultMigrationQueryMap,
       defaultQueriesStringMap,
     )
-    const localStore = await createLocalSnippetStoreV2(
+    const localStore = await createLocalSnippetsStore(
       dummyMigrationStateStore,
       dummyGlobalStateStore,
       localDb,

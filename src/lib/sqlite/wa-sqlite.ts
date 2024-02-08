@@ -156,7 +156,7 @@ export async function migrateLocal(
   }
 }
 
-export async function createLocalSnippetStoreV2(
+export async function createLocalSnippetsStore(
   migrationStateStore: Writable<MigrationState>,
   globalStateStore: Writable<GlobalState>,
   db: SqliteRemoteDatabase,
