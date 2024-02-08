@@ -129,7 +129,7 @@ describe('remote database', () => {
   })
 })
 
-describe('remote snippet store', async () => {
+describe('remote snippets store', async () => {
   it('availability', async () => {
     const dummyGlobalStore = writable<GlobalState>({
       folderId: 'default',
@@ -158,7 +158,7 @@ describe('remote snippet store', async () => {
 
     // available server & migration
     {
-      const migrationStateStore = remoteSnippetStore.getMigrationStateStore()
+      const migrationStateStore = remoteSnippetStore.migrationStateStore
       expect(get(migrationStateStore)).toBe('not-started')
       dummyExecutorStore.set(createAvailableExecutor())
       await waitUntil(remoteSnippetStore.isAvailable)

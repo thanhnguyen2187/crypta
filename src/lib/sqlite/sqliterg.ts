@@ -1,19 +1,19 @@
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
-import { derived, get, writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import type { MigrationState } from '$lib/sqlite/migration'
-import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
-import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import { defaultMigrationQueryMap, defaultQueriesStringMap, migrate } from '$lib/sqlite/migration'
+import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import {
   clearTags,
-  deleteSnippet as deleteSnippet_,
   deleteAllSnippets,
+  deleteSnippet as deleteSnippet_,
+  deleteSnippetsByFolder,
   querySnippetsByFolderId,
   upsertSnippet,
   upsertTags,
-  deleteSnippetsByFolder,
-} from '$lib/sqlite/queries'
+} from './queries'
 import { dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 
 export type Params = {[key: string]: any}
@@ -189,7 +189,7 @@ export type RemoteSnippetStore =
     clear(): Promise<void>
     isAvailable(): Promise<boolean>
     refresh(): Promise<void>
-    getMigrationStateStore(): Readable<string>
+    migrationStateStore: Readable<string>
   }
 
 export async function createRemoteSnippetStore(
@@ -368,9 +368,6 @@ export async function createRemoteSnippetStore(
     },
     isAvailable,
     refresh,
-    getMigrationStateStore(): Readable<MigrationState> {
-      return migrationStateStore
-    }
+    migrationStateStore,
   }
 }
-
