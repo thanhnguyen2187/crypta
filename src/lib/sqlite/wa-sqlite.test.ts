@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { setupServer } from 'msw/node'
-import { createLocalDb, createQueryExecutor, createSQLiteAPIV2 } from './wa-sqlite'
+import { createLocalDb, createQueryExecutor, createSQLiteAPIV2, migrateLocal } from './wa-sqlite'
 import { createWASqliteMockWASMHandler } from '$lib/utitlities/tests-setup'
 import { defaultMigrationQueryMap, defaultQueriesStringMap, migrate, } from './migration'
 import type { MigrationState } from './migration'
@@ -67,6 +67,27 @@ describe('executor', async () => {
     {
       const result = await localDb.run(sql`SELECT id, name, position FROM folders`)
       expect(result).toEqual({rows: [['default', 'Default', 0]]})
+    }
+  })
+
+  it('migrate local', async () => {
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
+    const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)
+
+    await migrateLocal(
+      executor,
+      async () => {},
+      defaultMigrationQueryMap,
+      defaultQueriesStringMap,
+    )
+
+    {
+      const result = await executor.execute('PRAGMA user_version')
+      expect(result).toEqual([[1]])
+    }
+    {
+      const result = await executor.execute('SELECT id, name, position FROM folders')
+      expect(result).toEqual([['default', 'Default', 0]])
     }
   })
 })

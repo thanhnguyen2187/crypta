@@ -8,6 +8,8 @@ import { MemoryVFS } from 'wa-sqlite/src/examples/MemoryVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
 import { drizzle } from 'drizzle-orm/sqlite-proxy';
+import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration';
+import { sql } from 'drizzle-orm';
 
 export type WASqliteExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -110,4 +112,29 @@ export function createLocalDb(executor: WASqliteExecutor) {
     }
     return {rows: result}
   })
+}
+
+export async function migrateLocal(
+  executor: WASqliteExecutor,
+  dataImportFn: (executor: WASqliteExecutor) => Promise<void>,
+  migrationQueryMap: MigrationQueryMap,
+  queriesStringMap: QueriesStringMap,
+) {
+  let [[currentUserVersion]] = await executor.execute('PRAGMA user_version') as [[number]]
+  while (migrationQueryMap[currentUserVersion]) {
+    const migrationQueryPath = migrationQueryMap[currentUserVersion]
+    const migrationQueryString = queriesStringMap[migrationQueryPath]
+    if (!migrationQueryString) {
+      throw new Error(`migrate: could not find query string of ${migrationQueryPath}`)
+    }
+    await executor.execute(migrationQueryString)
+    if (currentUserVersion === 0) {
+      await dataImportFn(executor)
+      const path = '/db/0000_seed_default_folder.sql'
+      const seedFolderQuery = queriesStringMap[path]
+      await executor.execute(seedFolderQuery)
+    }
+    currentUserVersion += 1
+    await executor.execute(`PRAGMA user_version = ${currentUserVersion}`)
+  }
 }
