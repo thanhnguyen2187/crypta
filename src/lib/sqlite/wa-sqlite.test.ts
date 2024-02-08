@@ -103,19 +103,10 @@ describe('local snippets store', async () => {
     const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
     const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)
     const localDb = createLocalDb(executor)
-    const dummyMigrationStateStore = writable<MigrationState>('not-started')
     const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
-    await migrate(
-      localDb,
-      dummyMigrationStateStore,
-      async () => {},
-      defaultMigrationQueryMap,
-      defaultQueriesStringMap,
-    )
     const localStore = await createLocalSnippetsStore(
-      dummyMigrationStateStore,
+      executor,
       dummyGlobalStateStore,
-      localDb,
     )
     const newSnippet = createNewSnippet()
 
@@ -151,19 +142,10 @@ describe('local snippets store', async () => {
     const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
     const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)
     const localDb = createLocalDb(executor)
-    const dummyMigrationStateStore = writable<MigrationState>('not-started')
     const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
-    await migrate(
-      localDb,
-      dummyMigrationStateStore,
-      async () => {},
-      defaultMigrationQueryMap,
-      defaultQueriesStringMap,
-    )
     const localStore = await createLocalSnippetsStore(
-      dummyMigrationStateStore,
+      executor,
       dummyGlobalStateStore,
-      localDb,
     )
     const newSnippet = createNewSnippet()
     await localStore.upsert(newSnippet)

@@ -1,10 +1,7 @@
 import { derived } from 'svelte/store'
 import { globalStateStore } from '$lib/utitlities/global'
-import { localDb } from '$lib/sqlite/global'
-import { migrationStateStore } from '$lib/sqlite/migration'
-import { createLocalSnippetsStore } from '$lib/sqlite/wa-sqlite'
+import { localSnippetsStore } from '$lib/sqlite/global'
 
-export const localSnippetsStore = await createLocalSnippetsStore(migrationStateStore, globalStateStore, localDb)
 export const displaySnippetsStore = derived(
   [localSnippetsStore, globalStateStore],
   ([localSnippets, globalState]) => {

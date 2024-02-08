@@ -27,6 +27,7 @@ import {
   displaySnippetToDbSnippet
 } from '$lib/utitlities/data-transformation';
 import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence';
+import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
 
 export type WASqliteExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -157,36 +158,43 @@ export async function migrateLocal(
 }
 
 export async function createLocalSnippetsStore(
-  migrationStateStore: Writable<MigrationState>,
+  executor: WASqliteExecutor,
   globalStateStore: Writable<GlobalState>,
-  db: SqliteRemoteDatabase,
 ): Promise<SnippetStore> {
   let snippets: Snippet[] = []
   let folderId = 'default'
+  const db = createLocalDb(executor)
   const store = writable(snippets)
-  const stores = derived(
-    [globalStateStore, migrationStateStore],
-    ([globalState, migrationState]: [GlobalState, MigrationState]) => {
+  const migrationStateStore = writable<MigrationState>('not-started')
+  try {
+    migrationStateStore.set('running')
+    await migrateLocal(
+      executor,
+      async () => {},
+      defaultMigrationQueryMap,
+      defaultQueriesStringMap,
+    )
+    migrationStateStore.set('done')
+  } catch (e) {
+    console.error(e)
+    migrationStateStore.set('error')
+  }
+  const globalStateUnsubscribeFn = globalStateStore.subscribe(
+    (globalState) => {
       folderId = globalState.folderId
-      return [globalState, migrationState]
+      refresh()
     }
   )
-  const pairUnsubscribeFn = stores.subscribe(
-    // TODO: fix the typing of `globalState` and `migrationState`, which both
-    //       have the type `GlobalState | MigrationState`
-    async ([globalState, migrationState]) => {
-      if (migrationState === 'done') {
-        const dbSnippets = await querySnippetsByFolderId(db, (globalState as GlobalState).folderId)
-        const snippetIds = dbSnippets.map(snippet => snippet.id)
-        const tags = await queryTagsBySnippetIds(db, snippetIds)
-        const tagsMap = buildTagsMap(tags)
-        snippets = dbSnippets.map(
-          (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, tagsMap)
-        )
-        store.set(snippets)
-      }
-    }
-  )
+  async function refresh() {
+    const dbSnippets = await querySnippetsByFolderId(db, folderId)
+    const snippetIds = dbSnippets.map(snippet => snippet.id)
+    const tags = await queryTagsBySnippetIds(db, snippetIds)
+    const tagsMap = buildTagsMap(tags)
+    snippets = dbSnippets.map(
+      (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, tagsMap)
+    )
+    store.set(snippets)
+  }
 
   return {
     subscribe(
@@ -196,7 +204,7 @@ export async function createLocalSnippetsStore(
       const baseUnsubscribeFn = store.subscribe(run, invalidate)
 
       return () => {
-        pairUnsubscribeFn()
+        globalStateUnsubscribeFn()
         baseUnsubscribeFn()
       }
     },
@@ -252,5 +260,6 @@ export async function createLocalSnippetsStore(
 
       store.set(snippets)
     },
+    migrationStateStore,
   }
 }

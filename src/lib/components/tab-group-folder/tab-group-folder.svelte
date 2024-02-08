@@ -3,7 +3,8 @@
   import { globalStateStore } from '$lib/utitlities/global'
   import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
   import type { DisplayFolder } from '$lib/components/sidebar-folder/store'
-  import { localSnippetsStore } from '$lib/components/card-v2/store'
+  import { localSnippetsStore } from '$lib/sqlite/global'
+
   let currentTab = $globalStateStore.folderId
 
   const modalStore = getModalStore()

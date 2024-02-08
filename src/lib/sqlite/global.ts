@@ -1,6 +1,6 @@
-import { createLocalDb, createQueryExecutor, createSQLiteAPIV2 } from './wa-sqlite'
+import { createLocalDb, createLocalSnippetsStore, createQueryExecutor, createSQLiteAPIV2 } from './wa-sqlite'
 import { derived } from 'svelte/store'
-import { settingsStore } from '$lib/utitlities/global'
+import { globalStateStore, settingsStore } from '$lib/utitlities/global'
 import { createSqlitergExecutor } from '$lib/sqlite/sqliterg'
 
 export const sqlite3 = await createSQLiteAPIV2()
@@ -16,3 +16,4 @@ export const sqlitergExecutorStore = derived(
     )
   }
 )
+export const localSnippetsStore = await createLocalSnippetsStore(executor, globalStateStore)

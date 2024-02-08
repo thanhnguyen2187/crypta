@@ -3,6 +3,7 @@ import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { folders, snippet_tags, snippets } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
+import type { MigrationState } from '$lib/sqlite/migration';
 
 export type Snippet = {
   id: string
@@ -119,6 +120,7 @@ export type SnippetStore =
     upsert(snippet: Snippet): Promise<void>
     remove(id: string): Promise<void>
     move(movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string): Promise<void>
+    migrationStateStore: Readable<MigrationState>
   }
 
 export async function readCatalog(): Promise<Catalog> {

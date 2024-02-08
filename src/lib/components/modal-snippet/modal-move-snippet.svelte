@@ -2,8 +2,8 @@
   import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
   import { globalStateStore } from '$lib/utitlities/global'
   import { modalDestinationFolderStore, modalSnippetStore } from './store'
-  import { localSnippetsStore } from '$lib/components/card-v2/store'
   import { getModalStore } from '@skeletonlabs/skeleton'
+  import { localSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 

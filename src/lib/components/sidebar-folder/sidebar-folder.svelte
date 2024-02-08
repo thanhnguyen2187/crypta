@@ -3,7 +3,7 @@
   import { foldersStoreV2 } from './store'
   import type { DisplayFolder } from './store'
   import { globalStateStore } from '$lib/utitlities/global'
-  import { localSnippetsStore } from '$lib/components/card-v2/store'
+  import { localSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 

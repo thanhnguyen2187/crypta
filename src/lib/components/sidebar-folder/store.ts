@@ -1,8 +1,8 @@
 import { writable } from 'svelte/store'
-import type { Readable, Writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { deleteFolder, queryFolders, upsertFolder } from '$lib/sqlite/queries'
-import { localDb } from '$lib/sqlite/global'
+import { localDb, localSnippetsStore } from '$lib/sqlite/global'
 import type { MigrationState } from '$lib/sqlite/migration'
 import { migrationStateStore } from '$lib/sqlite/migration'
 
@@ -17,7 +17,7 @@ export type FoldersStoreV2 = Readable<DisplayFolder[]> &
     delete: (id: string) => Promise<void>
   }
 
-export async function createFoldersStoreV2(db: SqliteRemoteDatabase, migrationStateStore: Writable<MigrationState>): Promise<FoldersStoreV2> {
+export async function createFoldersStoreV2(db: SqliteRemoteDatabase, migrationStateStore: Readable<MigrationState>): Promise<FoldersStoreV2> {
   let displayFolders: DisplayFolder[] = []
   const {subscribe, set} = writable(displayFolders)
   migrationStateStore.subscribe(
@@ -59,4 +59,4 @@ export async function createFoldersStoreV2(db: SqliteRemoteDatabase, migrationSt
   }
 }
 
-export const foldersStoreV2 = await createFoldersStoreV2(localDb, migrationStateStore)
+export const foldersStoreV2 = await createFoldersStoreV2(localDb, localSnippetsStore.migrationStateStore)
