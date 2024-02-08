@@ -1,13 +1,19 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { setupServer } from 'msw/node'
-import { createLocalDb, createQueryExecutor, createSQLiteAPIV2, migrateLocal } from './wa-sqlite'
+import {
+  createLocalDb,
+  createLocalSnippetStoreV2,
+  createQueryExecutor,
+  createSQLiteAPIV2,
+  migrateLocal
+} from './wa-sqlite'
 import { createWASqliteMockWASMHandler } from '$lib/utitlities/tests-setup'
 import { defaultMigrationQueryMap, defaultQueriesStringMap, migrate, } from './migration'
 import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
 import { get, writable } from 'svelte/store'
 import type { GlobalState } from '$lib/utitlities/persistence'
-import { createLocalSnippetStoreV2, createNewSnippet } from '$lib/utitlities/persistence'
+import { createNewSnippet } from '$lib/utitlities/persistence'
 
 const handlers = createWASqliteMockWASMHandler()
 const server = setupServer(...handlers)
