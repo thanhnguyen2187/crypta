@@ -1,4 +1,4 @@
-import { createQueryExecutor, createSQLiteAPI } from './wa-sqlite'
+import { createQueryExecutor, createSQLiteAPIV2 } from './wa-sqlite'
 import type { WASqliteExecutor } from './wa-sqlite'
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import { derived } from 'svelte/store';
@@ -15,7 +15,7 @@ export async function createLocalDb(executor: WASqliteExecutor) {
   })
 }
 
-export const sqlite3 = await createSQLiteAPI()
+export const sqlite3 = await createSQLiteAPIV2()
 export const executor = await createQueryExecutor(sqlite3, 'crypta')
 export const localDb = await createLocalDb(executor)
 export const sqlitergExecutorStore = derived(

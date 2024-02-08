@@ -1,4 +1,5 @@
-import SQLiteESMFactory from 'wa-sqlite/dist/wa-sqlite-async.mjs'
+import AsyncSQLiteESMFactory from 'wa-sqlite/dist/wa-sqlite-async.mjs'
+import SyncSQLiteESMFactory from 'wa-sqlite/dist/wa-sqlite.mjs'
 import * as SQLite from 'wa-sqlite'
 // @ts-ignore
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
@@ -12,7 +13,7 @@ export type WASqliteExecutor = {
 }
 
 export async function createSQLiteAPI(): Promise<SQLiteAPI> {
-  const module = await SQLiteESMFactory({
+  const module = await AsyncSQLiteESMFactory({
     // We set this configuration to load WASM files from `/`. More specifically,
     // they are `wa-sqlite.wasm` and `wa-sqlite-async.wasm`. The files are
     // copied to `static/`, and served by Vite at `/`. Without this, the
@@ -33,25 +34,45 @@ export async function createSQLiteAPI(): Promise<SQLiteAPI> {
 }
 
 export async function createSQLiteAPIV2(
-  wasmBaseURL: string,
+  asyncModule: boolean = true,
+  wasmBaseURL: string = '.',
+  vfs_type:
+    | 'IDBBatchAtomicVFS'
+    | 'OriginPrivateFileSystemVFS'
+    | 'MemoryAsyncVFS'
+    = 'IDBBatchAtomicVFS',
 ): Promise<SQLiteAPI> {
-  const module = await SQLiteESMFactory({
-    // We set this configuration to load WASM files from `/`. More specifically,
-    // they are `wa-sqlite.wasm` and `wa-sqlite-async.wasm`. The files are
-    // copied to `static/`, and served by Vite at `/`. Without this, the
-    // application would not work in "production environment" (static file
-    // serving on GitHub Pages).
+  const config = {
+    // We set this configuration to load WASM files from the correct path.
     //
     // Also see explanation from `wa-sqlite`'s author:
     // https://github.com/rhashimoto/wa-sqlite/issues/15
     locateFile(file: string) {
       return `${wasmBaseURL}/${file}`
     }
-  })
+  }
+  const module = asyncModule
+    ? await AsyncSQLiteESMFactory(config)
+    : await SyncSQLiteESMFactory(config)
   const sqlite3 = SQLite.Factory(module)
-  const vfs = new MemoryAsyncVFS()
-  // const vfs = new OriginPrivateFileSystemVFS()
-  // @ts-ignore
+  // IMPORTANT: VFS should be registered with the correct sync/async factory.
+  //
+  // See related information in this issue:
+  // https://github.com/rhashimoto/wa-sqlite/issues/137
+  let vfs
+  switch (vfs_type) {
+    case 'IDBBatchAtomicVFS':
+      vfs = new IDBBatchAtomicVFS()
+      break
+    case 'MemoryAsyncVFS':
+      vfs = new MemoryAsyncVFS()
+      break
+    case 'OriginPrivateFileSystemVFS':
+      vfs = new OriginPrivateFileSystemVFS()
+      break
+    default:
+      throw new Error(`createSQLiteAPIV2: unsupported vfs_type: ${vfs_type}`)
+  }
   sqlite3.vfs_register(vfs, true)
   return sqlite3
 }
