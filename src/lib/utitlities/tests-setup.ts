@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, passthrough } from 'msw'
 import path from 'path'
 import fs from 'fs'
 
@@ -23,5 +23,13 @@ export function createWASqliteMockWASMHandler(baseUrl: string = WASqliteWASMBase
         }
       })
     }),
+  ]
+}
+
+export function createRemoteServerURLHandler() {
+  return [
+    http.all(`http://127.0.0.1:12321/*`, () => {
+      return passthrough()
+    })
   ]
 }

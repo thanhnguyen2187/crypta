@@ -8,10 +8,9 @@ import {
   migrateLocal
 } from './wa-sqlite'
 import { createWASqliteMockWASMHandler } from '$lib/utitlities/tests-setup'
-import { defaultMigrationQueryMap, defaultQueriesStringMap, migrate, } from './migration'
-import type { MigrationState } from './migration'
+import { defaultMigrationQueryMap, defaultQueriesStringMap, } from './migration'
 import { sql } from 'drizzle-orm'
-import { get, writable } from 'svelte/store'
+import { writable } from 'svelte/store'
 import type { GlobalState } from '$lib/utitlities/persistence'
 import { createNewSnippet } from '$lib/utitlities/persistence'
 

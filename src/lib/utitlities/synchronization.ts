@@ -19,7 +19,7 @@ type DataState =
   | 'conflicted'
 
 type DataStateMap = {[id: string]: DataState}
-type SnippetMap = {[id: string]: Snippet}
+export type SnippetMap = {[id: string]: Snippet}
 
 type SnippetsDataStateStore =
   Readable<DataStateMap> &
@@ -92,15 +92,16 @@ export function createSnippetsDataManager(
   localStore: SnippetStore,
   remoteStore: RemoteSnippetStore,
   stateStore: SnippetsDataStateStore,
+  intervalMs: number = 3_000,
 ): SnippetsDataManager {
   return {
     start(): void {
       setInterval(
         async () => {
-          for (const [id, state] of Object.values(get(stateStore))) {
+          for (const [id, state] of Object.entries(get(stateStore))) {
             if (state === 'remote-only') {
-              const localSnippet = get(stateStore.remoteMap)[id]
-              await localStore.upsert(localSnippet)
+              const remoteSnippet = get(stateStore.remoteMap)[id]
+              await localStore.upsert(remoteSnippet)
             }
             if (state === 'local-only') {
               const localSnippet = get(stateStore.localMap)[id]
@@ -108,10 +109,11 @@ export function createSnippetsDataManager(
             }
           }
         },
-        5_000,
+        intervalMs,
       )
     },
     async merge(snippet: Snippet): Promise<void> {
+      snippet.updatedAt = new Date().getTime()
       await localStore.upsert(snippet)
       await remoteStore.upsert(snippet)
     }

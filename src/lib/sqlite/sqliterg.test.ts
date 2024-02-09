@@ -37,7 +37,7 @@ function createUnauthenticatedExecutor(): SqlitergExecutor {
   )
 }
 
-function createAvailableExecutor(): SqlitergExecutor {
+export function createAvailableExecutor(): SqlitergExecutor {
   return createSqlitergExecutor(
     Constants.ServerURL,
     Constants.Username,
