@@ -7,6 +7,7 @@ import { defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
 import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import {
   clearTags,
+  clearAllTags as clearAllTags_,
   deleteAllSnippets,
   deleteSnippet as deleteSnippet_,
   deleteSnippetsByFolder,
@@ -241,6 +242,7 @@ export type RemoteSnippetStore =
   SnippetStore &
   {
     clearAll(): Promise<void>
+    clearAllTags(): Promise<void>
     clear(): Promise<void>
     isAvailable(): Promise<boolean>
     refresh(): Promise<void>
@@ -424,6 +426,9 @@ export async function createRemoteSnippetStore(
       snippetsStore.set(snippets)
 
       await deleteAllSnippets(remoteDb)
+    },
+    async clearAllTags() {
+      await clearAllTags_(remoteDb)
     },
     isAvailable,
     refresh,

@@ -266,4 +266,42 @@ describe('remote snippets store', async () => {
     await remoteSnippetStore.clearAll()
     await deleteFolder(dummyRemoteDb, 'dummy')
   })
+
+  it('tags', async () => {
+    const dummyGlobalStore = writable<GlobalState>({
+      folderId: 'default',
+      tags: [],
+      searchInput: '',
+    })
+    const executor = createAvailableExecutor()
+    const dummyExecutorStore = writable<SqlitergExecutor>(executor)
+    const dummyRemoteDb = createRemoteDb(executor)
+    const remoteSnippetStore = await createRemoteSnippetStore(
+      dummyGlobalStore,
+      dummyExecutorStore,
+    )
+    await waitUntil(remoteSnippetStore.isAvailable)
+    await remoteSnippetStore.clearAll()
+    await remoteSnippetStore.clearAllTags()
+
+    const newSnippet = createNewSnippet()
+    newSnippet.tags = ['one', 'two', 'three']
+
+    await remoteSnippetStore.upsert(newSnippet)
+    {
+      const result = await dummyRemoteDb.all(sql`SELECT tag_text FROM snippet_tags WHERE snippet_id = ${newSnippet.id}`) as [[string]]
+      const tag_texts = result.map((row) => row[0])
+      tag_texts.sort()
+      expect(tag_texts).toEqual(['one', 'three', 'two'])
+    }
+
+    newSnippet.tags = ['one']
+
+    await remoteSnippetStore.upsert(newSnippet)
+    {
+      const result = await dummyRemoteDb.all(sql`SELECT tag_text FROM snippet_tags WHERE snippet_id = ${newSnippet.id}`) as [[string]]
+      const tag_texts = result.map((row) => row[0])
+      expect(tag_texts).toEqual(['one'])
+    }
+  })
 })

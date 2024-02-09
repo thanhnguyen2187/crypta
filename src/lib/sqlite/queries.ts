@@ -67,6 +67,11 @@ export async function clearTags(db: SqliteRemoteDatabase, snippetId: string) {
     .where(sql`snippet_id = ${snippetId}`)
 }
 
+export async function clearAllTags(db: SqliteRemoteDatabase) {
+  return db
+    .delete(snippet_tags)
+}
+
 export async function deleteSnippet(db: SqliteRemoteDatabase, id: string) {
   return db
     .delete(snippets)
