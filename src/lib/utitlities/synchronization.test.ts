@@ -142,6 +142,13 @@ describe('data manager', () => {
     await new Promise(resolve => setTimeout(resolve, 1_500))
 
     {
+      const dataState = get(dataStateStore)
+      expect(dataState).toContain({
+        [localSnippet.id]: 'synchronized',
+        [remoteSnippet.id]: 'synchronized',
+      })
+    }
+    {
       const localSnippets = get(localStore)
       const remoteSnippets = get(remoteStore)
 
