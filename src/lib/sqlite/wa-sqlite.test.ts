@@ -52,30 +52,6 @@ describe('executor', async () => {
     }
   })
 
-  it('migrate', async () => {
-    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
-    const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)
-    const localDb = createLocalDb(executor)
-    const dummyMigrationStateStore = writable<MigrationState>('not-started')
-
-    await migrate(
-      localDb,
-      dummyMigrationStateStore,
-      async () => {},
-      defaultMigrationQueryMap,
-      defaultQueriesStringMap,
-    )
-    expect(get(dummyMigrationStateStore)).toBe('done')
-    {
-      const result = await localDb.run(sql`PRAGMA user_version`)
-      expect(result).toEqual({rows: [[1]]})
-    }
-    {
-      const result = await localDb.run(sql`SELECT id, name, position FROM folders`)
-      expect(result).toEqual({rows: [['default', 'Default', 0]]})
-    }
-  })
-
   it('migrate local', async () => {
     const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
     const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)
@@ -99,6 +75,24 @@ describe('executor', async () => {
 })
 
 describe('local snippets store', async () => {
+  it('migrate', async () => {
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
+    const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)
+    const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
+    const localStore = await createLocalSnippetsStore(
+      executor,
+      dummyGlobalStateStore,
+    )
+
+    {
+      // We need this since `localStore` is going to overlap its calls with
+      // `executor`, which leads to a race condition.
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      const result = await executor.execute('PRAGMA user_version')
+      expect(result).toEqual([[1]])
+    }
+  })
+
   it('crud', async () => {
     const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
     const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)

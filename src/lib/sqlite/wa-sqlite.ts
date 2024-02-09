@@ -180,9 +180,9 @@ export async function createLocalSnippetsStore(
     migrationStateStore.set('error')
   }
   const globalStateUnsubscribeFn = globalStateStore.subscribe(
-    (globalState) => {
+    async (globalState) => {
       folderId = globalState.folderId
-      refresh()
+      await refresh()
     }
   )
   async function refresh() {
