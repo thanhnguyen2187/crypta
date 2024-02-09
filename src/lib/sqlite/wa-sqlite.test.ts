@@ -10,9 +10,10 @@ import {
 import { createWASqliteMockWASMHandler } from '$lib/utitlities/tests-setup'
 import { defaultMigrationQueryMap, defaultQueriesStringMap, } from './migration'
 import { sql } from 'drizzle-orm'
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
 import type { GlobalState } from '$lib/utitlities/persistence'
 import { createNewSnippet } from '$lib/utitlities/persistence'
+import { waitUntil } from '$lib/utitlities/wait-until'
 
 const handlers = createWASqliteMockWASMHandler()
 const server = setupServer(...handlers)
@@ -159,6 +160,38 @@ describe('local snippets store', async () => {
         sql`SELECT folder_id FROM snippets WHERE id = ${newSnippet.id}`,
       )
       expect(result).toEqual(['new-folder'])
+    }
+  })
+
+  it('tags', async () => {
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
+    const executor = await createQueryExecutor(sqliteAPI, 'crypta', false)
+    const localDb = createLocalDb(executor)
+    const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
+    const localStore = await createLocalSnippetsStore(
+      executor,
+      dummyGlobalStateStore,
+    )
+    await waitUntil(async () => get(localStore.migrationStateStore) === 'done')
+
+    const newSnippet = createNewSnippet()
+    newSnippet.tags = ['one', 'two', 'three']
+
+    await localStore.upsert(newSnippet)
+    {
+      const result = await localDb.all(sql`SELECT tag_text FROM snippet_tags WHERE snippet_id = ${newSnippet.id}`) as [[string]]
+      const tag_texts = result.map((row) => row[0])
+      tag_texts.sort()
+      expect(tag_texts).toEqual(['one', 'three', 'two'])
+    }
+
+    newSnippet.tags = ['one']
+
+    await localStore.upsert(newSnippet)
+    {
+      const result = await localDb.all(sql`SELECT tag_text FROM snippet_tags WHERE snippet_id = ${newSnippet.id}`) as [[string]]
+      const tag_texts = result.map((row) => row[0])
+      expect(tag_texts).toEqual(['one'])
     }
   })
 })
