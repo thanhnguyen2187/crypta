@@ -3,11 +3,7 @@ import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
 import { get, writable } from 'svelte/store'
 import type { MigrationState, MigrationQueryMap, QueriesStringMap } from './migration'
-import {
-  defaultMigrationQueryMap,
-  defaultQueriesStringMap,
-  migrate,
-} from './migration'
+import { defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
 import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import {
   clearTags,
