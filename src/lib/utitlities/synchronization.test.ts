@@ -164,4 +164,60 @@ describe('data manager', () => {
     }
 
   }, {timeout: 30_000})
+
+  it('merge', async () => {
+    // local store initialization
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
+    const localExecutor = await createQueryExecutor(sqliteAPI, 'crypta', false)
+    const localStore = await createLocalSnippetsStore(
+      localExecutor,
+      writable({folderId: 'default', searchInput: '', tags: []}),
+    )
+
+    // remote store initialization
+    const remoteExecutor = createAvailableExecutor()
+    const remoteExecutorStore = writable(remoteExecutor)
+    const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
+    const remoteStore = await createRemoteSnippetStore(dummyGlobalStateStore, remoteExecutorStore)
+    await waitUntil(remoteStore.isAvailable)
+    await remoteStore.clearAll()
+
+    // set up data for each store
+    //
+    // we do this instead of mutating the snippet directly since the reference
+    // stays the same, and dataStateStore cannot catch it.
+    const localSnippet = createNewSnippet()
+    const remoteSnippet = {
+      ...localSnippet,
+      updatedAt: localSnippet.updatedAt + 10_000,
+    }
+    remoteSnippet.id = localSnippet.id
+    await localStore.upsert(localSnippet)
+    await remoteStore.upsert(remoteSnippet)
+
+    // create data state store
+    const dataStateStore = createSnippetsDataStateStore(localStore, remoteStore)
+
+    {
+      const dataState = get(dataStateStore)
+      expect(dataState).toContain({
+        [localSnippet.id]: 'conflicted',
+      })
+    }
+
+    // create data manager
+    const dataManager = createSnippetsDataManager(localStore, remoteStore, dataStateStore, 1_000)
+    await dataManager.merge(localSnippet)
+    {
+      const dataState = get(dataStateStore)
+      expect(dataState).toContain({
+        [localSnippet.id]: 'synchronized',
+      })
+    }
+    {
+      const localUpdatedAt = localExecutor.execute('SELECT updated_at FROM snippets WHERE id = ?', localSnippet.id)
+      const remoteUpdatedAt = remoteExecutor.execute('SELECT updated_at FROM snippets WHERE id = ?', [remoteSnippet.id])
+      expect(localUpdatedAt).toEqual(remoteUpdatedAt)
+    }
+  }, 30_000)
 })

@@ -43,7 +43,7 @@ export async function upsertSnippet(db: SqliteRemoteDatabase, dbSnippet: typeof 
         text: sql`excluded.text`,
         name: sql`excluded.name`,
         language: sql`excluded.language`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`excluded.updated_at`,
       },
     })
 }
