@@ -9,15 +9,15 @@ import { sql } from 'drizzle-orm'
 export async function querySnippetsByFolderId(db: SqliteRemoteDatabase, folderId: string) {
   return db
     .select({
-      id: snippets.id,
-      folderId: snippets.folderId,
-      name: snippets.name,
-      language: snippets.language,
-      text: snippets.text,
-      encrypted: snippets.encrypted,
-      position: snippets.position,
-      updatedAt: snippets.updatedAt,
       createdAt: snippets.createdAt,
+      encrypted: snippets.encrypted,
+      folderId: snippets.folderId,
+      id: snippets.id,
+      language: snippets.language,
+      name: snippets.name,
+      position: snippets.position,
+      text: snippets.text,
+      updatedAt: snippets.updatedAt,
     })
     .from(snippets)
     .where(sql`folder_id = ${folderId}`)

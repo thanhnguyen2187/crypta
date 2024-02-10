@@ -297,6 +297,7 @@ export async function createRemoteSnippetStore(
         )
         remoteDb = createRemoteDb(executor)
         migrationStateStore.set('done')
+        await refresh()
       } catch (e) {
         console.error('createRemoteSnippetStore: executorStore.subscribe ', e)
         migrationStateStore.set('error')
