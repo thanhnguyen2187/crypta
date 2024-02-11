@@ -1,6 +1,7 @@
 import { http, HttpResponse, passthrough } from 'msw'
 import path from 'path'
 import fs from 'fs'
+import type { Snippet } from '$lib/utitlities/persistence'
 
 export const WASqliteWASMBaseURL = 'http://mock.local'
 export function createWASqliteMockWASMHandler(baseUrl: string = WASqliteWASMBaseURL) {
@@ -32,4 +33,18 @@ export function createRemoteServerURLHandler() {
       return passthrough()
     })
   ]
+}
+
+export function createDummySnippet(id: string, createdAt: number, updatedAt: number): Snippet {
+  return {
+    id,
+    name: 'dummy name',
+    language: 'dummy language',
+    text: 'dummy text',
+    tags: [],
+    encrypted: false,
+    position: 1,
+    createdAt,
+    updatedAt,
+  }
 }

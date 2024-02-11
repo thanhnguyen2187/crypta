@@ -1,28 +1,18 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { get, writable } from 'svelte/store'
 import { createSnippetsDataManager, createSnippetsDataStateStore } from './synchronization'
 import type { GlobalState, Snippet } from './persistence'
+import { createNewSnippet } from './persistence'
 import { createLocalSnippetsStore, createQueryExecutor, createSQLiteAPIV2 } from '$lib/sqlite/wa-sqlite'
 import { setupServer } from 'msw/node'
-import { createRemoteServerURLHandler, createWASqliteMockWASMHandler } from '$lib/utitlities/tests-setup'
+import {
+  createDummySnippet,
+  createRemoteServerURLHandler,
+  createWASqliteMockWASMHandler
+} from '$lib/utitlities/testing'
 import { createAvailableExecutor } from '$lib/sqlite/sqliterg.test'
 import { createRemoteSnippetStore } from '$lib/sqlite/sqliterg'
-import { createNewSnippet } from './persistence'
 import { waitUntil } from '$lib/utitlities/wait-until'
-
-function createDummySnippet(id: string, createdAt: number, updatedAt: number): Snippet {
-  return {
-    id,
-    name: 'dummy',
-    language: 'dummy',
-    text: 'dummy',
-    tags: [],
-    encrypted: false,
-    position: 0,
-    createdAt,
-    updatedAt,
-  }
-}
 
 describe('snippets data state store', () => {
   it('empty store', () => {
@@ -31,6 +21,7 @@ describe('snippets data state store', () => {
     const store = createSnippetsDataStateStore(dummyLocalStore, dummyRemoteStore)
     expect(get(store)).toEqual({})
   })
+
   it('local only', () => {
     const localStore = writable<Snippet[]>([
       createDummySnippet('a', 0, 0),
@@ -41,6 +32,7 @@ describe('snippets data state store', () => {
       'a': 'local-only',
     })
   })
+
   it('remote only', () => {
     const localStore = writable<Snippet[]>([])
     const remoteStore = writable<Snippet[]>([
@@ -51,6 +43,7 @@ describe('snippets data state store', () => {
       'a': 'remote-only',
     })
   })
+
   it('synchronized', () => {
     const localStore = writable<Snippet[]>([
       createDummySnippet('a', 0, 0),
@@ -63,6 +56,7 @@ describe('snippets data state store', () => {
       'a': 'synchronized',
     })
   })
+
   it('conflicted', () => {
     const localStore = writable<Snippet[]>([
       createDummySnippet('a', 0, 0),
