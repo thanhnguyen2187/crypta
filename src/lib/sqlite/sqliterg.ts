@@ -130,7 +130,7 @@ export function createSqlitergExecutor(
       } catch (e) {
         return false
       }
-      throw Error('isAuthenticated: unreachable code')
+      throw Error('createSqlitergExecutor.isAuthenticated: unreachable code')
     },
     async execute(queryOrStatement: string, params: Params | any[]): Promise<Response> {
       const queryOrStatementLowered = queryOrStatement.toLowerCase()
@@ -218,7 +218,7 @@ export function createRemoteDb(executor: SqlitergExecutor) {
   return drizzle(async (queryString, params, method) => {
     const response = await executor.execute(queryString, params)
     if ('reqIdx' in response) {
-      console.warn('createRemoteDb.drizzle execution ', response)
+      console.warn('createRemoteDb.drizzle execution error', queryString, params, response)
       return {rows: []}
     }
     if (response.results.length === 0 || !response.results[0].success) {

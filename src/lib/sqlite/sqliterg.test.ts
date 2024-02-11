@@ -10,7 +10,15 @@ import type { Folder, GlobalState } from '$lib/utitlities/persistence';
 import { createNewSnippet } from '$lib/utitlities/persistence'
 import { waitUntil } from '$lib/utitlities/wait-until';
 import type { DisplayFolder } from '$lib/components/sidebar-folder/store';
-import { deleteFolder, upsertFolder } from '$lib/sqlite/queries';
+import {
+  deleteAllSnippets,
+  deleteFolder,
+  querySnippetsByFolderId,
+  upsertFolder,
+  upsertSnippet
+} from '$lib/sqlite/queries';
+import { createDummySnippet } from '$lib/utitlities/testing'
+import { displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 
 enum Constants {
   ServerURL = 'http://127.0.0.1:12321/crypta',
@@ -124,6 +132,7 @@ describe('remote database', () => {
       expect(result).toEqual([1])
     }
   })
+
   it('migration', async () => {
     const executor = createAvailableExecutor()
     const remoteDb = createRemoteDb(executor)
@@ -159,6 +168,57 @@ describe('remote database', () => {
         name: 'Default',
         position: 0,
       })
+    }
+  })
+
+  it('select columns order', async () => {
+    // IMPORTANT: this test uses a "patched" version of `ws4sqlite` that
+    // ensures returned object keys' order (`thanhnguyen2187/ws4sqlite`).
+    //
+    // Look at https://github.com/proofrock/ws4sqlite/pull/38 for more
+    // information.
+    const executor = createAvailableExecutor()
+
+    await executor.execute('DELETE FROM snippets', {})
+    const date = new Date()
+    const createdAt = date.toISOString()
+    const updatedAt = date.toISOString()
+    const snippet = createDummySnippet('dummy-id', date.getTime(), date.getTime())
+    await executor.execute(
+      'INSERT INTO snippets VALUES (:id, :folder_id, :name, :language, :text, :encrypted, :position, :created_at, :updated_at)',
+      {
+        id: snippet.id,
+        folder_id: 'default',
+        name: snippet.name,
+        language: snippet.language,
+        text: snippet.text,
+        encrypted: snippet.encrypted,
+        position: snippet.position,
+        created_at: createdAt,
+        updated_at: updatedAt,
+      },
+    )
+
+    {
+      const result = await executor.execute(`SELECT * FROM snippets`, {})
+      if (!('results' in result)) {
+        throw Error('select column order: unreachable code')
+      }
+      if (!('resultSet' in result.results[0])) {
+        throw Error('select column order: unreachable code')
+      }
+      const record = result.results[0].resultSet[0]
+      expect(Object.values(record)).toEqual([
+        'dummy-id', // id
+        'default', // folder_id
+        'dummy name', // name
+        'dummy language', // language
+        'dummy text', // text
+        0, // encrypted
+        1, // position
+        createdAt, // created_at
+        updatedAt, // updated_at
+      ])
     }
   })
 })
@@ -200,6 +260,7 @@ describe('remote snippets store', async () => {
       expect(get(migrationStateStore)).toBe('done')
     }
   })
+
   it('crud', async () => {
     const dummyGlobalStore = writable<GlobalState>({
       folderId: 'default',
