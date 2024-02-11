@@ -7,7 +7,7 @@ import {
   createSQLiteAPIV2,
   migrateLocal
 } from './wa-sqlite'
-import { createWASqliteMockWASMHandler } from '$lib/utitlities/tests-setup'
+import { createWASqliteMockWASMHandler } from '$lib/utitlities/testing'
 import { defaultMigrationQueryMap, defaultQueriesStringMap, } from './migration'
 import { sql } from 'drizzle-orm'
 import { get, writable } from 'svelte/store'
