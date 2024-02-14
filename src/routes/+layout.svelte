@@ -18,6 +18,7 @@
   import ModalMoveSnippet from '$lib/components/modal-snippet/modal-move-snippet.svelte'
   import ModalLocker from '$lib/components/modal-locker/modal-locker.svelte'
   import ModalSettings from '$lib/components/modal-settings/modal-settings.svelte'
+  import ModalMergeSnippets from '$lib/components/modal-snippet/modal-merge-snippets.svelte'
   import { globalStateStore } from '$lib/utitlities/global'
   import SidebarFolder from '$lib/components/sidebar-folder/sidebar-folder.svelte'
   import TabGroupFolder from '$lib/components/tab-group-folder/tab-group-folder.svelte'
@@ -32,6 +33,7 @@
     locker: {ref: ModalLocker},
     moveSnippet: {ref: ModalMoveSnippet},
     settings: {ref: ModalSettings},
+    merge: {ref: ModalMergeSnippets},
   }
 
   import { executor } from '$lib/sqlite/global'

@@ -324,6 +324,10 @@
           target: `card-synchronization-${snippet.id}`,
           placement: 'top',
         }}
+        on:click={() => modalStore.trigger({
+          type: 'component',
+          component: 'merge',
+        })}
       >
         <i class="fa-solid fa-code-compare"></i>
       </button>
