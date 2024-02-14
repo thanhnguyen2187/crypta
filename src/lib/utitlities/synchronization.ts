@@ -98,6 +98,7 @@ export function createSnippetsDataManager(
     start(): void {
       setInterval(
         async () => {
+          await remoteStore.refresh()
           for (const [id, state] of Object.entries(get(stateStore))) {
             if (state === 'remote-only') {
               const remoteSnippet = get(stateStore.remoteMap)[id]

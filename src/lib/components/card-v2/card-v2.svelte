@@ -7,12 +7,16 @@
   import { globalStateStore } from '$lib/utitlities/global'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
-  import { localSnippetsStore } from '$lib/sqlite/global'
+  import { dataStateStore, localSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
   let state: 'default' | 'locked' | 'unlocked' = 'default'
   let unlockedVisibility: 'hidden' | 'visible' = 'hidden'
   let hiddenCopyClass = 'fa-copy'
+  let synchronizationState = 'synchronized'
+  $: {
+    synchronizationState = $dataStateStore[snippet.id]
+  }
 
   export let snippet: Snippet = {
     id: '',
@@ -46,7 +50,10 @@
           const {password} = data
 
           encryptSnippet(snippet, password).then(
-            lockedSnippet => localSnippetsStore.upsert(lockedSnippet)
+            lockedSnippet => {
+              lockedSnippet.updatedAt = new Date().getTime()
+              localSnippetsStore.upsert(lockedSnippet)
+            }
           )
         },
       })
@@ -100,6 +107,7 @@
           decryptSnippet(snippet, password).then(
             unlockedSnippet => {
               state = 'default'
+              unlockedSnippet.updatedAt = new Date().getTime()
               localSnippetsStore.upsert(unlockedSnippet)
             }
           ).catch(e => {
@@ -310,7 +318,7 @@
         {/if}
       </div>
       <button
-        class="btn btn-icon [&>*]:pointer-events-none variant-filled-warning"
+        class="btn btn-icon [&>*]:pointer-events-none variant-filled-warning {synchronizationState === 'conflicted' ? 'visible' : 'collapse'} "
         use:popup={{
           event: 'hover',
           target: `card-synchronization-${snippet.id}`,

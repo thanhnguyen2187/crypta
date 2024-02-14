@@ -19,7 +19,13 @@
   }
 
   function upsertWithTags() {
+    snippet.updatedAt = new Date().getTime()
     snippet.tags = snippet.tags
+    localSnippetsStore.upsert(snippet)
+  }
+
+  function upsert() {
+    snippet.updatedAt = new Date().getTime()
     localSnippetsStore.upsert(snippet)
   }
 
@@ -80,7 +86,7 @@
       <input
         class="input"
         bind:value={snippet.name}
-        on:change={() => localSnippetsStore.upsert(snippet)}
+        on:change={upsert}
         spellcheck="false"
       />
     </label>
@@ -89,7 +95,7 @@
       <input
         class="input"
         bind:value={snippet.language}
-        on:change={() => localSnippetsStore.upsert(snippet)}
+        on:change={upsert}
         spellcheck="false"
       />
     </label>
@@ -102,7 +108,7 @@
         spellcheck="false"
         disabled={snippet.encrypted}
         bind:value={snippet.text}
-        on:change={() => localSnippetsStore.upsert(snippet)}
+        on:change={upsert}
       ></textarea>
     </label>
     <label>
