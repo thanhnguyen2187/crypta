@@ -2,29 +2,29 @@
   import { InputChip } from '@skeletonlabs/skeleton'
 </script>
 
-<div class="w-modal table-container">
+<div class="card p-4 w-modal table-container">
   <table class="table table-hover">
     <thead>
       <tr>
         <th></th>
         <th>
           <div
-            class="flex gap-2 items-center"
+            class="flex gap-2 items-center justify-between"
           >
-            <span>
-              Local
-            </span>
-            <input class="checkbox" type="checkbox" />
+            <button class="btn variant-ghost">
+              <i class="fa-solid fa-check"></i>
+              <span class="font-normal">Pick</span>
+            </button>
           </div>
         </th>
         <th>
           <div
-            class="flex gap-2 items-center"
+            class="flex gap-2 items-center justify-between"
           >
-            <span>
-              Remote
-            </span>
-            <input class="checkbox" type="checkbox" />
+            <button class="btn variant-ghost">
+              <i class="fa-solid fa-check"></i>
+              <span class="font-normal">Pick</span>
+            </button>
           </div>
         </th>
       </tr>
