@@ -267,7 +267,8 @@ describe('remote snippets store', async () => {
       tags: [],
       searchInput: '',
     })
-    const dummyExecutorStore = writable<SqlitergExecutor>(createAvailableExecutor())
+    const executor = createAvailableExecutor()
+    const dummyExecutorStore = writable<SqlitergExecutor>(executor)
     const remoteSnippetStore = await createRemoteSnippetStore(
       dummyGlobalStore,
       dummyExecutorStore,
@@ -275,10 +276,31 @@ describe('remote snippets store', async () => {
     await waitUntil(remoteSnippetStore.isAvailable)
     await remoteSnippetStore.clearAll()
 
-    const newSnippet = createNewSnippet()
+    const newSnippet = createDummySnippet('dummy-id', 0, 0)
     await remoteSnippetStore.upsert(newSnippet)
 
-    // TODO: check more thoroughly by comparing with result from database
+    {
+      const response = await executor.execute('SELECT * FROM snippets', {})
+      if (!('results' in response)) {
+        throw Error('crud: unreachable code')
+      }
+      if (!('resultSet' in response.results[0])) {
+        throw Error('crud: unreachable code')
+      }
+      const record = response.results[0].resultSet[0]
+      expect(Object.values(record)).toEqual([
+        'dummy-id', // id
+        'default', // folder_id
+        'dummy name', // name
+        'dummy language', // language
+        'dummy text', // text
+        0, // encrypted
+        1, // position
+        expect.anything(), // created_at
+        expect.anything(), // updated_at
+      ])
+    }
+
     let snippets = get(remoteSnippetStore)
     expect(snippets.length).toBe(1)
     expect(snippets).toContainEqual(newSnippet)
