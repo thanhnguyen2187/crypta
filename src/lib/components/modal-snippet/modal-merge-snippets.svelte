@@ -1,5 +1,6 @@
 <script lang="ts">
   import { InputChip } from '@skeletonlabs/skeleton'
+  import PickableInput from './pickable-input.svelte'
 </script>
 
 <div class="card p-4 w-modal table-container">
@@ -39,15 +40,17 @@
         <td
           class="flex gap-2 items-center"
         >
-          <input
-            disabled type="text" class="input input-success disabled:!opacity-100 disabled:!cursor-pointer"
-            value="local value"
+          <PickableInput
+            type="text"
+            value="local"
+            picked={true}
           />
         </td>
         <td>
-          <input
-            disabled type="text" class="input disabled:!opacity-100 disabled:!cursor-pointer"
-            value="remote value"
+          <PickableInput
+            type="text"
+            value="remote"
+            picked={false}
           />
         </td>
       </tr>
@@ -58,10 +61,18 @@
           Language
         </td>
         <td>
-          <input type="text" class="input" />
+          <PickableInput
+            type="text"
+            value="local language"
+            picked={true}
+          />
         </td>
         <td>
-          <input type="text" class="input" />
+          <PickableInput
+            type="text"
+            value="remote language"
+            picked={false}
+          />
         </td>
       </tr>
       <tr>
@@ -71,10 +82,18 @@
           Content
         </td>
         <td>
-          <textarea class="textarea"></textarea>
+          <PickableInput
+            type="textarea"
+            value="remote language"
+            picked={true}
+          />
         </td>
         <td>
-          <textarea class="textarea"></textarea>
+          <PickableInput
+            type="textarea"
+            value="remote language"
+            picked={false}
+          />
         </td>
       </tr>
       <tr>
@@ -84,10 +103,16 @@
           Tags
         </td>
         <td>
-          <InputChip disabled name=""/>
+          <PickableInput
+            type="chips"
+            picked={true}
+          />
         </td>
         <td>
-          <InputChip disabled name=""/>
+          <PickableInput
+            type="chips"
+            picked={false}
+          />
         </td>
       </tr>
       <tr>
@@ -97,10 +122,10 @@
           ID
         </td>
         <td>
-          <input type="text" class="input" />
+          <input disabled type="text" class="input" value="local-id" />
         </td>
         <td>
-          <input type="text" class="input" />
+          <input disabled type="text" class="input" value="remote-id" />
         </td>
       </tr>
       <tr>
