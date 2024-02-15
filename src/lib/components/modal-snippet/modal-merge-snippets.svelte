@@ -105,12 +105,14 @@
         <td>
           <PickableInput
             type="chips"
+            value={['one', 'two']}
             picked={true}
           />
         </td>
         <td>
           <PickableInput
             type="chips"
+            value={['one', 'two']}
             picked={false}
           />
         </td>
@@ -121,11 +123,8 @@
         >
           ID
         </td>
-        <td>
-          <input disabled type="text" class="input" value="local-id" />
-        </td>
-        <td>
-          <input disabled type="text" class="input" value="remote-id" />
+        <td colspan="2">
+          <input disabled type="text" class="input" value="same-id" />
         </td>
       </tr>
       <tr>
@@ -134,11 +133,8 @@
         >
           Date Created
         </td>
-        <td>
-          <input type="text" class="input" />
-        </td>
-        <td>
-          <input type="text" class="input" />
+        <td colspan="2">
+          <input disabled type="text" class="input" value="2024-01-01"/>
         </td>
       </tr>
       <tr>
@@ -148,10 +144,10 @@
           Last Updated
         </td>
         <td>
-          <input type="text" class="input" />
+          <input disabled type="text" class="input" value="2024-01-01"/>
         </td>
         <td>
-          <input type="text" class="input" />
+          <input disabled type="text" class="input" value="2024-01-02"/>
         </td>
       </tr>
     </tbody>
