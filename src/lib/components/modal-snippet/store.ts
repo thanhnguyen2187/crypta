@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
 import type { Writable } from 'svelte/store'
 import type { Snippet } from '$lib/utitlities/persistence'
 import { createNewSnippet } from '$lib/utitlities/persistence'
@@ -23,6 +23,20 @@ export const pickedMapStore = writable<PickedMap>({
   updatedAt: 'local',
   createdAt: 'local',
 })
+export const builtSnippetStore = derived(
+  [mergeLocalSnippetStore, mergeRemoteSnippetStore, pickedMapStore],
+  ([localSnippet, remoteSnippet, pickedMap]) => {
+    const snippet = {...localSnippet}
+    for (const key in pickedMap) {
+      const keyTyped = key as keyof Snippet
+      if (pickedMap[keyTyped] === 'remote') {
+        // @ts-ignore
+        snippet[keyTyped] = remoteSnippet[keyTyped]
+      }
+    }
+    return snippet
+  }
+)
 
 export function setOne(
   pickedMapStore: Writable<PickedMap>,

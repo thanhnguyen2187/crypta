@@ -1,14 +1,23 @@
 <script lang="ts">
   import PickableInput from './pickable-input.svelte'
-
   import {
+    builtSnippetStore,
     mergeLocalSnippetStore,
     mergeRemoteSnippetStore,
     pickedMapStore,
     setAll,
     setOne,
   } from './store'
-  import { format } from '$lib/utitlities/date';
+  import { format } from '$lib/utitlities/date'
+  import { dataManager } from '$lib/sqlite/global'
+  import { getModalStore } from '@skeletonlabs/skeleton'
+
+  const modalStore = getModalStore()
+
+  function mergeSnippets() {
+    dataManager.merge($builtSnippetStore)
+    modalStore.close()
+  }
 </script>
 
 <div class="card p-4 w-modal table-container">
@@ -198,7 +207,10 @@
         <th colspan="2"></th>
         <th>
           <div class="flex gap-2 font-normal justify-end">
-            <button class="btn variant-filled">
+            <button
+              class="btn variant-filled"
+              on:click={mergeSnippets}
+            >
               <i class="fa-solid fa-code-merge"></i>
               <span>Merge</span>
             </button>
