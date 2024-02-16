@@ -76,21 +76,24 @@ export function createSqlitergExecutor(
   username: string,
   password: string,
 ): SqlitergExecutor {
-  const authBase64 = Buffer.from(`${username}:${password}`).toString('base64')
+  const headers: Record<string, string> = {
+    // We need this to make testing works, as `fetch` of Vite would use
+    // `Accept-Encoding: br, gzip, deflate`. It conflicts with the HTTP server
+    // used by `sqliterg`, and make the underlying function unable to decode the
+    // response.
+    'Accept-Encoding': '*',
+    'Content-Type': 'application/json',
+  }
+  if (username !== '' && password !== '') {
+    const authBase64 = Buffer.from(`${username}:${password}`).toString('base64')
+    headers['Authorization'] = `Basic ${authBase64}`
+  }
   async function send(request: Request): Promise<Response> {
     const response = await fetch(
       url,
       {
         method: 'POST',
-        headers: {
-          // We need this to make testing works, as `fetch` of Vite would use
-          // `Accept-Encoding: br, gzip, deflate`. It conflicts with the HTTP
-          // server used by `sqliterg`, and make the underlying function unable
-          // to decode the response.
-          'Accept-Encoding': '*',
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${authBase64}`,
-        },
+        headers: headers,
         body: JSON.stringify(request)
       },
     )
@@ -105,8 +108,8 @@ export function createSqlitergExecutor(
         const response = await fetch(
           url,
           {
-            method: 'HEAD',
-            mode: 'no-cors',
+            method: 'OPTIONS',
+            headers: headers,
           }
         )
         return true
