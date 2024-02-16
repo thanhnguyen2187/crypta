@@ -13,9 +13,9 @@ import {
   deleteSnippetsByFolder,
   querySnippetsByFolderId,
   upsertSnippet,
-  upsertTags,
+  upsertTags, queryTagsBySnippetIds,
 } from './queries'
-import { dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
+import { buildTagsMap, dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 
 export type Params = {[key: string]: any}
 
@@ -272,8 +272,11 @@ export async function createRemoteSnippetStore(
   )
   async function refresh() {
     const dbSnippets = await querySnippetsByFolderId(remoteDb, folderId)
+    const snippetIds = dbSnippets.map(snippet => snippet.id)
+    const tags = await queryTagsBySnippetIds(remoteDb, snippetIds)
+    const tagsMap = buildTagsMap(tags)
     snippets = dbSnippets.map(
-      (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, {})
+      (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, tagsMap)
     )
     snippetsStore.set(snippets)
   }
