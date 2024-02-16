@@ -17,6 +17,11 @@
   let currentTab: 'connection' | 'logging' = 'connection'
   $: {
     (async () => {
+      if ($settingsStore.serverURL === '') {
+        $inputStateStore.display = 'none'
+        $inputStateStore.message = ''
+        return
+      }
       if (!await $sqlitergExecutorStore.isReachable()) {
         $inputStateStore.display = 'warning'
         $inputStateStore.message = 'Could not connect to the designated URL!'
@@ -102,8 +107,8 @@
       </aside>
     {:else if currentTab === 'logging'}
       <textarea
+        readonly
         class="textarea font-mono"
-        readonly="readonly"
         rows="7"
       >{logsContent}</textarea>
     {/if}

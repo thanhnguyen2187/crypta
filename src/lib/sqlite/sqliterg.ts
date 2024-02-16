@@ -98,6 +98,9 @@ export function createSqlitergExecutor(
   }
   return {
     async isReachable(): Promise<boolean> {
+      if (url === '') {
+        return false
+      }
       try {
         const response = await fetch(
           url,
@@ -271,6 +274,9 @@ export async function createRemoteSnippetStore(
     }
   )
   async function refresh() {
+    if (!await isAvailable()) {
+      return
+    }
     const dbSnippets = await querySnippetsByFolderId(remoteDb, folderId)
     const snippetIds = dbSnippets.map(snippet => snippet.id)
     const tags = await queryTagsBySnippetIds(remoteDb, snippetIds)
