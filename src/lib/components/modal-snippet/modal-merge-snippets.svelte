@@ -1,6 +1,14 @@
 <script lang="ts">
-  import { InputChip } from '@skeletonlabs/skeleton'
   import PickableInput from './pickable-input.svelte'
+
+  import {
+    mergeLocalSnippetStore,
+    mergeRemoteSnippetStore,
+    pickedMapStore,
+    setAll,
+    setOne,
+  } from './store'
+  import { format } from '$lib/utitlities/date';
 </script>
 
 <div class="card p-4 w-modal table-container">
@@ -12,7 +20,10 @@
           <div
             class="flex gap-2 items-center justify-between"
           >
-            <button class="btn variant-ghost">
+            <button
+              class="btn variant-ghost"
+              on:click={() => setAll(pickedMapStore, 'local')}
+            >
               <i class="fa-solid fa-check"></i>
               <span class="font-normal">Pick</span>
             </button>
@@ -22,7 +33,10 @@
           <div
             class="flex gap-2 items-center justify-between"
           >
-            <button class="btn variant-ghost">
+            <button
+              class="btn variant-ghost"
+              on:click={() => setAll(pickedMapStore, 'remote')}
+            >
               <i class="fa-solid fa-check"></i>
               <span class="font-normal">Pick</span>
             </button>
@@ -42,15 +56,17 @@
         >
           <PickableInput
             type="text"
-            value="local"
-            picked={true}
+            value={$mergeLocalSnippetStore.name}
+            picked={$pickedMapStore.name === 'local'}
+            pickFn={() => setOne(pickedMapStore, 'name', 'local')}
           />
         </td>
         <td>
           <PickableInput
             type="text"
-            value="remote"
-            picked={false}
+            value={$mergeRemoteSnippetStore.name}
+            picked={$pickedMapStore.name === 'remote'}
+            pickFn={() => setOne(pickedMapStore, 'name', 'remote')}
           />
         </td>
       </tr>
@@ -63,15 +79,17 @@
         <td>
           <PickableInput
             type="text"
-            value="local language"
-            picked={true}
+            value={$mergeLocalSnippetStore.language}
+            picked={$pickedMapStore.language === 'local'}
+            pickFn={() => setOne(pickedMapStore, 'language', 'local')}
           />
         </td>
         <td>
           <PickableInput
             type="text"
-            value="remote language"
-            picked={false}
+            value={$mergeRemoteSnippetStore.language}
+            picked={$pickedMapStore.language === 'remote'}
+            pickFn={() => setOne(pickedMapStore, 'language', 'remote')}
           />
         </td>
       </tr>
@@ -84,15 +102,17 @@
         <td>
           <PickableInput
             type="textarea"
-            value="remote language"
-            picked={true}
+            value={$mergeLocalSnippetStore.text}
+            picked={$pickedMapStore.text === 'local'}
+            pickFn={() => setOne(pickedMapStore, 'text', 'local')}
           />
         </td>
         <td>
           <PickableInput
             type="textarea"
-            value="remote language"
-            picked={false}
+            value={$mergeRemoteSnippetStore.text}
+            picked={$pickedMapStore.text === 'remote'}
+            pickFn={() => setOne(pickedMapStore, 'text', 'remote')}
           />
         </td>
       </tr>
@@ -105,15 +125,17 @@
         <td>
           <PickableInput
             type="chips"
-            value={['one', 'two']}
-            picked={true}
+            value={$mergeLocalSnippetStore.tags}
+            picked={$pickedMapStore.tags === 'local'}
+            pickFn={() => setOne(pickedMapStore, 'tags', 'local')}
           />
         </td>
         <td>
           <PickableInput
             type="chips"
-            value={['one', 'two']}
-            picked={false}
+            value={$mergeRemoteSnippetStore.tags}
+            picked={$pickedMapStore.tags === 'remote'}
+            pickFn={() => setOne(pickedMapStore, 'tags', 'remote')}
           />
         </td>
       </tr>
@@ -124,7 +146,12 @@
           ID
         </td>
         <td colspan="2">
-          <input disabled type="text" class="input" value="same-id" />
+          <input
+            disabled
+            type="text"
+            class="input"
+            value={$mergeLocalSnippetStore.id}
+          />
         </td>
       </tr>
       <tr>
@@ -134,7 +161,12 @@
           Date Created
         </td>
         <td colspan="2">
-          <input disabled type="text" class="input" value="2024-01-01"/>
+          <input
+            disabled
+            type="text"
+            class="input"
+            value={format(new Date($mergeLocalSnippetStore.createdAt))}
+          />
         </td>
       </tr>
       <tr>
@@ -144,10 +176,20 @@
           Last Updated
         </td>
         <td>
-          <input disabled type="text" class="input" value="2024-01-01"/>
+          <input
+            disabled
+            type="text"
+            class="input"
+            value={format(new Date($mergeLocalSnippetStore.updatedAt))}
+          />
         </td>
         <td>
-          <input disabled type="text" class="input" value="2024-01-02"/>
+          <input
+            disabled
+            type="text"
+            class="input"
+            value={format(new Date($mergeRemoteSnippetStore.updatedAt))}
+          />
         </td>
       </tr>
     </tbody>

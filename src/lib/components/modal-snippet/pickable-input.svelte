@@ -1,35 +1,46 @@
 <script lang="ts">
-  import { globalStateStore } from '$lib/utitlities/global';
-
   type PickableType = 'text' | 'textarea' | 'chips'
 
   export let value: string | string[] = ''
   export let type: PickableType = 'text'
   export let picked = false
+
+  export let pickFn = () => {}
 </script>
 
 {#if type === 'text'}
   <input
-    disabled
-    class="input disabled:!opacity-100 disabled:!cursor-pointer {picked ? 'input-success' : ''}"
+    readonly
+    class="input read-only:!cursor-pointer {picked ? 'input-success' : ''}"
     value="{value}"
+    on:click={pickFn}
   />
 {:else if type === 'textarea'}
   <textarea
-    disabled
+    readonly
     rows="6"
-    class="textarea disabled:!opacity-100 disabled:!cursor-pointer {picked ? 'input-success' : ''}"
+    class="textarea read-only:!cursor-pointer {picked ? 'input-success' : ''}"
+    on:click={pickFn}
   >{value}</textarea>
-{:else if type === 'chips' && value.length > 0}
+{:else if type === 'chips'}
   <button
     class="variant-ghost flex gap-2 p-2 rounded"
+    on:click={pickFn}
   >
-    {#each value as tag}
-      <span
-        class="chip {picked ? 'variant-soft-success' : 'variant-soft'} "
-      >
-        {tag}
-      </span>
-    {/each}
+    {#if value.length > 0}
+      {#each value as tag}
+        <span
+          class="chip {picked ? 'variant-soft-success' : 'variant-soft'} "
+        >
+          {tag}
+        </span>
+      {/each}
+    {:else}
+        <span
+          class="chip {picked ? 'variant-soft-success' : 'variant-soft'} "
+        >
+          no tag yet
+        </span>
+    {/if}
   </button>
 {/if}

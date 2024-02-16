@@ -3,7 +3,11 @@
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
   import { createNewSnippet, encryptSnippet, decryptSnippet } from '$lib/utitlities/persistence'
-  import { modalSnippetStore } from '$lib/components/modal-snippet/store'
+  import {
+    mergeLocalSnippetStore,
+    mergeRemoteSnippetStore,
+    modalSnippetStore
+  } from '$lib/components/modal-snippet/store'
   import { globalStateStore } from '$lib/utitlities/global'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
@@ -17,6 +21,8 @@
   $: {
     synchronizationState = $dataStateStore[snippet.id]
   }
+  const localMap = dataStateStore.localMap
+  const remoteMap = dataStateStore.remoteMap
 
   export let snippet: Snippet = {
     id: '',
@@ -205,6 +211,18 @@
       component: 'snippet',
     })
   }
+
+  function toggleMergeModal() {
+    const localSnippet = $localMap[snippet.id]
+    const remoteSnippet = $remoteMap[snippet.id]
+
+    mergeLocalSnippetStore.set(localSnippet)
+    mergeRemoteSnippetStore.set(remoteSnippet)
+    modalStore.trigger({
+      type: 'component',
+      component: 'merge',
+    })
+  }
 </script>
 
 <div
@@ -324,10 +342,7 @@
           target: `card-synchronization-${snippet.id}`,
           placement: 'top',
         }}
-        on:click={() => modalStore.trigger({
-          type: 'component',
-          component: 'merge',
-        })}
+        on:click={toggleMergeModal}
       >
         <i class="fa-solid fa-code-compare"></i>
       </button>
