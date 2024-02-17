@@ -11,8 +11,9 @@ import {
   createRemoteServerURLHandler,
   createWASqliteMockWASMHandler
 } from '$lib/utitlities/testing'
-import { createAvailableExecutor, createEmptyExecutor, createUnreachableExecutor } from '$lib/sqlite/sqliterg.test'
-import { createRemoteSnippetStore, RemoteSnippetStore, SqlitergExecutor } from '$lib/sqlite/sqliterg'
+import { createAvailableExecutor, createEmptyExecutor } from '$lib/sqlite/sqliterg.test'
+import { createRemoteSnippetStore, } from '$lib/sqlite/sqliterg'
+import type { RemoteSnippetStore, SqlitergExecutor } from '$lib/sqlite/sqliterg'
 import { waitUntil } from '$lib/utitlities/wait-until'
 
 describe('snippets data state store', () => {
