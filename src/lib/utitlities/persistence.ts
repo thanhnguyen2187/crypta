@@ -227,7 +227,7 @@ export type LocalFoldersStore = Readable<DisplayFolder[]> &
 export type RemoteFoldersStore =
   LocalFoldersStore &
   {
-    isAvailable(): Promise<void>
+    isAvailable(): Promise<boolean>
     refresh(): Promise<void>
   }
 

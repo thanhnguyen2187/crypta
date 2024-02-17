@@ -1,12 +1,18 @@
-import { describe, it, expect, expectTypeOf } from 'vitest'
-import { createRemoteDb, createRemoteSnippetStore, createSqlitergExecutor, migrateRemote } from './sqliterg'
+import { describe, it, expect, expectTypeOf, beforeEach, beforeAll } from 'vitest'
+import {
+  createRemoteDb,
+  createRemoteFoldersStore,
+  createRemoteSnippetStore,
+  createSqlitergExecutor,
+  migrateRemote
+} from './sqliterg'
 import type { SqlitergExecutor, ResponseExecuteError } from './sqliterg'
 import { migrate, defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
 import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
 import { get, writable } from 'svelte/store'
 import { snippets as snippets_, folders } from '$lib/sqlite/schema'
-import type { DisplayFolder, Folder, GlobalState } from '$lib/utitlities/persistence';
+import type { DisplayFolder, Folder, GlobalState, RemoteFoldersStore } from '$lib/utitlities/persistence';
 import { createNewSnippet } from '$lib/utitlities/persistence'
 import { waitUntil } from '$lib/utitlities/wait-until';
 import {
@@ -18,6 +24,7 @@ import {
 } from '$lib/sqlite/queries';
 import { createDummySnippet } from '$lib/utitlities/testing'
 import { displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 
 enum Constants {
   ServerURL = 'http://127.0.0.1:12321/crypta',
@@ -392,6 +399,58 @@ describe('remote snippets store', async () => {
       const result = await dummyRemoteDb.all(sql`SELECT tag_text FROM snippet_tags WHERE snippet_id = ${newSnippet.id}`) as [[string]]
       const tag_texts = result.map((row) => row[0])
       expect(tag_texts).toEqual(['one'])
+    }
+  })
+})
+
+describe('remote folders store', async () => {
+  let remoteDb: SqliteRemoteDatabase
+  let remoteStore: RemoteFoldersStore
+
+  beforeAll(async () => {
+    const executor = createAvailableExecutor()
+    remoteDb = createRemoteDb(createAvailableExecutor())
+
+    await migrateRemote(
+      executor,
+      defaultMigrationQueryMap,
+      defaultQueriesStringMap,
+    )
+    remoteStore = createRemoteFoldersStore(executor, writable('done'))
+    await waitUntil(remoteStore.isAvailable)
+    await remoteStore.refresh()
+  })
+
+  it('remote', async () => {
+    expect(remoteStore).toBeDefined()
+    await new Promise(resolve => setTimeout(resolve, 100))
+    {
+      const folders = get(remoteStore)
+      expect(folders).toEqual([{
+        id: 'default',
+        name: 'Default',
+        position: 0,
+      }])
+    }
+  })
+
+  it('remote crud', async () => {
+    const newFolder = {
+      id: 'new',
+      name: 'New',
+      position: 1,
+    }
+    {
+      await remoteStore.upsert(newFolder)
+      expect(get(remoteStore)).toContain(newFolder)
+    }
+    {
+      const result = await remoteDb.get(sql`SELECT id, name, position FROM folders WHERE id = ${newFolder.id}`)
+      expect(result).toEqual(['new', 'New', 1])
+    }
+    {
+      await remoteStore.delete(newFolder.id)
+      expect(get(remoteStore)).not.toContain(newFolder)
     }
   })
 })

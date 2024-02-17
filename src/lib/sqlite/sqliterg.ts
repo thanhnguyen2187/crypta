@@ -4,7 +4,7 @@ import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from '
 import { get, writable } from 'svelte/store'
 import type { MigrationState, MigrationQueryMap, QueriesStringMap } from './migration'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
-import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence'
+import type { DisplayFolder, GlobalState, RemoteFoldersStore, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import {
   clearTags,
   clearAllTags as clearAllTags_,
@@ -13,7 +13,7 @@ import {
   deleteSnippetsByFolder,
   querySnippetsByFolderId,
   upsertSnippet,
-  upsertTags, queryTagsBySnippetIds,
+  upsertTags, queryTagsBySnippetIds, queryFolders, upsertFolder, deleteFolder,
 } from './queries'
 import { buildTagsMap, dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 
@@ -446,5 +446,71 @@ export async function createRemoteSnippetStore(
     isAvailable,
     refresh,
     migrationStateStore,
+  }
+}
+
+export function createRemoteFoldersStore(
+  executor: SqlitergExecutor,
+  migrationStateStore: Readable<MigrationState>,
+): RemoteFoldersStore {
+  let folders: DisplayFolder[] = []
+  const db = createRemoteDb(executor)
+  const store = writable(folders)
+
+  async function refresh() {
+    if (!await isAvailable()) {
+      return
+    }
+
+    const dbFolders = await queryFolders(db)
+    folders = dbFolders.map(
+      dbFolder => ({
+        id: dbFolder.id,
+        name: dbFolder.name,
+        position: dbFolder.position,
+      })
+    )
+    store.set(folders)
+  }
+
+  async function isAvailable() {
+    const reachable = await executor.isReachable()
+    if (!reachable) {
+      return false
+    }
+    const authenticated = await executor.isAuthenticated()
+    if (!authenticated) {
+      return false
+    }
+    const isMigrated = get(migrationStateStore) === 'done'
+    if (!isMigrated) {
+      return false
+    }
+
+    return true
+  }
+
+  return {
+    subscribe: store.subscribe,
+    async upsert(folder: DisplayFolder): Promise<void> {
+      await upsertFolder(db, folder)
+      const index = folders.findIndex(folder_ => folder_.id === folder.id)
+      if (index === -1) {
+        folders.push(folder)
+        store.set(folders)
+      }
+
+      folders[index] = folder
+      store.set(folders)
+    },
+    async delete(id: string): Promise<void> {
+      await deleteFolder(db, id)
+      const index = folders.findIndex(folder => folder.id === id)
+      folders.splice(index, 1)
+
+      store.set(folders)
+    },
+    refresh: refresh,
+    isAvailable: isAvailable,
   }
 }
