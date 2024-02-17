@@ -220,13 +220,13 @@ export type DisplayFolder = {
   position: number
 }
 
-export type FoldersStoreV2 = Readable<DisplayFolder[]> &
+export type LocalFoldersStore = Readable<DisplayFolder[]> &
   {
     upsert: (folder: DisplayFolder) => Promise<void>
     delete: (id: string) => Promise<void>
   }
 
-export async function createLocalFoldersStore(db: SqliteRemoteDatabase, migrationStateStore: Readable<MigrationState>): Promise<FoldersStoreV2> {
+export async function createLocalFoldersStore(db: SqliteRemoteDatabase, migrationStateStore: Readable<MigrationState>): Promise<LocalFoldersStore> {
   let displayFolders: DisplayFolder[] = []
   const {subscribe, set} = writable(displayFolders)
   migrationStateStore.subscribe(

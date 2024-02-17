@@ -8,7 +8,7 @@ import {
   migrateLocal
 } from '$lib/sqlite/wa-sqlite';
 import { createLocalFoldersStore } from '$lib/utitlities/persistence'
-import type { FoldersStoreV2 } from '$lib/utitlities/persistence'
+import type { LocalFoldersStore } from '$lib/utitlities/persistence'
 import { get, writable } from 'svelte/store'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { sql } from 'drizzle-orm'
@@ -24,9 +24,9 @@ describe('folders store', () => {
   ]
   const server = setupServer(...handlers)
   let localDb: SqliteRemoteDatabase
-  let localStore: FoldersStoreV2
+  let localStore: LocalFoldersStore
   let remoteDb: SqliteRemoteDatabase
-  let remoteStore: FoldersStoreV2
+  let remoteStore: LocalFoldersStore
   beforeAll(async () => {
     server.listen({ onUnhandledRequest: 'error' })
 
