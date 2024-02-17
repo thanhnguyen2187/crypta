@@ -120,3 +120,43 @@ export function createSnippetsDataManager(
     }
   }
 }
+
+export function createHigherSnippetsStore(
+  localStore: SnippetStore,
+  remoteStore: RemoteSnippetStore,
+): SnippetStore {
+  return {
+    subscribe: localStore.subscribe,
+    async move(movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string): Promise<void> {
+      await localStore.move(movingSnippet, sourceFolderId, destinationFolderId)
+      if (await remoteStore.isAvailable()) {
+        await remoteStore.move(movingSnippet, sourceFolderId, destinationFolderId)
+      }
+    },
+    async remove(id: string): Promise<void> {
+      await localStore.remove(id)
+      if (await remoteStore.isAvailable()) {
+        await remoteStore.remove(id)
+      }
+    },
+    async upsert(snippet: Snippet): Promise<void> {
+      await localStore.upsert(snippet)
+      if (await remoteStore.isAvailable()) {
+        await remoteStore.upsert(snippet)
+      }
+    },
+    async clone(snippet: Snippet): Promise<void> {
+      await localStore.clone(snippet)
+      if (await remoteStore.isAvailable()) {
+        await remoteStore.clone(snippet)
+      }
+    },
+    async clearAll(): Promise<void> {
+      await localStore.clearAll()
+      if (await remoteStore.isAvailable()) {
+        await remoteStore.clearAll()
+      }
+    },
+    migrationStateStore: localStore.migrationStateStore
+  }
+}

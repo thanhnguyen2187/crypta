@@ -11,7 +11,7 @@
   import { globalStateStore } from '$lib/utitlities/global'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
-  import { dataStateStore, localSnippetsStore } from '$lib/sqlite/global'
+  import { dataStateStore, higherSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
   let state: 'default' | 'locked' | 'unlocked' = 'default'
@@ -58,7 +58,7 @@
           encryptSnippet(snippet, password).then(
             lockedSnippet => {
               lockedSnippet.updatedAt = new Date().getTime()
-              localSnippetsStore.upsert(lockedSnippet)
+              higherSnippetsStore.upsert(lockedSnippet)
             }
           )
         },
@@ -114,7 +114,7 @@
             unlockedSnippet => {
               state = 'default'
               unlockedSnippet.updatedAt = new Date().getTime()
-              localSnippetsStore.upsert(unlockedSnippet)
+              higherSnippetsStore.upsert(unlockedSnippet)
             }
           ).catch(e => {
             console.error(e)
@@ -131,7 +131,7 @@
   const actionDuplicate: CardAction = {
     text: 'Duplicate',
     faIconClass: 'fa-clone',
-    callback: () => localSnippetsStore.clone(snippet),
+    callback: () => higherSnippetsStore.clone(snippet),
   }
   const actionEdit: CardAction = {
     text: 'Edit',
@@ -165,7 +165,7 @@
         body: 'The record would be deleted completely!',
         response: (r: boolean) => {
           if (r) {
-            localSnippetsStore.remove(snippet.id)
+            higherSnippetsStore.remove(snippet.id)
           }
         }
       })
@@ -204,7 +204,7 @@
     snippet.text = text
     // noinspection TypeScriptValidateTypes
     snippet.tags = Array.from($globalStateStore.tags)
-    await localSnippetsStore.upsert(snippet)
+    await higherSnippetsStore.upsert(snippet)
     modalSnippetStore.set(snippet)
     modalStore.trigger({
       type: 'component',

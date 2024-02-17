@@ -1,7 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { get, writable } from 'svelte/store'
-import { createSnippetsDataManager, createSnippetsDataStateStore } from './synchronization'
-import type { GlobalState, Snippet } from './persistence'
+import type { Writable } from 'svelte/store'
+import { createHigherSnippetsStore, createSnippetsDataManager, createSnippetsDataStateStore } from './synchronization'
+import type { GlobalState, Snippet, SnippetStore } from './persistence'
 import { createNewSnippet } from './persistence'
 import { createLocalSnippetsStore, createQueryExecutor, createSQLiteAPIV2 } from '$lib/sqlite/wa-sqlite'
 import { setupServer } from 'msw/node'
@@ -10,8 +11,8 @@ import {
   createRemoteServerURLHandler,
   createWASqliteMockWASMHandler
 } from '$lib/utitlities/testing'
-import { createAvailableExecutor } from '$lib/sqlite/sqliterg.test'
-import { createRemoteSnippetStore } from '$lib/sqlite/sqliterg'
+import { createAvailableExecutor, createEmptyExecutor, createUnreachableExecutor } from '$lib/sqlite/sqliterg.test'
+import { createRemoteSnippetStore, RemoteSnippetStore, SqlitergExecutor } from '$lib/sqlite/sqliterg'
 import { waitUntil } from '$lib/utitlities/wait-until'
 
 describe('snippets data state store', () => {
@@ -214,4 +215,69 @@ describe('data manager', () => {
       expect(localUpdatedAt).toEqual(remoteUpdatedAt)
     }
   }, 30_000)
+})
+
+describe('higher snippets store', () => {
+  const handlers = [
+    ...createWASqliteMockWASMHandler(),
+    ...createRemoteServerURLHandler(),
+  ]
+  const server = setupServer(...handlers)
+  let localStore: SnippetStore
+  let remoteStore: RemoteSnippetStore
+  let dummyExecutorStore: Writable<SqlitergExecutor>
+  let higherSnippetsStore: SnippetStore
+  beforeAll(async () => {
+    server.listen({ onUnhandledRequest: 'error' })
+
+    // local store initialization
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
+    const localExecutor = await createQueryExecutor(sqliteAPI, 'crypta', false)
+    localStore = await createLocalSnippetsStore(
+      localExecutor,
+      writable({folderId: 'default', searchInput: '', tags: []}),
+    )
+
+    // remote store initialization
+    const remoteExecutor = createAvailableExecutor()
+    dummyExecutorStore = writable(remoteExecutor)
+    const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
+    remoteStore = await createRemoteSnippetStore(dummyGlobalStateStore, dummyExecutorStore)
+    await waitUntil(remoteStore.isAvailable)
+
+    // higher store initialization
+    higherSnippetsStore = createHigherSnippetsStore(localStore, remoteStore)
+  })
+  beforeEach(async () => {
+    await remoteStore.clearAll()
+    await localStore.clearAll()
+  })
+  afterAll(() => {
+    server.close()
+  })
+
+  it('happy path store', async () => {
+    {
+      const result = get(higherSnippetsStore)
+      expect(result).toEqual([])
+    }
+    {
+      const snippet = createNewSnippet()
+      await higherSnippetsStore.upsert(snippet)
+      expect(get(higherSnippetsStore)).toEqual([snippet])
+      expect(get(localStore)).toEqual([snippet])
+      expect(get(remoteStore)).toEqual([snippet])
+    }
+  })
+
+  it('unavailable remote store', async () => {
+    dummyExecutorStore.set(createEmptyExecutor())
+    {
+      const snippet = createNewSnippet()
+      await higherSnippetsStore.upsert(snippet)
+      expect(get(higherSnippetsStore)).toEqual([snippet])
+      expect(get(localStore)).toEqual([snippet])
+      expect(get(remoteStore)).toEqual([])
+    }
+  })
 })

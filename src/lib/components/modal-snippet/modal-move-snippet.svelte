@@ -3,7 +3,7 @@
   import { globalStateStore } from '$lib/utitlities/global'
   import { modalDestinationFolderStore, modalSnippetStore } from './store'
   import { getModalStore } from '@skeletonlabs/skeleton'
-  import { localSnippetsStore } from '$lib/sqlite/global'
+  import { higherSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 
@@ -11,7 +11,7 @@
   $: shouldBeDisabled = $modalDestinationFolderStore === $globalStateStore.folderId
 
   async function move() {
-    await localSnippetsStore.move($modalSnippetStore, $globalStateStore.folderId, $modalDestinationFolderStore)
+    await higherSnippetsStore.move($modalSnippetStore, $globalStateStore.folderId, $modalDestinationFolderStore)
     modalStore.close()
   }
 </script>

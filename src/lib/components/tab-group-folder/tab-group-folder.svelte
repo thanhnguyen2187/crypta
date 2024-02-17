@@ -3,7 +3,7 @@
   import { globalStateStore } from '$lib/utitlities/global'
   import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
   import type { DisplayFolder } from '$lib/components/sidebar-folder/store'
-  import { localSnippetsStore } from '$lib/sqlite/global'
+  import { higherSnippetsStore } from '$lib/sqlite/global'
 
   let currentTab = $globalStateStore.folderId
 
@@ -52,7 +52,7 @@
         title: 'Are you sure about this action?',
         body:
           `The folder named "${folder.name}" with
-         ${$localSnippetsStore.length} record(s) would be deleted completely!`,
+         ${$higherSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
             foldersStoreV2.delete(folder.id)

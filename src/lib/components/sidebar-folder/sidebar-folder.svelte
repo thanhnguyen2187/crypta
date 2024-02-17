@@ -3,7 +3,7 @@
   import { foldersStoreV2 } from './store'
   import type { DisplayFolder } from './store'
   import { globalStateStore } from '$lib/utitlities/global'
-  import { localSnippetsStore } from '$lib/sqlite/global'
+  import { higherSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 
@@ -51,7 +51,7 @@
         title: 'Are you sure about this action?',
         body:
          `The folder named "${folder.name}" with
-         ${$localSnippetsStore.length} record(s) would be deleted completely!`,
+         ${$higherSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
             foldersStoreV2.delete(folder.id)

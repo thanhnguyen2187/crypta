@@ -29,7 +29,15 @@ enum Constants {
   PasswordWrong = 'wrong'
 }
 
-function createUnreachableExecutor(): SqlitergExecutor {
+export function createEmptyExecutor(): SqlitergExecutor {
+  return createSqlitergExecutor(
+    Constants.Blank,
+    Constants.Blank,
+    Constants.Blank,
+  )
+}
+
+export function createUnreachableExecutor(): SqlitergExecutor {
   return createSqlitergExecutor(
     Constants.ServerURLWrong,
     Constants.Blank,

@@ -120,6 +120,7 @@ export type SnippetStore =
     upsert(snippet: Snippet): Promise<void>
     remove(id: string): Promise<void>
     move(movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string): Promise<void>
+    clearAll(): Promise<void>
     migrationStateStore: Readable<MigrationState>
   }
 

@@ -5,7 +5,7 @@
   import type { Snippet } from '$lib/utitlities/persistence'
   import { createNewSnippet } from '$lib/utitlities/persistence'
   import { getModalStore, InputChip } from '@skeletonlabs/skeleton'
-  import { localSnippetsStore } from '$lib/sqlite/global';
+  import { higherSnippetsStore } from '$lib/sqlite/global';
 
   const modalStore = getModalStore()
   let snippet: Snippet = createNewSnippet()
@@ -21,12 +21,12 @@
   function upsertWithTags() {
     snippet.updatedAt = new Date().getTime()
     snippet.tags = snippet.tags
-    localSnippetsStore.upsert(snippet)
+    higherSnippetsStore.upsert(snippet)
   }
 
   function upsert() {
     snippet.updatedAt = new Date().getTime()
-    localSnippetsStore.upsert(snippet)
+    higherSnippetsStore.upsert(snippet)
   }
 
   function download() {

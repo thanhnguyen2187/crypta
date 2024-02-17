@@ -2,7 +2,7 @@ import { writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { deleteFolder, queryFolders, upsertFolder } from '$lib/sqlite/queries'
-import { localDb, localSnippetsStore } from '$lib/sqlite/global'
+import { localDb, higherSnippetsStore } from '$lib/sqlite/global'
 import type { MigrationState } from '$lib/sqlite/migration'
 import { migrationStateStore } from '$lib/sqlite/migration'
 
@@ -59,4 +59,4 @@ export async function createFoldersStoreV2(db: SqliteRemoteDatabase, migrationSt
   }
 }
 
-export const foldersStoreV2 = await createFoldersStoreV2(localDb, localSnippetsStore.migrationStateStore)
+export const foldersStoreV2 = await createFoldersStoreV2(localDb, higherSnippetsStore.migrationStateStore)

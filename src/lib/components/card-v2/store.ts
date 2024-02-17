@@ -1,9 +1,9 @@
 import { derived } from 'svelte/store'
 import { globalStateStore } from '$lib/utitlities/global'
-import { localSnippetsStore } from '$lib/sqlite/global'
+import { higherSnippetsStore } from '$lib/sqlite/global'
 
 export const displaySnippetsStore = derived(
-  [localSnippetsStore, globalStateStore],
+  [higherSnippetsStore, globalStateStore],
   ([localSnippets, globalState]) => {
     const filteredSnippets = localSnippets.filter(
       snippet => {

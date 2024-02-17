@@ -14,7 +14,7 @@ import { derived, writable } from 'svelte/store'
 import type { Invalidator, Subscriber, Unsubscriber, Writable } from 'svelte/store'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import {
-  clearTags,
+  clearTags, deleteAllSnippets,
   deleteSnippet as deleteSnippet_,
   querySnippetsByFolderId,
   queryTagsBySnippetIds,
@@ -259,6 +259,9 @@ export async function createLocalSnippetsStore(
       snippets.splice(index, 1)
 
       store.set(snippets)
+    },
+    async clearAll(): Promise<void> {
+      await deleteAllSnippets(db)
     },
     migrationStateStore,
   }
