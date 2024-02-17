@@ -1,19 +1,24 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { setupServer } from 'msw/node'
 import {
-  createLocalDb,
+  createLocalDb, createLocalFoldersStore,
   createLocalSnippetsStore,
   createQueryExecutor,
   createSQLiteAPIV2,
   migrateLocal
 } from './wa-sqlite'
-import { createWASqliteMockWASMHandler } from '$lib/utitlities/testing'
-import { defaultMigrationQueryMap, defaultQueriesStringMap, } from './migration'
+import { createRemoteServerURLHandler, createWASqliteMockWASMHandler } from '$lib/utitlities/testing'
+import { defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
+import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
 import { get, writable } from 'svelte/store'
 import type { GlobalState } from '$lib/utitlities/persistence'
 import { createNewSnippet } from '$lib/utitlities/persistence'
+import type { LocalFoldersStore } from '$lib/utitlities/persistence'
 import { waitUntil } from '$lib/utitlities/wait-until'
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import { createRemoteDb, migrateRemote } from './sqliterg'
+import { createAvailableExecutor } from './sqliterg.test'
 
 const handlers = createWASqliteMockWASMHandler()
 const server = setupServer(...handlers)
@@ -192,6 +197,56 @@ describe('local snippets store', async () => {
       const result = await localDb.all(sql`SELECT tag_text FROM snippet_tags WHERE snippet_id = ${newSnippet.id}`) as [[string]]
       const tag_texts = result.map((row) => row[0])
       expect(tag_texts).toEqual(['one'])
+    }
+  })
+})
+
+describe('folders store', () => {
+  let localDb: SqliteRemoteDatabase
+  let localStore: LocalFoldersStore
+  beforeAll(async () => {
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
+    const localExecutor = await createQueryExecutor(sqliteAPI, 'crypta', false)
+    localDb = createLocalDb(localExecutor)
+    await migrateLocal(
+      localExecutor,
+      async () => {},
+      defaultMigrationQueryMap,
+      defaultQueriesStringMap,
+    )
+    localStore = await createLocalFoldersStore(localDb, writable<MigrationState>('done'))
+  })
+  afterAll(() => {})
+
+  it('local', () => {
+    expect(localStore).toBeDefined()
+    {
+      const folders = get(localStore)
+      expect(folders).toEqual([{
+        id: 'default',
+        name: 'Default',
+        position: 0,
+      }])
+    }
+  })
+
+  it('local crud', async () => {
+    const newFolder = {
+      id: 'new',
+      name: 'New',
+      position: 1,
+    }
+    {
+      await localStore.upsert(newFolder)
+      expect(get(localStore)).toContain(newFolder)
+    }
+    {
+      const result = await localDb.get(sql`SELECT id, name, position FROM folders WHERE id = ${newFolder.id}`)
+      expect(result).toEqual(['new', 'New', 1])
+    }
+    {
+      await localStore.delete(newFolder.id)
+      expect(get(localStore)).not.toContain(newFolder)
     }
   })
 })

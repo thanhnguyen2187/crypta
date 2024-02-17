@@ -8,15 +8,21 @@ import { MemoryVFS } from 'wa-sqlite/src/examples/MemoryVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
-import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration'
-import type { MigrationState } from '$lib/sqlite/migration'
-import { writable } from 'svelte/store'
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import type { MigrationQueryMap, MigrationState, QueriesStringMap } from '$lib/sqlite/migration'
+import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
 import type { Invalidator, Subscriber, Unsubscriber, Writable } from 'svelte/store'
+import { writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import {
-  clearTags, deleteAllSnippets,
+  clearTags,
+  deleteAllSnippets,
+  deleteFolder,
   deleteSnippet as deleteSnippet_,
+  queryFolders,
   querySnippetsByFolderId,
   queryTagsBySnippetIds,
+  upsertFolder,
   upsertSnippet,
   upsertTags
 } from '$lib/sqlite/queries';
@@ -25,8 +31,7 @@ import {
   dbSnippetToDisplaySnippet,
   displaySnippetToDbSnippet
 } from '$lib/utitlities/data-transformation';
-import type { GlobalState, Snippet, SnippetStore } from '$lib/utitlities/persistence';
-import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
+import type { DisplayFolder, GlobalState, LocalFoldersStore, Snippet, SnippetStore } from '$lib/utitlities/persistence';
 
 export type WASqliteExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -263,5 +268,47 @@ export async function createLocalSnippetsStore(
       await deleteAllSnippets(db)
     },
     migrationStateStore,
+  }
+}
+
+export async function createLocalFoldersStore(db: SqliteRemoteDatabase, migrationStateStore: Readable<MigrationState>): Promise<LocalFoldersStore> {
+  let displayFolders: DisplayFolder[] = []
+  const {subscribe, set} = writable(displayFolders)
+  migrationStateStore.subscribe(
+    async (migrationState) => {
+      if (migrationState === 'done') {
+        const folders = await queryFolders(db)
+        displayFolders = folders.map(
+          dbFolder => ({
+            id: dbFolder.id,
+            name: dbFolder.name,
+            position: dbFolder.position,
+          })
+        )
+        set(displayFolders)
+      }
+    }
+  )
+
+  return {
+    subscribe,
+    async upsert(folder: DisplayFolder) {
+      await upsertFolder(db, folder)
+      const index = displayFolders.findIndex(folder_ => folder_.id === folder.id)
+      if (index === -1) {
+        displayFolders.push(folder)
+        set(displayFolders)
+      }
+
+      displayFolders[index] = folder
+      set(displayFolders)
+    },
+    async delete(id: string) {
+      await deleteFolder(db, id)
+      const index = displayFolders.findIndex(folder => folder.id === id)
+      displayFolders.splice(index, 1)
+
+      set(displayFolders)
+    }
   }
 }

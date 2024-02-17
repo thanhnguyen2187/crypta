@@ -1,11 +1,9 @@
 import type { Readable } from 'svelte/store'
-import { writable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { folders, snippet_tags, snippets } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
 import type { MigrationState } from '$lib/sqlite/migration'
-import { deleteFolder, queryFolders, upsertFolder } from '$lib/sqlite/queries'
 
 export type Snippet = {
   id: string
@@ -226,44 +224,10 @@ export type LocalFoldersStore = Readable<DisplayFolder[]> &
     delete: (id: string) => Promise<void>
   }
 
-export async function createLocalFoldersStore(db: SqliteRemoteDatabase, migrationStateStore: Readable<MigrationState>): Promise<LocalFoldersStore> {
-  let displayFolders: DisplayFolder[] = []
-  const {subscribe, set} = writable(displayFolders)
-  migrationStateStore.subscribe(
-    async (migrationState) => {
-      if (migrationState === 'done') {
-        const folders = await queryFolders(db)
-        displayFolders = folders.map(
-          dbFolder => ({
-            id: dbFolder.id,
-            name: dbFolder.name,
-            position: dbFolder.position,
-          })
-        )
-        set(displayFolders)
-      }
-    }
-  )
-
-  return {
-    subscribe,
-    async upsert(folder: DisplayFolder) {
-      await upsertFolder(db, folder)
-      const index = displayFolders.findIndex(folder_ => folder_.id === folder.id)
-      if (index === -1) {
-        displayFolders.push(folder)
-        set(displayFolders)
-      }
-
-      displayFolders[index] = folder
-      set(displayFolders)
-    },
-    async delete(id: string) {
-      await deleteFolder(db, id)
-      const index = displayFolders.findIndex(folder => folder.id === id)
-      displayFolders.splice(index, 1)
-
-      set(displayFolders)
-    }
+export type RemoteFoldersStore =
+  LocalFoldersStore &
+  {
+    isAvailable(): Promise<void>
+    refresh(): Promise<void>
   }
-}
+
