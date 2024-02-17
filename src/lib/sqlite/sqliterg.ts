@@ -4,7 +4,7 @@ import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from '
 import { get, writable } from 'svelte/store'
 import type { MigrationState, MigrationQueryMap, QueriesStringMap } from './migration'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from './migration'
-import type { DisplayFolder, GlobalState, RemoteFoldersStore, Snippet, SnippetStore } from '$lib/utitlities/persistence'
+import type { GlobalState, RemoteFoldersStore, Snippet, SnippetStore } from '$lib/utitlities/persistence'
 import {
   clearTags,
   clearAllTags as clearAllTags_,
@@ -15,7 +15,12 @@ import {
   upsertSnippet,
   upsertTags, queryTagsBySnippetIds, queryFolders, upsertFolder, deleteFolder,
 } from './queries'
-import { buildTagsMap, dbSnippetToDisplaySnippet, displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
+import {
+  buildTagsMap, dbFolderToDisplayFolder,
+  dbSnippetToDisplaySnippet, displayFolderToDbFolder,
+  displaySnippetToDbSnippet
+} from '$lib/utitlities/data-transformation'
+import type { DisplayFolder } from '$lib/utitlities/data-transformation'
 
 export type Params = {[key: string]: any}
 
@@ -450,12 +455,21 @@ export async function createRemoteSnippetStore(
 }
 
 export function createRemoteFoldersStore(
-  executor: SqlitergExecutor,
+  executorStore: Readable<SqlitergExecutor>,
   migrationStateStore: Readable<MigrationState>,
 ): RemoteFoldersStore {
   let folders: DisplayFolder[] = []
-  const db = createRemoteDb(executor)
+  let executor: SqlitergExecutor
+  let db: SqliteRemoteDatabase
   const store = writable(folders)
+
+  executorStore.subscribe(
+    async (executor_) => {
+      executor = executor_
+      db = createRemoteDb(executor)
+      await refresh()
+    }
+  )
 
   async function refresh() {
     if (!await isAvailable()) {
@@ -463,13 +477,7 @@ export function createRemoteFoldersStore(
     }
 
     const dbFolders = await queryFolders(db)
-    folders = dbFolders.map(
-      dbFolder => ({
-        id: dbFolder.id,
-        name: dbFolder.name,
-        position: dbFolder.position,
-      })
-    )
+    folders = dbFolders.map(dbFolderToDisplayFolder)
     store.set(folders)
   }
 
@@ -493,7 +501,11 @@ export function createRemoteFoldersStore(
   return {
     subscribe: store.subscribe,
     async upsert(folder: DisplayFolder): Promise<void> {
-      await upsertFolder(db, folder)
+      if (!await isAvailable()) {
+        return
+      }
+
+      await upsertFolder(db, displayFolderToDbFolder(folder))
       const index = folders.findIndex(folder_ => folder_.id === folder.id)
       if (index === -1) {
         folders.push(folder)
@@ -504,6 +516,10 @@ export function createRemoteFoldersStore(
       store.set(folders)
     },
     async delete(id: string): Promise<void> {
+      if (!await isAvailable()) {
+        return
+      }
+
       await deleteFolder(db, id)
       const index = folders.findIndex(folder => folder.id === id)
       folders.splice(index, 1)

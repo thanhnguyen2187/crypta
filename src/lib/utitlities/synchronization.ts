@@ -1,7 +1,13 @@
 import type { Invalidator, Readable, Subscriber, Unsubscriber, Writable } from 'svelte/store'
-import type { Snippet, SnippetStore } from '$lib/utitlities/persistence';
-import type { RemoteSnippetStore } from '$lib/sqlite/sqliterg';
-import { derived, get, writable } from 'svelte/store';
+import type {
+  LocalFoldersStore,
+  RemoteFoldersStore,
+  Snippet,
+  SnippetStore
+} from '$lib/utitlities/persistence'
+import type { RemoteSnippetStore } from '$lib/sqlite/sqliterg'
+import { derived, get, writable } from 'svelte/store'
+import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
 /**
  * Represents data state of an in-memory record:
@@ -158,5 +164,67 @@ export function createHigherSnippetsStore(
       }
     },
     migrationStateStore: localStore.migrationStateStore
+  }
+}
+
+/**
+ * Create one store that combine the data of local and remote folders. It also
+ * "auto merge" the data following "last write wins" rule.
+ *
+ * In more details:
+ *
+ * - If one folder exists within the local store but not within the remote
+ *   store, then the folder would be created within the remote store, and vice
+ *   versa.
+ * - If the folder within both stores, then the "newer" folder (one that has
+ *   greater `updatedAt` value) would be used and be written to both stores.
+ *
+ * This strategy is much simpler than `createHigherSnippetsStore`'s strategy
+ * basing on an assumption: the snippets' data is important and conflicts should
+ * be resolved instead of letting data be overwritten.
+ * */
+export function createHigherFoldersStore(
+  localStore: LocalFoldersStore,
+  remoteStore: RemoteFoldersStore,
+): LocalFoldersStore {
+  const store = derived(
+    [localStore, remoteStore],
+    ([localFolders, remoteFolders]) => {
+      const allFolders: {[key: string]: DisplayFolder} = {}
+      for (const localFolder of localFolders) {
+        allFolders[localFolder.id] = localFolder
+      }
+      for (const remoteFolder of remoteFolders) {
+        if (remoteFolder.id in allFolders) {
+          const localFolder = allFolders[remoteFolder.id]
+          if (remoteFolder.updatedAt > localFolder.updatedAt) {
+            allFolders[remoteFolder.id] = remoteFolder
+            localStore.upsert(remoteFolder).then()
+          } else {
+            remoteStore.upsert(localFolder).then()
+          }
+        } else {
+          allFolders[remoteFolder.id] = remoteFolder
+          localStore.upsert(remoteFolder).then()
+        }
+      }
+      return Object.values(allFolders)
+    }
+  )
+
+  return {
+    subscribe: store.subscribe,
+    async upsert(folder: DisplayFolder): Promise<void> {
+      await localStore.upsert(folder)
+      if (await remoteStore.isAvailable()) {
+        await remoteStore.upsert(folder)
+      }
+    },
+    async delete(id: string): Promise<void> {
+      await localStore.delete(id)
+      if (await remoteStore.isAvailable()) {
+        await remoteStore.delete(id)
+      }
+    },
   }
 }

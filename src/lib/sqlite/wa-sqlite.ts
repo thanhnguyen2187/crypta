@@ -25,13 +25,16 @@ import {
   upsertFolder,
   upsertSnippet,
   upsertTags
-} from '$lib/sqlite/queries';
+} from '$lib/sqlite/queries'
 import {
   buildTagsMap,
+  dbFolderToDisplayFolder,
   dbSnippetToDisplaySnippet,
+  displayFolderToDbFolder,
   displaySnippetToDbSnippet
-} from '$lib/utitlities/data-transformation';
-import type { DisplayFolder, GlobalState, LocalFoldersStore, Snippet, SnippetStore } from '$lib/utitlities/persistence';
+} from '$lib/utitlities/data-transformation'
+import type { DisplayFolder} from '$lib/utitlities/data-transformation'
+import type { GlobalState, LocalFoldersStore, Snippet, SnippetStore } from '$lib/utitlities/persistence';
 
 export type WASqliteExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -271,20 +274,17 @@ export async function createLocalSnippetsStore(
   }
 }
 
-export async function createLocalFoldersStore(db: SqliteRemoteDatabase, migrationStateStore: Readable<MigrationState>): Promise<LocalFoldersStore> {
+export async function createLocalFoldersStore(
+  db: SqliteRemoteDatabase,
+  migrationStateStore: Readable<MigrationState>,
+): Promise<LocalFoldersStore> {
   let displayFolders: DisplayFolder[] = []
   const {subscribe, set} = writable(displayFolders)
   migrationStateStore.subscribe(
     async (migrationState) => {
       if (migrationState === 'done') {
         const folders = await queryFolders(db)
-        displayFolders = folders.map(
-          dbFolder => ({
-            id: dbFolder.id,
-            name: dbFolder.name,
-            position: dbFolder.position,
-          })
-        )
+        displayFolders = folders.map(dbFolderToDisplayFolder)
         set(displayFolders)
       }
     }
@@ -293,7 +293,7 @@ export async function createLocalFoldersStore(db: SqliteRemoteDatabase, migratio
   return {
     subscribe,
     async upsert(folder: DisplayFolder) {
-      await upsertFolder(db, folder)
+      await upsertFolder(db, displayFolderToDbFolder(folder))
       const index = displayFolders.findIndex(folder_ => folder_.id === folder.id)
       if (index === -1) {
         displayFolders.push(folder)

@@ -4,6 +4,7 @@ import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import { folders, snippet_tags, snippets } from '$lib/sqlite/schema'
 import { sql } from 'drizzle-orm'
 import type { MigrationState } from '$lib/sqlite/migration'
+import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
 export type Snippet = {
   id: string
@@ -210,12 +211,6 @@ export async function v0DataImport(db: SqliteRemoteDatabase) {
       }
     }
   }
-}
-
-export type DisplayFolder = {
-  id: string
-  name: string
-  position: number
 }
 
 export type LocalFoldersStore = Readable<DisplayFolder[]> &

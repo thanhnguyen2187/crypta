@@ -103,7 +103,8 @@ export async function upsertFolder(db: SqliteRemoteDatabase, dbFolder: typeof fo
       set: {
         name: sql`excluded.name`,
         position: sql`excluded.position`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`excluded.updated_at`,
+        createdAt: sql`excluded.created_at`,
       }
     })
 }

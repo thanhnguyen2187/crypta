@@ -3,7 +3,8 @@
   import { localFoldersStore } from './store'
   import { globalStateStore } from '$lib/utitlities/global'
   import { higherSnippetsStore } from '$lib/sqlite/global'
-  import type { DisplayFolder } from '$lib/utitlities/persistence';
+
+  import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
   const modalStore = getModalStore()
 

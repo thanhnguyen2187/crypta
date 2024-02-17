@@ -235,6 +235,8 @@ describe('folders store', () => {
       id: 'new',
       name: 'New',
       position: 1,
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
     }
     {
       await localStore.upsert(newFolder)

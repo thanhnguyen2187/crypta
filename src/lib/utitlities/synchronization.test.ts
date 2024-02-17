@@ -1,10 +1,21 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { get, writable } from 'svelte/store'
 import type { Writable } from 'svelte/store'
-import { createHigherSnippetsStore, createSnippetsDataManager, createSnippetsDataStateStore } from './synchronization'
-import type { GlobalState, Snippet, SnippetStore } from './persistence'
+import {
+  createHigherFoldersStore,
+  createHigherSnippetsStore,
+  createSnippetsDataManager,
+  createSnippetsDataStateStore
+} from './synchronization'
+import type { GlobalState, LocalFoldersStore, RemoteFoldersStore, Snippet, SnippetStore } from './persistence'
 import { createNewSnippet } from './persistence'
-import { createLocalSnippetsStore, createQueryExecutor, createSQLiteAPIV2 } from '$lib/sqlite/wa-sqlite'
+import {
+  createLocalDb,
+  createLocalFoldersStore,
+  createLocalSnippetsStore,
+  createQueryExecutor,
+  createSQLiteAPIV2, migrateLocal
+} from '$lib/sqlite/wa-sqlite'
 import { setupServer } from 'msw/node'
 import {
   createDummySnippet,
@@ -12,9 +23,16 @@ import {
   createWASqliteMockWASMHandler
 } from '$lib/utitlities/testing'
 import { createAvailableExecutor, createEmptyExecutor } from '$lib/sqlite/sqliterg.test'
-import { createRemoteSnippetStore, } from '$lib/sqlite/sqliterg'
+import {
+  createRemoteDb,
+  createRemoteFoldersStore,
+  createRemoteSnippetStore,
+  migrateRemote,
+} from '$lib/sqlite/sqliterg'
 import type { RemoteSnippetStore, SqlitergExecutor } from '$lib/sqlite/sqliterg'
 import { waitUntil } from '$lib/utitlities/wait-until'
+import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
+import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
 describe('snippets data state store', () => {
   it('empty store', () => {
@@ -279,6 +297,130 @@ describe('higher snippets store', () => {
       expect(get(higherSnippetsStore)).toEqual([snippet])
       expect(get(localStore)).toEqual([snippet])
       expect(get(remoteStore)).toEqual([])
+    }
+  })
+})
+
+describe('higher folders store', () => {
+  const handlers = [
+    ...createWASqliteMockWASMHandler(),
+    ...createRemoteServerURLHandler(),
+  ]
+  const server = setupServer(...handlers)
+  let localStore: LocalFoldersStore
+  let remoteStore: RemoteFoldersStore
+  let dummyExecutorStore: Writable<SqlitergExecutor>
+  let higherFoldersStore: LocalFoldersStore
+
+  beforeAll(async () => {
+    server.listen({ onUnhandledRequest: 'error' })
+
+    // local store initialization
+    const sqliteAPI = await createSQLiteAPIV2('http://mock.local', 'MemoryVFS')
+    const localExecutor = await createQueryExecutor(sqliteAPI, 'crypta', false)
+    const localDb = createLocalDb(localExecutor)
+    await migrateLocal(
+      localExecutor,
+      async () => {},
+      defaultMigrationQueryMap,
+      defaultQueriesStringMap,
+    )
+    localStore = await createLocalFoldersStore(
+      localDb,
+      writable('done'),
+    )
+
+    // remote store initialization
+    const remoteExecutor = createAvailableExecutor()
+    dummyExecutorStore = writable(remoteExecutor)
+    const remoteDb = createRemoteDb(remoteExecutor)
+    await migrateRemote(
+      remoteExecutor,
+      defaultMigrationQueryMap,
+      defaultQueriesStringMap,
+    )
+    remoteStore = createRemoteFoldersStore(
+      dummyExecutorStore,
+      writable('done'),
+    )
+    await waitUntil(remoteStore.isAvailable)
+    
+    // higher folder store initialization
+    higherFoldersStore = createHigherFoldersStore(localStore, remoteStore)
+  })
+
+  it('same folders', async () => {
+    const localFolders = get(localStore)
+    const remoteFolders = get(remoteStore)
+    // trigger data merging
+    get(higherFoldersStore)
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    expect(localFolders).toEqual(remoteFolders)
+  });
+
+  it('crud', async () => {
+    const newFolder: DisplayFolder = {
+      id: 'new-folder',
+      name: 'New Folder',
+      position: 2,
+      updatedAt: new Date().getTime(),
+      createdAt: new Date().getTime(),
+    }
+    await higherFoldersStore.upsert(newFolder)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    {
+      const higherFolders = get(higherFoldersStore)
+      expect(higherFolders).toContain(newFolder)
+    }
+    {
+      const localFolders = get(localStore)
+      expect(localFolders).toContain(newFolder)
+    }
+    {
+      const remoteFolders = get(remoteStore)
+      expect(remoteFolders).toContain(newFolder)
+    }
+
+    await higherFoldersStore.delete(newFolder.id)
+    {
+      const localFolders = get(localStore)
+      expect(localFolders).not.toContain(newFolder)
+    }
+    {
+      const remoteFolders = get(remoteStore)
+      expect(remoteFolders).not.toContain(newFolder)
+    }
+  })
+
+  it('unavailable remote store', async () => {
+    dummyExecutorStore.set(createEmptyExecutor())
+    const newFolder: DisplayFolder = {
+      id: 'new-folder',
+      name: 'New Folder',
+      position: 2,
+      updatedAt: new Date().getTime(),
+      createdAt: new Date().getTime(),
+    }
+    await higherFoldersStore.upsert(newFolder)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    {
+      const higherFolders = get(higherFoldersStore)
+      expect(higherFolders).toContain(newFolder)
+    }
+    {
+      const localFolders = get(localStore)
+      expect(localFolders).toContain(newFolder)
+    }
+    {
+      const remoteFolders = get(remoteStore)
+      expect(remoteFolders).not.toContain(newFolder)
+    }
+
+    await higherFoldersStore.delete(newFolder.id)
+    {
+      const localFolders = get(localStore)
+      expect(localFolders).not.toContain(newFolder)
     }
   })
 })

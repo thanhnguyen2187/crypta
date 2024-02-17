@@ -3,7 +3,8 @@
   import { globalStateStore } from '$lib/utitlities/global'
   import { localFoldersStore } from '$lib/components/sidebar-folder/store'
   import { higherSnippetsStore } from '$lib/sqlite/global'
-  import type { DisplayFolder } from '$lib/utitlities/persistence';
+
+  import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
   let currentTab = $globalStateStore.folderId
 

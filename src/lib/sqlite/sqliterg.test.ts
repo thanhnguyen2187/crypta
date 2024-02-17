@@ -12,7 +12,7 @@ import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
 import { get, writable } from 'svelte/store'
 import { snippets as snippets_, folders } from '$lib/sqlite/schema'
-import type { DisplayFolder, Folder, GlobalState, RemoteFoldersStore } from '$lib/utitlities/persistence';
+import type { Folder, GlobalState, RemoteFoldersStore } from '$lib/utitlities/persistence';
 import { createNewSnippet } from '$lib/utitlities/persistence'
 import { waitUntil } from '$lib/utitlities/wait-until';
 import {
@@ -23,8 +23,8 @@ import {
   upsertSnippet
 } from '$lib/sqlite/queries';
 import { createDummySnippet } from '$lib/utitlities/testing'
-import { displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
+import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
 enum Constants {
   ServerURL = 'http://127.0.0.1:12321/crypta',
@@ -409,6 +409,7 @@ describe('remote folders store', async () => {
 
   beforeAll(async () => {
     const executor = createAvailableExecutor()
+    const dummyExecutorStore = writable<SqlitergExecutor>(executor)
     remoteDb = createRemoteDb(createAvailableExecutor())
 
     await migrateRemote(
@@ -416,9 +417,8 @@ describe('remote folders store', async () => {
       defaultMigrationQueryMap,
       defaultQueriesStringMap,
     )
-    remoteStore = createRemoteFoldersStore(executor, writable('done'))
+    remoteStore = createRemoteFoldersStore(dummyExecutorStore, writable('done'))
     await waitUntil(remoteStore.isAvailable)
-    await remoteStore.refresh()
   })
 
   it('remote', async () => {
@@ -430,15 +430,19 @@ describe('remote folders store', async () => {
         id: 'default',
         name: 'Default',
         position: 0,
+        createdAt: expect.anything(),
+        updatedAt: expect.anything(),
       }])
     }
   })
 
   it('remote crud', async () => {
-    const newFolder = {
+    const newFolder: DisplayFolder = {
       id: 'new',
       name: 'New',
       position: 1,
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
     }
     {
       await remoteStore.upsert(newFolder)
