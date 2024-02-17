@@ -1,9 +1,9 @@
 <script lang="ts">
   import { getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
   import { globalStateStore } from '$lib/utitlities/global'
-  import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
-  import type { DisplayFolder } from '$lib/components/sidebar-folder/store'
+  import { localFoldersStore } from '$lib/components/sidebar-folder/store'
   import { higherSnippetsStore } from '$lib/sqlite/global'
+  import type { DisplayFolder } from '$lib/utitlities/persistence';
 
   let currentTab = $globalStateStore.folderId
 
@@ -27,7 +27,7 @@
             return
           }
           folder.name = name
-          await foldersStoreV2.upsert(folder)
+          await localFoldersStore.upsert(folder)
         },
       })
     },
@@ -55,7 +55,7 @@
          ${$higherSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
-            foldersStoreV2.delete(folder.id)
+            localFoldersStore.delete(folder.id)
             $globalStateStore.folderId = 'default'
             currentTab = 'default'
           }
@@ -75,10 +75,10 @@
     const folder: DisplayFolder = {
       id: crypto.randomUUID(),
       name: 'Untitled',
-      position: $foldersStoreV2.length + 1,
+      position: $localFoldersStore.length + 1,
     }
-    folder.position = $foldersStoreV2.length + 1
-    foldersStoreV2.upsert(folder)
+    folder.position = $localFoldersStore.length + 1
+    localFoldersStore.upsert(folder)
     $globalStateStore.folderId = folder.id
     currentTab = folder.id
 
@@ -87,7 +87,7 @@
 </script>
 
 <TabGroup class="block md:hidden">
-  {#each $foldersStoreV2 as folder}
+  {#each $localFoldersStore as folder}
     <div
       data-popup="tab-actions-{folder.id}"
       class="z-10"

@@ -6,10 +6,9 @@ import type { MigrationState } from './migration'
 import { sql } from 'drizzle-orm'
 import { get, writable } from 'svelte/store'
 import { snippets as snippets_, folders } from '$lib/sqlite/schema'
-import type { Folder, GlobalState } from '$lib/utitlities/persistence';
+import type { DisplayFolder, Folder, GlobalState } from '$lib/utitlities/persistence';
 import { createNewSnippet } from '$lib/utitlities/persistence'
 import { waitUntil } from '$lib/utitlities/wait-until';
-import type { DisplayFolder } from '$lib/components/sidebar-folder/store';
 import {
   deleteAllSnippets,
   deleteFolder,

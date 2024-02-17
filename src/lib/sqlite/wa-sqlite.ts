@@ -10,9 +10,8 @@ import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivate
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration'
 import type { MigrationState } from '$lib/sqlite/migration'
-import { derived, writable } from 'svelte/store'
+import { writable } from 'svelte/store'
 import type { Invalidator, Subscriber, Unsubscriber, Writable } from 'svelte/store'
-import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
 import {
   clearTags, deleteAllSnippets,
   deleteSnippet as deleteSnippet_,
