@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { localFoldersStore } from '$lib/components/sidebar-folder/store'
   import { globalStateStore } from '$lib/utitlities/global'
   import { modalDestinationFolderStore, modalSnippetStore } from './store'
   import { getModalStore } from '@skeletonlabs/skeleton'
-  import { higherSnippetsStore } from '$lib/sqlite/global'
+  import { higherSnippetsStore, higherFoldersStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 
@@ -27,7 +26,7 @@
       value={$globalStateStore.folderId}
       disabled
     >
-      {#each $localFoldersStore as folder}
+      {#each $higherFoldersStore as folder}
         <option value={folder.id}>
           {folder.name}
         </option>
@@ -40,7 +39,7 @@
       class="select"
       bind:value={$modalDestinationFolderStore}
     >
-      {#each $localFoldersStore as folder}
+      {#each $higherFoldersStore as folder}
         <option value={folder.id}>
           {folder.name}
         </option>

@@ -26,6 +26,8 @@ type DataState =
 
 type DataStateMap = {[id: string]: DataState}
 export type SnippetMap = {[id: string]: Snippet}
+export type FolderStateMap = {[id: string]: DataState}
+export type FolderMap = {[id: string]: DisplayFolder}
 
 type SnippetsDataStateStore =
   Readable<DataStateMap> &
@@ -37,6 +39,12 @@ type SnippetsDataManager = {
   start(): void
   merge(snippet: Snippet): Promise<void>
 }
+export type FoldersDataStateStore =
+  Readable<FolderStateMap> &
+  {
+    localMap: Readable<FolderMap>
+    remoteMap: Readable<FolderMap>
+  }
 
 export function createSnippetsDataStateStore(
   localStore: Readable<Snippet[]>,
@@ -167,6 +175,64 @@ export function createHigherSnippetsStore(
   }
 }
 
+export function createFolderStateMap(
+  localStore: LocalFoldersStore,
+  remoteStore: RemoteFoldersStore,
+): FoldersDataStateStore {
+  const store = derived(
+    [localStore, remoteStore],
+    ([localFolders, remoteFolders]) => {
+      const map: FolderStateMap = {}
+      const localMap: FolderMap = {}
+      for (const localFolder of localFolders) {
+        map[localFolder.id] = 'local-only'
+        localMap[localFolder.id] = localFolder
+      }
+      for (const remoteFolder of remoteFolders) {
+        if (remoteFolder.id in map) {
+          const localFolder = localMap[remoteFolder.id]
+          if (remoteFolder.updatedAt === localFolder.updatedAt) {
+            map[remoteFolder.id] = 'synchronized'
+          } else {
+            map[remoteFolder.id] = 'conflicted'
+          }
+        } else {
+          map[remoteFolder.id] = 'remote-only'
+        }
+      }
+      return map
+    }
+  )
+
+  const localMap = derived(
+    localStore,
+    (localFolders) => {
+      const map: FolderMap = {}
+      for (const localFolder of localFolders) {
+        map[localFolder.id] = localFolder
+      }
+      return map
+    }
+  )
+
+  const remoteMap = derived(
+    remoteStore,
+    (remoteFolders) => {
+      const map: FolderMap = {}
+      for (const remoteFolder of remoteFolders) {
+        map[remoteFolder.id] = remoteFolder
+      }
+      return map
+    }
+  )
+
+  return {
+    subscribe: store.subscribe,
+    localMap,
+    remoteMap,
+  }
+}
+
 /**
  * Create one store that combine the data of local and remote folders. It also
  * "auto merge" the data following "last write wins" rule.
@@ -187,33 +253,8 @@ export function createHigherFoldersStore(
   localStore: LocalFoldersStore,
   remoteStore: RemoteFoldersStore,
 ): LocalFoldersStore {
-  const store = derived(
-    [localStore, remoteStore],
-    ([localFolders, remoteFolders]) => {
-      const allFolders: {[key: string]: DisplayFolder} = {}
-      for (const localFolder of localFolders) {
-        allFolders[localFolder.id] = localFolder
-      }
-      for (const remoteFolder of remoteFolders) {
-        if (remoteFolder.id in allFolders) {
-          const localFolder = allFolders[remoteFolder.id]
-          if (remoteFolder.updatedAt > localFolder.updatedAt) {
-            allFolders[remoteFolder.id] = remoteFolder
-            localStore.upsert(remoteFolder).then()
-          } else {
-            remoteStore.upsert(localFolder).then()
-          }
-        } else {
-          allFolders[remoteFolder.id] = remoteFolder
-          localStore.upsert(remoteFolder).then()
-        }
-      }
-      return Object.values(allFolders)
-    }
-  )
-
   return {
-    subscribe: store.subscribe,
+    subscribe: localStore.subscribe,
     async upsert(folder: DisplayFolder): Promise<void> {
       await localStore.upsert(folder)
       if (await remoteStore.isAvailable()) {
@@ -227,4 +268,39 @@ export function createHigherFoldersStore(
       }
     },
   }
+}
+
+export function reloadRemoteFoldersStore(
+  localStore: LocalFoldersStore,
+  remoteStore: RemoteFoldersStore,
+  intervalMs: number,
+) {
+  const stateStore = createFolderStateMap(localStore, remoteStore)
+  setInterval(
+    async () => {
+      await remoteStore.refresh()
+      for (const [id, state] of Object.entries(get(stateStore))) {
+        if (state === 'remote-only') {
+          const remoteFolder = get(stateStore.remoteMap)[id]
+          await localStore.upsert(remoteFolder)
+        }
+        else if (state === 'local-only') {
+          const localFolder = get(stateStore.localMap)[id]
+          await remoteStore.upsert(localFolder)
+        }
+        else if (state === 'conflicted') {
+          const localFolder = get(stateStore.localMap)[id]
+          const remoteFolder = get(stateStore.remoteMap)[id]
+          const latestFolder =
+            localFolder.updatedAt > remoteFolder.updatedAt
+            ? localFolder
+            : remoteFolder
+
+          await localStore.upsert(latestFolder)
+          await remoteStore.upsert(latestFolder)
+        }
+      }
+    },
+    intervalMs,
+  )
 }

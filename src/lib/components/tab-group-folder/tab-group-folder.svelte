@@ -1,8 +1,7 @@
 <script lang="ts">
   import { getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
   import { globalStateStore } from '$lib/utitlities/global'
-  import { localFoldersStore } from '$lib/components/sidebar-folder/store'
-  import { higherSnippetsStore } from '$lib/sqlite/global'
+  import { higherSnippetsStore, higherFoldersStore } from '$lib/sqlite/global'
 
   import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
@@ -28,7 +27,7 @@
             return
           }
           folder.name = name
-          await localFoldersStore.upsert(folder)
+          await higherFoldersStore.upsert(folder)
         },
       })
     },
@@ -56,7 +55,7 @@
          ${$higherSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
-            localFoldersStore.delete(folder.id)
+            higherFoldersStore.delete(folder.id)
             $globalStateStore.folderId = 'default'
             currentTab = 'default'
           }
@@ -76,10 +75,10 @@
     const folder: DisplayFolder = {
       id: crypto.randomUUID(),
       name: 'Untitled',
-      position: $localFoldersStore.length + 1,
+      position: $higherFoldersStore.length + 1,
     }
-    folder.position = $localFoldersStore.length + 1
-    localFoldersStore.upsert(folder)
+    folder.position = $higherFoldersStore.length + 1
+    higherFoldersStore.upsert(folder)
     $globalStateStore.folderId = folder.id
     currentTab = folder.id
 
@@ -88,7 +87,7 @@
 </script>
 
 <TabGroup class="block md:hidden">
-  {#each $localFoldersStore as folder}
+  {#each $higherFoldersStore as folder}
     <div
       data-popup="tab-actions-{folder.id}"
       class="z-10"

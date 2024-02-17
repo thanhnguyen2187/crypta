@@ -1,8 +1,7 @@
 <script lang="ts">
   import { AppRail, AppRailAnchor, AppRailTile, getModalStore, popup } from '@skeletonlabs/skeleton'
-  import { localFoldersStore } from './store'
   import { globalStateStore } from '$lib/utitlities/global'
-  import { higherSnippetsStore } from '$lib/sqlite/global'
+  import { higherSnippetsStore, higherFoldersStore } from '$lib/sqlite/global'
 
   import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
@@ -28,7 +27,7 @@
             return
           }
           folder.name = name
-          await localFoldersStore.upsert(folder)
+          await higherFoldersStore.upsert(folder)
         },
       })
     },
@@ -55,7 +54,7 @@
          ${$higherSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
-            localFoldersStore.delete(folder.id)
+            higherFoldersStore.delete(folder.id)
             $globalStateStore.folderId = 'default'
             currentTile = 'default'
           }
@@ -75,19 +74,21 @@
     const folder: DisplayFolder = {
       id: crypto.randomUUID(),
       name: 'Untitled',
-      position: $localFoldersStore.length + 1,
+      position: $higherFoldersStore.length + 1,
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
     }
     $globalStateStore.folderId = folder.id
     currentTile = folder.id
 
-    await localFoldersStore.upsert(folder)
+    await higherFoldersStore.upsert(folder)
     actionRename.callback(folder)
   }
 
 </script>
 
 <AppRail class="hidden md:block">
-  {#each $localFoldersStore as folder}
+  {#each $higherFoldersStore as folder}
     <div
       data-popup="rail-tile-actions-{folder.id}"
       class="z-10"
