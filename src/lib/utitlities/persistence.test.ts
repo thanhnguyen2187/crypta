@@ -7,7 +7,7 @@ import {
   createSQLiteAPIV2,
   migrateLocal
 } from '$lib/sqlite/wa-sqlite';
-import { createFoldersStoreV2 } from '$lib/utitlities/persistence'
+import { createLocalFoldersStore } from '$lib/utitlities/persistence'
 import type { FoldersStoreV2 } from '$lib/utitlities/persistence'
 import { get, writable } from 'svelte/store'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
@@ -40,7 +40,7 @@ describe('folders store', () => {
       defaultMigrationQueryMap,
       defaultQueriesStringMap,
     )
-    localStore = await createFoldersStoreV2(localDb, writable<MigrationState>('done'))
+    localStore = await createLocalFoldersStore(localDb, writable<MigrationState>('done'))
 
     // remote database initialization
     const remoteExecutor = createAvailableExecutor()
@@ -50,7 +50,7 @@ describe('folders store', () => {
       defaultQueriesStringMap,
     )
     remoteDb = createRemoteDb(remoteExecutor)
-    remoteStore = await createFoldersStoreV2(remoteDb, writable<MigrationState>('done'))
+    remoteStore = await createLocalFoldersStore(remoteDb, writable<MigrationState>('done'))
   })
   afterAll(() => {
     server.close()
