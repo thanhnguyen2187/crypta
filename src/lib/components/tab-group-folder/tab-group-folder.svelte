@@ -1,9 +1,10 @@
 <script lang="ts">
   import { getModalStore, Tab, TabAnchor, TabGroup, popup } from '@skeletonlabs/skeleton'
-  import { globalStateStore } from '$lib/utitlities/ephemera'
-  import { foldersStoreV2 } from '$lib/components/sidebar-folder/store'
-  import type { DisplayFolder } from '$lib/components/sidebar-folder/store'
-  import { localSnippetsStore } from '$lib/components/card-v2/store'
+  import { globalStateStore } from '$lib/utitlities/global'
+  import { higherSnippetsStore, higherFoldersStore } from '$lib/sqlite/global'
+
+  import type { DisplayFolder } from '$lib/utitlities/data-transformation';
+
   let currentTab = $globalStateStore.folderId
 
   const modalStore = getModalStore()
@@ -26,7 +27,7 @@
             return
           }
           folder.name = name
-          await foldersStoreV2.upsert(folder)
+          await higherFoldersStore.upsert(folder)
         },
       })
     },
@@ -51,10 +52,10 @@
         title: 'Are you sure about this action?',
         body:
           `The folder named "${folder.name}" with
-         ${$localSnippetsStore.length} record(s) would be deleted completely!`,
+         ${$higherSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
-            foldersStoreV2.delete(folder.id)
+            higherFoldersStore.delete(folder.id)
             $globalStateStore.folderId = 'default'
             currentTab = 'default'
           }
@@ -74,10 +75,10 @@
     const folder: DisplayFolder = {
       id: crypto.randomUUID(),
       name: 'Untitled',
-      position: $foldersStoreV2.length + 1,
+      position: $higherFoldersStore.length + 1,
     }
-    folder.position = $foldersStoreV2.length + 1
-    foldersStoreV2.upsert(folder)
+    folder.position = $higherFoldersStore.length + 1
+    higherFoldersStore.upsert(folder)
     $globalStateStore.folderId = folder.id
     currentTab = folder.id
 
@@ -86,7 +87,7 @@
 </script>
 
 <TabGroup class="block md:hidden">
-  {#each $foldersStoreV2 as folder}
+  {#each $higherFoldersStore as folder}
     <div
       data-popup="tab-actions-{folder.id}"
       class="z-10"
@@ -109,18 +110,19 @@
       bind:group={currentTab}
       name={folder.id}
       value={folder.id}
-      on:click={() => $globalStateStore.folderId = folder.id}>
-        <span>{folder.name}</span>
-        {#if folder.id === $globalStateStore.folderId}
-          <button
-            class="ml-2 fa-solid fa-ellipsis-h z-10"
-            on:click|stopPropagation={() => {}}
-            use:popup={{
-              event: 'click',
-              target: 'tab-actions-'+ folder.id,
-              placement: 'bottom',
-            }}
-          ></button>
+      on:click={() => $globalStateStore.folderId = folder.id}
+    >
+      <span>{folder.name}</span>
+      {#if folder.id === $globalStateStore.folderId}
+        <button
+          class="ml-2 fa-solid fa-ellipsis-h z-10"
+          on:click|stopPropagation={() => {}}
+          use:popup={{
+            event: 'click',
+            target: 'tab-actions-'+ folder.id,
+            placement: 'bottom',
+          }}
+        ></button>
       {/if}
     </Tab>
   {/each}

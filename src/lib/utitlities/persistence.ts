@@ -1,22 +1,10 @@
-import { derived, writable } from 'svelte/store'
-import type { Writable, Readable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
-import { globalStateStore } from '$lib/utitlities/ephemera'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import { folders, snippet_tags, snippets } from '$lib/sqlite/schema'
+import { sql } from 'drizzle-orm'
 import type { MigrationState } from '$lib/sqlite/migration'
-import {
-  querySnippetsByFolderId,
-  queryTagsBySnippetIds,
-  upsertSnippet,
-  deleteSnippet as deleteSnippet_,
-  upsertTags,
-  clearTags,
-} from '$lib/sqlite/queries';
-import {
-  buildTagsMap,
-  dbSnippetToDisplaySnippet,
-  displaySnippetToDbSnippet
-} from '$lib/utitlities/data-transformation';
+import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
 export type Snippet = {
   id: string
@@ -126,112 +114,29 @@ export async function decryptSnippet(oldSnippet: Snippet, password: string): Pro
   }
 }
 
-export type SnippetStore = Readable<Snippet[]> &
+export type SnippetStore =
+  Readable<Snippet[]> &
   {
-    clone: (snippet: Snippet) => Promise<void>
-    upsert: (snippet: Snippet) => Promise<void>
-    remove: (id: string) => Promise<void>
-    move: (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => Promise<void>
+    clone(snippet: Snippet): Promise<void>
+    upsert(snippet: Snippet): Promise<void>
+    remove(id: string): Promise<void>
+    move(movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string): Promise<void>
+    clearAll(): Promise<void>
+    migrationStateStore: Readable<MigrationState>
   }
-
-export async function createLocalSnippetStoreV2(migrationStateStore: Writable<MigrationState>, db: SqliteRemoteDatabase): Promise<SnippetStore> {
-  let snippets: Snippet[] = []
-  let folderId = 'default'
-  const store = writable(snippets)
-  const {subscribe, set, update} = store
-  const stores = derived(
-    [globalStateStore, migrationStateStore],
-    ([globalState, migrationState]: [GlobalState, MigrationState]) => {
-      folderId = globalState.folderId
-      return [globalState, migrationState]
-    }
-  )
-  stores.subscribe(
-    // TODO: fix the typing of `globalState` and `migrationState`, which both
-    //       have the type `GlobalState | MigrationState`
-    async ([globalState, migrationState]) => {
-      if (migrationState === 'done') {
-        const dbSnippets = await querySnippetsByFolderId(db, folderId)
-        const snippetIds = dbSnippets.map(snippet => snippet.id)
-        const tags = await queryTagsBySnippetIds(db, snippetIds)
-        const tagsMap = buildTagsMap(tags)
-        snippets = dbSnippets.map(
-          (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, tagsMap)
-        )
-        store.set(snippets)
-      }
-    }
-  )
-
-  return {
-    subscribe,
-    clone: async (snippet: Snippet) => {
-      const clonedSnippet: Snippet = {
-        ...snippet,
-        id: crypto.randomUUID(),
-        position: snippets.length + 1,
-        tags: snippet.tags.slice(),
-        createdAt: new Date().getTime(),
-        updatedAt: new Date().getTime(),
-      }
-      const dbSnippet = displaySnippetToDbSnippet(folderId, clonedSnippet)
-      await upsertSnippet(db, dbSnippet)
-      if (snippet.tags.length > 0) {
-        await upsertTags(db, clonedSnippet.id, snippet.tags)
-      }
-      snippets.push(clonedSnippet)
-
-      set(snippets)
-    },
-    upsert: async (snippet: Snippet) => {
-      const dbSnippet = displaySnippetToDbSnippet(folderId, snippet)
-      await upsertSnippet(db, dbSnippet)
-      if (snippet.tags && snippet.tags.length > 0) {
-        await clearTags(db, snippet.id)
-        await upsertTags(db, snippet.id, snippet.tags)
-      }
-      const index = snippets.findIndex(snippet_ => snippet_.id === snippet.id)
-      if (index === -1) {
-        snippets.push(snippet)
-        set(snippets)
-        return
-      }
-
-      snippets[index] = snippet
-      set(snippets)
-    },
-    remove: async (id: string) => {
-      await deleteSnippet_(db, id)
-      const index = snippets.findIndex(snippet => snippet.id === id)
-      snippets.splice(index, 1)
-
-      set(snippets)
-    },
-    move: async (movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string) => {
-      const dbSnippet = displaySnippetToDbSnippet(sourceFolderId, movingSnippet)
-      dbSnippet.folderId = destinationFolderId
-      await upsertSnippet(db, dbSnippet)
-
-      const index = snippets.findIndex(snippet => snippet.id === movingSnippet.id)
-      snippets.splice(index, 1)
-
-      set(snippets)
-    },
-  }
-}
 
 export async function readCatalog(): Promise<Catalog> {
   const opfsRoot = await navigator.storage.getDirectory()
   const fileHandle = await opfsRoot.getFileHandle('catalog.json', {create: true})
   const file = await fileHandle.getFile()
   const text = await file.text()
-  const savedSettings = text ? JSON.parse(text) : {}
+  const savedCatalog = text ? JSON.parse(text) : {}
 
   // use default catalog if the file is not found
   return Object.assign(
     {},
     defaultCatalog,
-    savedSettings,
+    savedCatalog,
   )
 }
 
@@ -261,3 +166,63 @@ export async function writeGlobalState(state: GlobalState) {
   await writeable.write(JSON.stringify(state))
   await writeable.close()
 }
+
+export async function v0DataImport(db: SqliteRemoteDatabase) {
+  const catalog = await readCatalog()
+  const folderRecords = Object.entries(catalog).map(
+    ([folderId, folder], index) => {
+      return {
+        id: folderId,
+        name: folder.displayName,
+        position: index,
+      }
+    }
+  )
+  for (const record of folderRecords) {
+    await db
+    .insert(folders)
+    .values(record)
+    .onConflictDoNothing()
+  }
+
+  for (const folderRecord of folderRecords) {
+    const snippetRecords = await readSnippets(folderRecord.id)
+    for (const snippetRecord of snippetRecords) {
+      await db
+      .insert(snippets)
+      .values({
+        ...snippetRecord,
+        folderId: folderRecord.id,
+        // We need to divide by 1000 since JavaScript's timestamp is in
+        // nanosecond instead of millisecond.
+        createdAt: sql`DATETIME(${(snippetRecord.createdAt / 1000).toFixed()}, 'unixepoch')`,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .onConflictDoNothing()
+
+      for (const tag of snippetRecord.tags) {
+        await db
+        .insert(snippet_tags)
+        .values({
+          snippetId: snippetRecord.id,
+          tagText: tag,
+        })
+        .onConflictDoNothing()
+      }
+    }
+  }
+}
+
+export type LocalFoldersStore = Readable<DisplayFolder[]> &
+  {
+    upsert: (folder: DisplayFolder) => Promise<void>
+    delete: (id: string) => Promise<void>
+  }
+
+export type RemoteFoldersStore =
+  LocalFoldersStore &
+  {
+    isAvailable(): Promise<boolean>
+    refresh(): Promise<void>
+  }
+

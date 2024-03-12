@@ -1,11 +1,11 @@
 <script lang="ts">
   import { modalSnippetStore } from '$lib/components/modal-snippet/store'
-  import { localSnippetsStore } from '$lib/components/card-v2/store'
   import { format } from '$lib/utitlities/date'
   import { onMount } from 'svelte'
   import type { Snippet } from '$lib/utitlities/persistence'
   import { createNewSnippet } from '$lib/utitlities/persistence'
   import { getModalStore, InputChip } from '@skeletonlabs/skeleton'
+  import { higherSnippetsStore } from '$lib/sqlite/global';
 
   const modalStore = getModalStore()
   let snippet: Snippet = createNewSnippet()
@@ -19,8 +19,14 @@
   }
 
   function upsertWithTags() {
+    snippet.updatedAt = new Date().getTime()
     snippet.tags = snippet.tags
-    localSnippetsStore.upsert(snippet)
+    higherSnippetsStore.upsert(snippet)
+  }
+
+  function upsert() {
+    snippet.updatedAt = new Date().getTime()
+    higherSnippetsStore.upsert(snippet)
   }
 
   function download() {
@@ -80,7 +86,7 @@
       <input
         class="input"
         bind:value={snippet.name}
-        on:change={() => localSnippetsStore.upsert(snippet)}
+        on:change={upsert}
         spellcheck="false"
       />
     </label>
@@ -89,7 +95,7 @@
       <input
         class="input"
         bind:value={snippet.language}
-        on:change={() => localSnippetsStore.upsert(snippet)}
+        on:change={upsert}
         spellcheck="false"
       />
     </label>
@@ -102,7 +108,7 @@
         spellcheck="false"
         disabled={snippet.encrypted}
         bind:value={snippet.text}
-        on:change={() => localSnippetsStore.upsert(snippet)}
+        on:change={upsert}
       ></textarea>
     </label>
     <label>

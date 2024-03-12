@@ -8,9 +8,11 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test": "vitest"
+    "test": "vitest",
+    "dev-db": "sqliterg --serve-dir db/sqliterg-static --db /tmp/crypta.db::db/sqliterg.conf.yml"
   },
   "devDependencies": {
+    "@peculiar/webcrypto": "^1.4.5",
     "@skeletonlabs/skeleton": "^2.5.1",
     "@skeletonlabs/tw-plugin": "^0.2.4",
     "@sveltejs/adapter-auto": "^2.0.0",
@@ -19,6 +21,8 @@
     "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.14",
     "drizzle-kit": "^0.20.7",
+    "jsdom": "^24.0.0",
+    "msw": "^2.1.7",
     "postcss": "^8.4.24",
     "postcss-load-config": "^4.0.1",
     "svelte": "^4.0.5",
@@ -37,6 +41,7 @@
     "@formkit/auto-animate": "^0.8.0",
     "@fortawesome/fontawesome-free": "^6.5.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@libsql/client": "^0.5.5",
     "@shopify/draggable": "^1.1.1",
     "@types/wicg-file-system-access": "^2023.10.1",
     "drizzle-orm": "^0.29.1",

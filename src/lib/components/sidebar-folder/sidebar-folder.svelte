@@ -1,9 +1,9 @@
 <script lang="ts">
   import { AppRail, AppRailAnchor, AppRailTile, getModalStore, popup } from '@skeletonlabs/skeleton'
-  import { foldersStoreV2 } from './store'
-  import type { DisplayFolder } from './store'
-  import { globalStateStore } from '$lib/utitlities/ephemera'
-  import { localSnippetsStore } from '$lib/components/card-v2/store'
+  import { globalStateStore } from '$lib/utitlities/global'
+  import { higherSnippetsStore, higherFoldersStore } from '$lib/sqlite/global'
+
+  import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 
   const modalStore = getModalStore()
 
@@ -27,7 +27,7 @@
             return
           }
           folder.name = name
-          await foldersStoreV2.upsert(folder)
+          await higherFoldersStore.upsert(folder)
         },
       })
     },
@@ -51,10 +51,10 @@
         title: 'Are you sure about this action?',
         body:
          `The folder named "${folder.name}" with
-         ${$localSnippetsStore.length} record(s) would be deleted completely!`,
+         ${$higherSnippetsStore.length} record(s) would be deleted completely!`,
         response: (answer: boolean) => {
           if (answer) {
-            foldersStoreV2.delete(folder.id)
+            higherFoldersStore.delete(folder.id)
             $globalStateStore.folderId = 'default'
             currentTile = 'default'
           }
@@ -74,19 +74,21 @@
     const folder: DisplayFolder = {
       id: crypto.randomUUID(),
       name: 'Untitled',
-      position: $foldersStoreV2.length + 1,
+      position: $higherFoldersStore.length + 1,
+      createdAt: new Date().getTime(),
+      updatedAt: new Date().getTime(),
     }
     $globalStateStore.folderId = folder.id
     currentTile = folder.id
 
-    await foldersStoreV2.upsert(folder)
+    await higherFoldersStore.upsert(folder)
     actionRename.callback(folder)
   }
 
 </script>
 
 <AppRail class="hidden md:block">
-  {#each $foldersStoreV2 as folder}
+  {#each $higherFoldersStore as folder}
     <div
       data-popup="rail-tile-actions-{folder.id}"
       class="z-10"

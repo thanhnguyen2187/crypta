@@ -12,6 +12,59 @@ export type GlobalStateStore =
     setFolderId: (folderId: string) => void
   }
 
+export type Settings = {
+  serverURL: string
+  username: string
+  password: string
+}
+
+export type SettingsStore = Writable<Settings>
+
+export async function readSettings(): Promise<Settings> {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('settings.json', {create: true})
+  const file = await fileHandle.getFile()
+  const text = await file.text()
+  const savedSettings = text ? JSON.parse(text) : {}
+
+  return Object.assign(
+    {},
+    {
+      serverURL: '',
+      username: '',
+      password: '',
+    },
+    savedSettings,
+  )
+}
+
+export async function writeSettings(settings: Settings) {
+  const opfsRoot = await navigator.storage.getDirectory()
+  const fileHandle = await opfsRoot.getFileHandle('settings.json', {create: true})
+  const writable = await fileHandle.createWritable()
+  await writable.write(JSON.stringify(settings))
+  await writable.close()
+}
+
+export async function createSettingsStore(): Promise<SettingsStore> {
+  let settings = await readSettings()
+  const store = writable(settings)
+
+  return {
+    subscribe: store.subscribe,
+    set(value: Settings) {
+      settings = value
+      writeSettings(settings).then()
+      store.set(value)
+    },
+    update(updater: Updater<Settings>) {
+      settings = updater(settings)
+      writeSettings(settings).then()
+      store.set(settings)
+    },
+  }
+}
+
 export async function createGlobalStateStore(): Promise<GlobalStateStore> {
   const state = await readGlobalState()
   const tags: Set<string> = new Set(state.tags)
@@ -52,6 +105,3 @@ export async function createGlobalStateStore(): Promise<GlobalStateStore> {
     },
   }
 }
-
-export const globalFolderIdStore = writable<string>('default')
-export const globalStateStore = await createGlobalStateStore()

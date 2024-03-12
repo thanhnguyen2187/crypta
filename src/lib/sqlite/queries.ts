@@ -8,7 +8,17 @@ import { sql } from 'drizzle-orm'
 
 export async function querySnippetsByFolderId(db: SqliteRemoteDatabase, folderId: string) {
   return db
-    .select()
+    .select({
+      createdAt: snippets.createdAt,
+      encrypted: snippets.encrypted,
+      folderId: snippets.folderId,
+      id: snippets.id,
+      language: snippets.language,
+      name: snippets.name,
+      position: snippets.position,
+      text: snippets.text,
+      updatedAt: snippets.updatedAt,
+    })
     .from(snippets)
     .where(sql`folder_id = ${folderId}`)
 }
@@ -33,7 +43,7 @@ export async function upsertSnippet(db: SqliteRemoteDatabase, dbSnippet: typeof 
         text: sql`excluded.text`,
         name: sql`excluded.name`,
         language: sql`excluded.language`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`excluded.updated_at`,
       },
     })
 }
@@ -57,10 +67,26 @@ export async function clearTags(db: SqliteRemoteDatabase, snippetId: string) {
     .where(sql`snippet_id = ${snippetId}`)
 }
 
+export async function clearAllTags(db: SqliteRemoteDatabase) {
+  return db
+    .delete(snippet_tags)
+}
+
 export async function deleteSnippet(db: SqliteRemoteDatabase, id: string) {
   return db
     .delete(snippets)
     .where(sql`id = ${id}`)
+}
+
+export async function deleteSnippetsByFolder(db: SqliteRemoteDatabase, folderId: string) {
+  return db
+    .delete(snippets)
+    .where(sql`folder_id = ${folderId}`)
+}
+
+export async function deleteAllSnippets(db: SqliteRemoteDatabase) {
+  return db
+    .delete(snippets)
 }
 
 export async function queryFolders(db: SqliteRemoteDatabase) {
@@ -77,7 +103,8 @@ export async function upsertFolder(db: SqliteRemoteDatabase, dbFolder: typeof fo
       set: {
         name: sql`excluded.name`,
         position: sql`excluded.position`,
-        updatedAt: sql`CURRENT_TIMESTAMP`,
+        updatedAt: sql`excluded.updated_at`,
+        createdAt: sql`excluded.created_at`,
       }
     })
 }

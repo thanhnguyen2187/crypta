@@ -3,16 +3,26 @@
   import type { Snippet } from '$lib/utitlities/persistence'
   import LockIcon from './lock-icon.svelte'
   import { createNewSnippet, encryptSnippet, decryptSnippet } from '$lib/utitlities/persistence'
-  import { modalSnippetStore } from '$lib/components/modal-snippet/store'
-  import { localSnippetsStore } from './store'
-  import { globalStateStore } from '$lib/utitlities/ephemera'
+  import {
+    mergeLocalSnippetStore,
+    mergeRemoteSnippetStore,
+    modalSnippetStore
+  } from '$lib/components/modal-snippet/store'
+  import { globalStateStore } from '$lib/utitlities/global'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
+  import { dataStateStore, higherSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
   let state: 'default' | 'locked' | 'unlocked' = 'default'
   let unlockedVisibility: 'hidden' | 'visible' = 'hidden'
   let hiddenCopyClass = 'fa-copy'
+  let synchronizationState = 'synchronized'
+  $: {
+    synchronizationState = $dataStateStore[snippet.id]
+  }
+  const localMap = dataStateStore.localMap
+  const remoteMap = dataStateStore.remoteMap
 
   export let snippet: Snippet = {
     id: '',
@@ -46,7 +56,10 @@
           const {password} = data
 
           encryptSnippet(snippet, password).then(
-            lockedSnippet => localSnippetsStore.upsert(lockedSnippet)
+            lockedSnippet => {
+              lockedSnippet.updatedAt = new Date().getTime()
+              higherSnippetsStore.upsert(lockedSnippet)
+            }
           )
         },
       })
@@ -100,7 +113,8 @@
           decryptSnippet(snippet, password).then(
             unlockedSnippet => {
               state = 'default'
-              localSnippetsStore.upsert(unlockedSnippet)
+              unlockedSnippet.updatedAt = new Date().getTime()
+              higherSnippetsStore.upsert(unlockedSnippet)
             }
           ).catch(e => {
             console.error(e)
@@ -117,7 +131,7 @@
   const actionDuplicate: CardAction = {
     text: 'Duplicate',
     faIconClass: 'fa-clone',
-    callback: () => localSnippetsStore.clone(snippet),
+    callback: () => higherSnippetsStore.clone(snippet),
   }
   const actionEdit: CardAction = {
     text: 'Edit',
@@ -151,7 +165,7 @@
         body: 'The record would be deleted completely!',
         response: (r: boolean) => {
           if (r) {
-            localSnippetsStore.remove(snippet.id)
+            higherSnippetsStore.remove(snippet.id)
           }
         }
       })
@@ -190,11 +204,23 @@
     snippet.text = text
     // noinspection TypeScriptValidateTypes
     snippet.tags = Array.from($globalStateStore.tags)
-    await localSnippetsStore.upsert(snippet)
+    await higherSnippetsStore.upsert(snippet)
     modalSnippetStore.set(snippet)
     modalStore.trigger({
       type: 'component',
       component: 'snippet',
+    })
+  }
+
+  function toggleMergeModal() {
+    const localSnippet = $localMap[snippet.id]
+    const remoteSnippet = $remoteMap[snippet.id]
+
+    mergeLocalSnippetStore.set(localSnippet)
+    mergeRemoteSnippetStore.set(remoteSnippet)
+    modalStore.trigger({
+      type: 'component',
+      component: 'merge',
     })
   }
 </script>
@@ -219,6 +245,14 @@
 </div>
 
 <div
+  data-popup="card-synchronization-{snippet.id}"
+  class="z-10 card w-80 p-4 variant-filled-warning"
+>
+  Local data and remote data conflicted.
+  Please click to compare and resolve!
+</div>
+
+<div
   class="card p-4"
 >
   {#if snippet.id !== 'new-card'}
@@ -234,7 +268,7 @@
       <div class="flex gap-1">
         {#if state === 'unlocked' && unlockedVisibility === 'hidden'}
           <button
-            class="btn btn-sm variant-filled"
+            class="btn btn-icon variant-filled"
             use:clipboard={snippet.text}
             on:click={() => {
               hiddenCopyClass = 'fa-check'
@@ -244,14 +278,14 @@
             <i class="fa-solid {hiddenCopyClass}"></i>
           </button>
           <button
-            class="btn btn-sm variant-filled"
+            class="btn btn-icon variant-filled"
             on:click={() => unlockedVisibility = 'visible'}
           >
             <i class="fa-solid fa-eye"></i>
           </button>
         {:else if state === 'unlocked' && unlockedVisibility === 'visible'}
           <button
-            class="btn btn-sm variant-filled"
+            class="btn btn-icon variant-filled"
             on:click={() => unlockedVisibility = 'hidden'}
           >
             <i class="fa-solid fa-eye-slash"></i>
@@ -263,7 +297,7 @@
             target: 'card-actions-' + snippet.id,
             placement: 'right',
           }}
-          class="btn btn-sm variant-filled"
+          class="btn btn-icon variant-filled"
         >
           <i class="fa-xl fa-solid fa-ellipsis-v"></i>
         </button>
@@ -286,19 +320,32 @@
         />
       {/if}
     </section>
-    <footer class="card-footer flex gap-1">
-      {#each snippet.tags as tag}
-        <button
-          class="chip variant-filled"
-          on:click={() => globalStateStore.addTag(tag)}
-        >
-          {tag}
-        </button>
-      {/each}
+    <footer class="card-footer flex justify-between">
+      <div class="flex gap-1">
+        {#each snippet.tags as tag}
+          <button
+            class="chip variant-filled"
+            on:click={() => globalStateStore.addTag(tag)}
+          >
+            {tag}
+          </button>
+        {/each}
 
-      {#if snippet.tags.length === 0}
-        <span class="chip variant-ghost">no tag yet</span>
-      {/if}
+        {#if snippet.tags.length === 0}
+          <span class="chip variant-ghost">no tag yet</span>
+        {/if}
+      </div>
+      <button
+        class="btn btn-icon [&>*]:pointer-events-none variant-filled-warning {synchronizationState === 'conflicted' ? 'visible' : 'collapse'} "
+        use:popup={{
+          event: 'hover',
+          target: `card-synchronization-${snippet.id}`,
+          placement: 'top',
+        }}
+        on:click={toggleMergeModal}
+      >
+        <i class="fa-solid fa-code-compare"></i>
+      </button>
     </footer>
   {:else}
     <header
@@ -312,7 +359,7 @@
       </button>
     </section>
     <footer class="card-footer invisible">
-      <span class="chip variant-ghost">no tag yet</span>
+      <span class="chip variant-ghost"></span>
     </footer>
   {/if}
 </div>

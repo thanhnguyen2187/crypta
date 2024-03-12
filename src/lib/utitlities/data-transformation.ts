@@ -1,5 +1,4 @@
-import type { snippet_tags } from '$lib/sqlite/schema'
-import type { snippets } from '$lib/sqlite/schema'
+import type { folders, snippet_tags, snippets } from '$lib/sqlite/schema'
 
 export type DisplaySnippet = {
   id: string
@@ -13,9 +12,18 @@ export type DisplaySnippet = {
   createdAt: number
 }
 
+export type DisplayFolder = {
+  id: string
+  name: string
+  position: number
+  createdAt: number
+  updatedAt: number
+}
+
 export type TagsMap = {[id: string]: string[]}
 export type Tags = (typeof snippet_tags.$inferSelect)[]
 export type DbSnippet = typeof snippets.$inferSelect
+export type DbFolder = typeof folders.$inferSelect
 
 export function buildTagsMap(tags: Tags): TagsMap {
   const tagsMap: TagsMap = {}
@@ -55,5 +63,25 @@ export function displaySnippetToDbSnippet(folderId: string, displaySnippet: Disp
     folderId: folderId,
     createdAt: new Date(displaySnippet.createdAt).toISOString(),
     updatedAt: new Date(displaySnippet.updatedAt).toISOString(),
+  }
+}
+
+export function dbFolderToDisplayFolder(dbFolder: DbFolder): DisplayFolder {
+  return {
+    id: dbFolder.id,
+    name: dbFolder.name,
+    position: dbFolder.position,
+    createdAt: Date.parse(dbFolder.createdAt),
+    updatedAt: Date.parse(dbFolder.updatedAt),
+  }
+}
+
+export function displayFolderToDbFolder(displayFolder: DisplayFolder): DbFolder {
+  return {
+    id: displayFolder.id,
+    name: displayFolder.name,
+    position: displayFolder.position,
+    createdAt: new Date(displayFolder.createdAt).toISOString(),
+    updatedAt: new Date(displayFolder.updatedAt).toISOString(),
   }
 }
