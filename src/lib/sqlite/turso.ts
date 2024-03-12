@@ -22,7 +22,15 @@ export async function migrateRemote(
     if (!migrationQueryString) {
       throw new Error(`migrate: could not find query string of ${migrationQueryPath}`)
     }
-    await db.run(sql.raw(migrationQueryString))
+    const statements =
+      migrationQueryString
+      .split(';')
+      .filter(
+        statement => statement.trim().length > 0
+      )
+    for (const statement of statements) {
+      await db.run(sql.raw(statement))
+    }
     if (currentUserVersion === 0) {
       const path = '/db/0000_seed_default_folder.sql'
       const seedFolderQuery = queriesStringMap[path]
