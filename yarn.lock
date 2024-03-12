@@ -749,9 +749,10 @@
   resolved "https://registry.yarnpkg.com/@skeletonlabs/tw-plugin/-/tw-plugin-0.2.4.tgz#6b8c926a272445237ee64d27d1017f66d24d8132"
   integrity sha512-DmOFMV6jhhvnub/TANB62nJJqxfMBby5Kxwe/Mn3DTxHuJLZj8B47Ta2K5sl/or2B8MaMfny8ocvPAzd6lrMtQ==
 
-"@square/svelte-store@square/svelte-store":
+"@square/svelte-store@^1.0.18":
   version "1.0.18"
-  resolved "https://codeload.github.com/square/svelte-store/tar.gz/ccb97fce941344c510f2e80eedb523a477df6213"
+  resolved "https://registry.yarnpkg.com/@square/svelte-store/-/svelte-store-1.0.18.tgz#42aacb3b0b9f47d904e7ec63d12a65748cea3f82"
+  integrity sha512-BCiUhDlF2XSY6P+MLvJTA7mh15yAXcuNDtf/GTG0XWSjatW0+4wQv++uijz14L0Bc+KKAGXz4T6/9N+JrTfAAA==
   dependencies:
     cookie-storage "^6.1.0"
 
