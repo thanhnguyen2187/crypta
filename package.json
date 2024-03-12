@@ -43,6 +43,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
     "@libsql/client": "^0.5.5",
     "@shopify/draggable": "^1.1.1",
+    "@square/svelte-store": "square/svelte-store",
     "@types/wicg-file-system-access": "^2023.10.1",
     "drizzle-orm": "^0.29.1",
     "wa-sqlite": "rhashimoto/wa-sqlite"
