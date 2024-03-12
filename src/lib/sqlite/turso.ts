@@ -54,6 +54,9 @@ export function createSnippetsStore(db: LibSQLDatabase, folderIdStore: Readable<
       )
       return snippets
     },
-    {reloadable: true}
+    {
+      reloadable: true,
+      initial: [],
+    }
   ) as Reloadable<Snippet[]>
 }
