@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { drizzle } from 'drizzle-orm/libsql'
 import { createClient } from '@libsql/client'
 import { sql } from 'drizzle-orm'
-import { migrateRemote } from './turso'
+import { createSnippetsStore, migrateRemote } from './turso'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
 import { createLocalFoldersStore } from '$lib/sqlite/wa-sqlite';
-import { writable } from 'svelte/store'
+import { get, writable } from 'svelte/store'
+import { deleteSnippet, upsertSnippet } from '$lib/sqlite/queries';
+import { createDummySnippet } from '$lib/utitlities/testing';
+import { displaySnippetToDbSnippet } from '$lib/utitlities/data-transformation';
 
 describe('in-memory client', () => {
   it('basic query', async () => {
@@ -36,12 +39,43 @@ describe('in-memory client', () => {
         position: 0,
       })
     }
+    {
+      const result = await db.all(sql`SELECT * FROM snippets`)
+      expect(result.length).toEqual(0)
+    }
   })
 
-  it('store', async () => {
+  it('store crud', async () => {
     const client = createClient({url: ':memory:'})
     const db = drizzle(client)
 
-    const store = await createLocalFoldersStore(db, writable('done'))
+    await migrateRemote(db, defaultMigrationQueryMap, defaultQueriesStringMap)
+    const store = createSnippetsStore(db, writable('default'))
+    await store.load()
+
+    {
+      const result = get(store)
+      expect(result.length).toEqual(0)
+    }
+    {
+      const newSnippet = createDummySnippet('dummy-id', 0, 0)
+      await upsertSnippet(db, displaySnippetToDbSnippet('default', newSnippet))
+      await store.reload()
+      const result = get(store)
+      expect(result.length).toEqual(1)
+      expect(result[0]).toContain({
+        id: 'dummy-id',
+        name: 'dummy name',
+        language: 'dummy language',
+        createdAt: 0,
+        updatedAt: 0,
+      })
+    }
+    {
+      await deleteSnippet(db, 'dummy-id')
+      await store.reload()
+      const result = get(store)
+      expect(result.length).toEqual(0)
+    }
   })
 });
