@@ -1,20 +1,12 @@
 <script lang="ts">
   import { settingsStore } from '$lib/utitlities/global'
-  import { logsStore, inputStateStore, logToLine } from './store'
-  import { onDestroy, onMount } from 'svelte'
+  import { inputStateStore } from './store'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
   import { sqlitergExecutorStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 
-  onMount(() => {
-    logsStore.addLog(`Read serverURL from OPFS ${$settingsStore.serverURL}`)
-  })
-
-  let logsContent = ''
-  $: logsContent = $logsStore.map(logToLine).join('\n')
-
-  let currentTab: 'connection' | 'logging' = 'connection'
+  let currentTab: 'connection' = 'connection'
   $: {
     (async () => {
       if ($settingsStore.serverURL === '') {
@@ -38,7 +30,6 @@
     })()
   }
 
-  onDestroy(() => {})
 </script>
 
 <div
@@ -57,13 +48,6 @@
       value="connection"
     >
       <span>Connection</span>
-    </Tab>
-    <Tab
-      bind:group={currentTab}
-      name="logging"
-      value="logging"
-    >
-      <span>Logging</span>
     </Tab>
   </TabGroup>
 
@@ -105,23 +89,8 @@
           {$inputStateStore.message}
         </div>
       </aside>
-    {:else if currentTab === 'logging'}
-      <textarea
-        readonly
-        class="textarea font-mono"
-        rows="7"
-      >{logsContent}</textarea>
     {/if}
   </section>
   <footer class="card-footer flex gap-2 justify-end">
-    {#if currentTab === 'logging'}
-      <button
-        class="btn variant-filled"
-        on:click={() => $logsStore.length = 0}
-      >
-        <i class="fa-solid fa-trash"></i>
-        <span>Clear Logs</span>
-      </button>
-    {/if}
   </footer>
 </div>
