@@ -4,6 +4,8 @@ import { createClient } from '@libsql/client'
 import { sql } from 'drizzle-orm'
 import { migrateRemote } from './turso'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
+import { createLocalFoldersStore } from '$lib/sqlite/wa-sqlite';
+import { writable } from 'svelte/store'
 
 describe('in-memory client', () => {
   it('basic query', async () => {
@@ -28,6 +30,18 @@ describe('in-memory client', () => {
     {
       const result = await db.all(sql`SELECT * FROM folders`)
       expect(result.length).toEqual(1)
+      expect(result[0]).toContain({
+        id: 'default',
+        name: 'Default',
+        position: 0,
+      })
     }
+  })
+
+  it('store', async () => {
+    const client = createClient({url: ':memory:'})
+    const db = drizzle(client)
+
+    const store = await createLocalFoldersStore(db, writable('done'))
   })
 });
