@@ -1,6 +1,13 @@
 import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration'
-import { sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm'
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
+import { asyncDerived, asyncWritable } from '@square/svelte-store'
+import type { WritableLoadable, Reloadable } from '@square/svelte-store'
+import type { Snippet } from '$lib/utitlities/persistence'
+import type { Readable } from 'svelte/store'
+import { snippets } from '$lib/sqlite/schema'
+import { querySnippetsByFolderId, queryTagsBySnippetIds } from '$lib/sqlite/queries'
+import { buildTagsMap, dbSnippetToDisplaySnippet } from '$lib/utitlities/data-transformation'
 
 export async function migrateRemote(
   db: LibSQLDatabase,
@@ -24,4 +31,21 @@ export async function migrateRemote(
     currentUserVersion += 1
     await db.run(sql.raw(`PRAGMA user_version = ${currentUserVersion}`))
   }
+}
+
+export function createSnippetsStore(db: LibSQLDatabase, folderIdStore: Readable<string>): Reloadable<Snippet[]> {
+  return asyncDerived(
+    [folderIdStore],
+    async ([folderId]) => {
+      const dbSnippets = await querySnippetsByFolderId(db, folderId)
+      const snippetIds = dbSnippets.map(snippet => snippet.id)
+      const tags = await queryTagsBySnippetIds(db, snippetIds)
+      const tagsMap = buildTagsMap(tags)
+      const snippets = dbSnippets.map(
+        (dbSnippet) => dbSnippetToDisplaySnippet(dbSnippet, tagsMap)
+      )
+      return snippets
+    },
+    {reloadable: true}
+  ) as Reloadable<Snippet[]>
 }
