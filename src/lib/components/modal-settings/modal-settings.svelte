@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { settingsStore } from '$lib/utitlities/global'
+  import { settingsStore, settingsV2Store } from '$lib/utitlities/global'
   import { inputStateStore } from './store'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
   import { sqlitergExecutorStore } from '$lib/sqlite/global'
@@ -54,30 +54,21 @@
   <section class="p-6 flex flex-col gap-2">
     {#if currentTab === 'connection'}
       <label class="label">
-          <span>Server URL</span>
-          <input
-            class="input"
-            spellcheck="false"
-            bind:value={$settingsStore.serverURL}
-          />
-          </label>
+        <span>Database URL</span>
+        <input
+          class="input"
+          spellcheck="false"
+          bind:value={$settingsV2Store.dbURL}
+        />
+      </label>
       <label class="label">
-          <span>Username</span>
-          <input
-            class="input"
-            spellcheck="false"
-            bind:value={$settingsStore.username}
-          />
-          </label>
-      <label class="label">
-          <span>Password</span>
-          <input
-            class="input"
-            type="password"
-            spellcheck="false"
-            bind:value={$settingsStore.password}
-          />
-          </label>
+        <span>Token</span>
+        <input
+          class="input"
+          spellcheck="false"
+          bind:value={$settingsV2Store.token}
+        />
+      </label>
       <aside
         class="mt-4 alert"
         class:hidden={$inputStateStore.display === 'none'}

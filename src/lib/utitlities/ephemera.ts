@@ -2,6 +2,7 @@ import { writable } from 'svelte/store'
 import type { Writable, Updater } from 'svelte/store'
 import { readGlobalState, writeGlobalState } from '$lib/utitlities/persistence'
 import type { GlobalState } from '$lib/utitlities/persistence'
+import { persisted } from '@square/svelte-store'
 
 export type GlobalStateStore =
   Writable<GlobalState> &
@@ -16,6 +17,12 @@ export type Settings = {
   serverURL: string
   username: string
   password: string
+}
+
+export type SettingsV2 = {
+  type: 'turso'
+  dbURL: string
+  token: string
 }
 
 export type SettingsStore = Writable<Settings>
@@ -104,4 +111,17 @@ export async function createGlobalStateStore(): Promise<GlobalStateStore> {
       store.set(state)
     },
   }
+}
+
+export async function createSettingsV2Store(): Promise<Writable<SettingsV2>> {
+  const store = persisted<SettingsV2>(
+    {
+      type: 'turso',
+      dbURL: '',
+      token: '',
+    },
+    'crypta.settings',
+  )
+  await store.resync()
+  return store
 }
