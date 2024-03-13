@@ -48,9 +48,10 @@ describe('in-memory client', () => {
   it('store crud', async () => {
     const client = createClient({url: ':memory:'})
     const db = drizzle(client)
+    const dummyDbStore = writable(db)
 
     await migrateRemote(db, defaultMigrationQueryMap, defaultQueriesStringMap)
-    const store = createSnippetsStore(db, writable('default'))
+    const store = createSnippetsStore(dummyDbStore, writable('default'))
     await store.load()
 
     {
@@ -75,6 +76,27 @@ describe('in-memory client', () => {
       await deleteSnippet(db, 'dummy-id')
       await store.reload()
       const result = get(store)
+      expect(result.length).toEqual(0)
+    }
+  })
+
+  it('local in-memory db', async () => {
+    const client = createClient({url: 'http://127.0.0.1:8080'})
+    const db = drizzle(client)
+
+    await migrateRemote(db, defaultMigrationQueryMap, defaultQueriesStringMap)
+
+    {
+      const result = await db.all(sql`SELECT * FROM folders`)
+      expect(result.length).toEqual(1)
+      expect(result[0]).toContain({
+        id: 'default',
+        name: 'Default',
+        position: 0,
+      })
+    }
+    {
+      const result = await db.all(sql`SELECT * FROM snippets`)
       expect(result.length).toEqual(0)
     }
   })

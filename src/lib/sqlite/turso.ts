@@ -1,13 +1,17 @@
 import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration'
 import { sql } from 'drizzle-orm'
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
-import { asyncDerived, asyncWritable } from '@square/svelte-store'
+import { asyncDerived, asyncReadable, asyncWritable } from '@square/svelte-store'
 import type { WritableLoadable, Reloadable } from '@square/svelte-store'
 import type { Snippet } from '$lib/utitlities/persistence'
 import type { Readable } from 'svelte/store'
 import { snippets } from '$lib/sqlite/schema'
 import { querySnippetsByFolderId, queryTagsBySnippetIds } from '$lib/sqlite/queries'
 import { buildTagsMap, dbSnippetToDisplaySnippet } from '$lib/utitlities/data-transformation'
+import type { SettingsV2 } from '$lib/utitlities/ephemera'
+import { createClient } from '@libsql/client'
+import { derived } from 'svelte/store'
+import { drizzle } from 'drizzle-orm/libsql'
 
 export async function migrateRemote(
   db: LibSQLDatabase,
@@ -41,10 +45,31 @@ export async function migrateRemote(
   }
 }
 
-export function createSnippetsStore(db: LibSQLDatabase, folderIdStore: Readable<string>): Reloadable<Snippet[]> {
+export function createDbStore(settingsStore: Readable<SettingsV2>) {
+  return derived(
+    [settingsStore],
+    ([settings]) => {
+      const config: {
+        url: string,
+        authToken: string | undefined,
+      } = {
+        url: settings.dbURL,
+        authToken: undefined,
+      }
+      if (settings.token !== '') {
+        config.authToken = settings.token
+      }
+      const client = createClient(config)
+      const db = drizzle(client)
+      return db
+    }
+  )
+}
+
+export function createSnippetsStore(dbStore: Readable<LibSQLDatabase>, folderIdStore: Readable<string>): Reloadable<Snippet[]> {
   return asyncDerived(
-    [folderIdStore],
-    async ([folderId]) => {
+    [dbStore, folderIdStore],
+    async ([db, folderId]) => {
       const dbSnippets = await querySnippetsByFolderId(db, folderId)
       const snippetIds = dbSnippets.map(snippet => snippet.id)
       const tags = await queryTagsBySnippetIds(db, snippetIds)
