@@ -83,5 +83,17 @@
     {/if}
   </section>
   <footer class="card-footer flex gap-2 justify-end">
+    {#if currentTab === 'connection'}
+      <button
+        class="btn variant-ghost"
+      >
+        Refresh
+      </button>
+      <button
+        class="btn variant-filled"
+      >
+        Save
+      </button>
+    {/if}
   </footer>
 </div>
