@@ -25,6 +25,12 @@ export type SettingsV2 = {
   token: string
 }
 
+export type ConnectionState =
+  | 'blank'
+  | 'error-unreachable'
+  | 'error-unauthenticated'
+  | 'connected'
+
 export type SettingsStore = Writable<Settings>
 
 export async function readSettings(): Promise<Settings> {

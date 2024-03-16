@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { drizzle } from 'drizzle-orm/libsql'
 import { createClient } from '@libsql/client'
 import { sql } from 'drizzle-orm'
-import { createSnippetsStore, migrateRemote } from './turso'
+import { createDbStore, createSnippetsStore, migrateRemote } from './turso'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
 import { createLocalFoldersStore } from '$lib/sqlite/wa-sqlite';
 import { get, writable } from 'svelte/store'
@@ -24,6 +24,7 @@ describe('in-memory client', () => {
       expect(result).toEqual({user_version: 0})
     }
   });
+
   it('migrate', async () => {
     const client = createClient({url: ':memory:'})
     const db = drizzle(client)
@@ -101,3 +102,41 @@ describe('in-memory client', () => {
     }
   })
 });
+
+describe('store connectable', () => {
+  it('blank', async () => {
+    const [state, store] = await createDbStore({
+      type: 'turso',
+      dbURL: '',
+      token: '',
+    })
+    expect(state).toBe('blank')
+  })
+
+  it('memory', async () => {
+    const [state, store] = await createDbStore({
+      type: 'turso',
+      dbURL: ':memory:',
+      token: '',
+    })
+    expect(state).toBe('connected')
+  })
+
+  it('unreachable', async () => {
+    const [state, store] = await createDbStore({
+      type: 'turso',
+      dbURL: 'unreachable',
+      token: '',
+    })
+    expect(state).toBe('error-unreachable')
+  })
+
+  it('authentication', async () => {
+    const [state, store] = await createDbStore({
+      type: 'turso',
+      dbURL: 'libsql://crypta-thanhnguyen2187.turso.io',
+      token: '',
+    })
+    expect(state).toBe('error-unauthenticated')
+  }, 30_000)
+})

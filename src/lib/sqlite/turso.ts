@@ -2,14 +2,15 @@ import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration'
 import { sql } from 'drizzle-orm'
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 import { asyncDerived, asyncReadable, asyncWritable } from '@square/svelte-store'
+import type { Loadable } from '@square/svelte-store'
 import type { WritableLoadable, Reloadable } from '@square/svelte-store'
 import type { Snippet } from '$lib/utitlities/persistence'
 import type { Readable } from 'svelte/store'
 import { snippets } from '$lib/sqlite/schema'
 import { querySnippetsByFolderId, queryTagsBySnippetIds } from '$lib/sqlite/queries'
 import { buildTagsMap, dbSnippetToDisplaySnippet } from '$lib/utitlities/data-transformation'
-import type { SettingsV2 } from '$lib/utitlities/ephemera'
-import { createClient } from '@libsql/client'
+import type { ConnectionState, SettingsV2 } from '$lib/utitlities/ephemera'
+import { LibsqlError, createClient } from '@libsql/client'
 import { derived } from 'svelte/store'
 import { drizzle } from 'drizzle-orm/libsql'
 
@@ -45,25 +46,50 @@ export async function migrateRemote(
   }
 }
 
-export function createDbStore(settingsStore: Readable<SettingsV2>) {
-  return derived(
-    [settingsStore],
-    ([settings]) => {
-      const config: {
-        url: string,
-        authToken: string | undefined,
-      } = {
-        url: settings.dbURL,
-        authToken: undefined,
+export type DbStoreReturn = [
+  'connected',
+  Readable<LibSQLDatabase>,
+] | [
+  ConnectionState,
+  null,
+]
+
+export async function createDbStore(settings: SettingsV2): Promise<DbStoreReturn> {
+  if (settings.dbURL === '') {
+    return ['blank', null]
+  }
+  try {
+    const store = asyncDerived(
+      [],
+      async () => {
+        const config: {
+          url: string,
+          authToken: string | undefined,
+        } = {
+          url: settings.dbURL,
+          authToken: undefined,
+        }
+        if (settings.token !== '') {
+          config.authToken = settings.token
+        }
+        const client = createClient(config)
+        const db = drizzle(client)
+        await db.run(sql`SELECT 1`)
+        return db
       }
-      if (settings.token !== '') {
-        config.authToken = settings.token
+    )
+    await store.load()
+    return ['connected', store]
+  } catch (e: unknown) {
+    if (e instanceof LibsqlError) {
+      if (e.code === 'URL_INVALID') {
+        return ['error-unreachable', null]
+      } else if (e.code === 'SERVER_ERROR') {
+        return ['error-unauthenticated', null]
       }
-      const client = createClient(config)
-      const db = drizzle(client)
-      return db
     }
-  )
+    throw e
+  }
 }
 
 export function createSnippetsStore(dbStore: Readable<LibSQLDatabase>, folderIdStore: Readable<string>): Reloadable<Snippet[]> {
