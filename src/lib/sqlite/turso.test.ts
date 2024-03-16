@@ -113,6 +113,15 @@ describe('store connectable', () => {
     expect(state).toBe('blank')
   })
 
+  it('incorrect url', async () => {
+    const [state, store] = await createDbStore({
+      type: 'turso',
+      dbURL: 'https://google.com',
+      token: '',
+    })
+    expect(state).toBe('error-invalid-endpoint')
+  })
+
   it('memory', async () => {
     const [state, store] = await createDbStore({
       type: 'turso',

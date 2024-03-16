@@ -28,6 +28,7 @@ export type SettingsV2 = {
 export type ConnectionState =
   | 'blank'
   | 'error-unreachable'
+  | 'error-invalid-endpoint'
   | 'error-unauthenticated'
   | 'connected'
 

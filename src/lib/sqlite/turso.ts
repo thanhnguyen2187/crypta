@@ -84,8 +84,16 @@ export async function createDbStore(settings: SettingsV2): Promise<DbStoreReturn
     if (e instanceof LibsqlError) {
       if (e.code === 'URL_INVALID') {
         return ['error-unreachable', null]
-      } else if (e.code === 'SERVER_ERROR') {
-        return ['error-unauthenticated', null]
+      }
+      if (e.code === 'SERVER_ERROR') {
+        // @ts-ignore
+        if (e.cause.status === 401) {
+          return ['error-unauthenticated', null]
+        }
+        // @ts-ignore
+        if (e.cause.status === 404) {
+          return ['error-invalid-endpoint', null]
+        }
       }
     }
     throw e
