@@ -1,34 +1,12 @@
 <script lang="ts">
-  import { settingsStore, settingsV2Store } from '$lib/utitlities/global'
+  import { settingsV2Store } from '$lib/utitlities/global'
   import { inputStateStore } from './store'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
-  import { sqlitergExecutorStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 
   let currentTab: 'connection' = 'connection'
-  $: {
-    (async () => {
-      if ($settingsStore.serverURL === '') {
-        $inputStateStore.display = 'none'
-        $inputStateStore.message = ''
-        return
-      }
-      if (!await $sqlitergExecutorStore.isReachable()) {
-        $inputStateStore.display = 'warning'
-        $inputStateStore.message = 'Could not connect to the designated URL!'
-        return
-      }
-      if (!await $sqlitergExecutorStore.isAuthenticated()) {
-        $inputStateStore.display = 'warning'
-        $inputStateStore.message = 'Wrong user name or password!'
-        return
-      }
-
-      $inputStateStore.display = 'success'
-      $inputStateStore.message = 'Connected successfully.'
-    })()
-  }
+  $: {}
 
 </script>
 

@@ -30,15 +30,17 @@ export const sqlitergExecutorStore = derived(
   }
 )
 export const localSnippetsStore = await createLocalSnippetsStore(executor, globalStateStore)
-export const remoteSnippetsStore = await createRemoteSnippetStore(globalStateStore, sqlitergExecutorStore)
-await waitUntil(remoteSnippetsStore.isAvailable, 100, 1000)
-export const higherSnippetsStore = createHigherSnippetsStore(localSnippetsStore, remoteSnippetsStore)
+// export const remoteSnippetsStore = await createRemoteSnippetStore(globalStateStore, sqlitergExecutorStore)
+// await waitUntil(remoteSnippetsStore.isAvailable, 100, 1000)
+// export const higherSnippetsStore = createHigherSnippetsStore(localSnippetsStore, remoteSnippetsStore)
+export const higherSnippetsStore = localSnippetsStore
 
-export const dataStateStore = createSnippetsDataStateStore(localSnippetsStore, remoteSnippetsStore)
-export const dataManager = createSnippetsDataManager(localSnippetsStore, remoteSnippetsStore, dataStateStore, 5_000)
-dataManager.start()
+// export const dataStateStore = createSnippetsDataStateStore(localSnippetsStore, remoteSnippetsStore)
+// export const dataManager = createSnippetsDataManager(localSnippetsStore, remoteSnippetsStore, dataStateStore, 5_000)
+// dataManager.start()
 
 export const localFoldersStore = await createLocalFoldersStore(localDb, higherSnippetsStore.migrationStateStore)
-export const remoteFoldersStore = createRemoteFoldersStore(sqlitergExecutorStore, remoteSnippetsStore.migrationStateStore)
-export const higherFoldersStore = createHigherFoldersStore(localFoldersStore, remoteFoldersStore)
-reloadRemoteFoldersStore(localFoldersStore, remoteFoldersStore, 3_000)
+// export const remoteFoldersStore = createRemoteFoldersStore(sqlitergExecutorStore, remoteSnippetsStore.migrationStateStore)
+// export const higherFoldersStore = createHigherFoldersStore(localFoldersStore, remoteFoldersStore)
+export const higherFoldersStore = localFoldersStore
+// reloadRemoteFoldersStore(localFoldersStore, remoteFoldersStore, 3_000)

@@ -1,7 +1,6 @@
 <script lang="ts">
   import PickableInput from './pickable-input.svelte'
   import {
-    builtSnippetStore,
     mergeLocalSnippetStore,
     mergeRemoteSnippetStore,
     pickedMapStore,
@@ -9,13 +8,13 @@
     setOne,
   } from './store'
   import { format } from '$lib/utitlities/date'
-  import { dataManager } from '$lib/sqlite/global'
+  // import { dataManager } from '$lib/sqlite/global'
   import { getModalStore } from '@skeletonlabs/skeleton'
 
   const modalStore = getModalStore()
 
   function mergeSnippets() {
-    dataManager.merge($builtSnippetStore)
+    // dataManager.merge($builtSnippetStore)
     modalStore.close()
   }
 </script>
