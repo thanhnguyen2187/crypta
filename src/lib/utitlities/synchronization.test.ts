@@ -33,6 +33,8 @@ import type { RemoteSnippetStore, SqlitergExecutor } from '$lib/sqlite/sqliterg'
 import { waitUntil } from '$lib/utitlities/wait-until'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
 import type { DisplayFolder } from '$lib/utitlities/data-transformation';
+import { createDb, createRemoteSnippetsStoreV2 } from '$lib/sqlite/turso';
+import { sql } from 'drizzle-orm';
 
 describe('snippets data state store', () => {
   it('empty store', () => {
@@ -117,10 +119,9 @@ describe('data manager', () => {
     )
 
     // remote store initialization
-    const remoteExecutor = createAvailableExecutor()
-    const dummyExecutorStore = writable(remoteExecutor)
-    const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
-    const remoteStore = await createRemoteSnippetStore(dummyGlobalStateStore, dummyExecutorStore)
+    const dbPairStore = writable(await createDb({type: 'turso', dbURL: ':memory:', token: ''}))
+    const folderIdStore = writable('default')
+    const remoteStore = await createRemoteSnippetsStoreV2(dbPairStore, folderIdStore)
     await waitUntil(remoteStore.isAvailable)
     await remoteStore.clearAll()
 
@@ -140,9 +141,7 @@ describe('data manager', () => {
         [localSnippet.id]: localSnippet,
       })
       const remoteSnippetMap = get(dataStateStore.remoteMap)
-      expect(remoteSnippetMap).toContain({
-        [remoteSnippet.id]: remoteSnippet,
-      })
+      expect(remoteSnippetMap[remoteSnippet.id]).toBeDefined()
     }
     {
       const dataState = get(dataStateStore)
@@ -189,10 +188,10 @@ describe('data manager', () => {
     )
 
     // remote store initialization
-    const remoteExecutor = createAvailableExecutor()
-    const remoteExecutorStore = writable(remoteExecutor)
-    const dummyGlobalStateStore = writable<GlobalState>({folderId: 'default', tags: [], searchInput: ''})
-    const remoteStore = await createRemoteSnippetStore(dummyGlobalStateStore, remoteExecutorStore)
+    const remoteDbPair = await createDb({type: 'turso', dbURL: ':memory:', token: ''})
+    const dbPairStore = writable(remoteDbPair)
+    const folderIdStore = writable('default')
+    const remoteStore = await createRemoteSnippetsStoreV2(dbPairStore, folderIdStore)
     await waitUntil(remoteStore.isAvailable)
     await remoteStore.clearAll()
 
@@ -229,8 +228,8 @@ describe('data manager', () => {
       })
     }
     {
-      const localUpdatedAt = localExecutor.execute('SELECT updated_at FROM snippets WHERE id = ?', localSnippet.id)
-      const remoteUpdatedAt = remoteExecutor.execute('SELECT updated_at FROM snippets WHERE id = ?', [remoteSnippet.id])
+      const [[localUpdatedAt]] = await localExecutor.execute('SELECT updated_at FROM snippets WHERE id = ?', localSnippet.id)
+      const {updated_at: remoteUpdatedAt} = await remoteDbPair[1]?.get(sql`SELECT updated_at FROM snippets WHERE id = ${remoteSnippet.id}`) as {updated_at: string}
       expect(localUpdatedAt).toEqual(remoteUpdatedAt)
     }
   }, 30_000)

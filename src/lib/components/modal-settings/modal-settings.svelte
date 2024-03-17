@@ -4,7 +4,7 @@
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
   import { onMount } from 'svelte'
   import { remoteDbPairStore } from '$lib/sqlite/global'
-  import type { SettingsV2 } from '$lib/utitlities/ephemera';
+  import type { SettingsV2 } from '$lib/utitlities/ephemera'
 
   const modalStore = getModalStore()
 

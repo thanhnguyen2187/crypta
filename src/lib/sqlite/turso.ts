@@ -1,18 +1,33 @@
-import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration'
+import type { MigrationQueryMap, MigrationState, QueriesStringMap } from '$lib/sqlite/migration'
 import { sql } from 'drizzle-orm'
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
-import { asyncDerived, asyncReadable, asyncWritable } from '@square/svelte-store'
-import type { Loadable } from '@square/svelte-store'
-import type { WritableLoadable, Reloadable } from '@square/svelte-store'
-import type { Snippet } from '$lib/utitlities/persistence'
-import type { Readable } from 'svelte/store'
-import { snippets } from '$lib/sqlite/schema'
-import { querySnippetsByFolderId, queryTagsBySnippetIds } from '$lib/sqlite/queries'
-import { buildTagsMap, dbSnippetToDisplaySnippet } from '$lib/utitlities/data-transformation'
+import { asyncDerived } from '@square/svelte-store'
+import type { Reloadable } from '@square/svelte-store'
+import type { Folder, RemoteFoldersStore, Snippet } from '$lib/utitlities/persistence'
+import {
+  clearTags,
+  deleteAllSnippets,
+  querySnippetsByFolderId,
+  queryTagsBySnippetIds,
+  upsertSnippet,
+  deleteSnippet as deleteSnippet_,
+  upsertTags, deleteSnippetsByFolder, clearAllTags as clearAllTags_, queryFolders, upsertFolder, deleteFolder,
+} from '$lib/sqlite/queries'
+import {
+  buildTagsMap,
+  dbFolderToDisplayFolder,
+  dbSnippetToDisplaySnippet,
+  displayFolderToDbFolder,
+  displaySnippetToDbSnippet
+} from '$lib/utitlities/data-transformation'
+import type { DisplayFolder } from '$lib/utitlities/data-transformation';
 import type { ConnectionState, SettingsV2 } from '$lib/utitlities/ephemera'
 import { LibsqlError, createClient } from '@libsql/client'
-import { derived } from 'svelte/store'
 import { drizzle } from 'drizzle-orm/libsql'
+import type { RemoteSnippetStore } from '$lib/sqlite/sqliterg'
+import { get, writable } from 'svelte/store'
+import type { Readable, Invalidator, Subscriber, Unsubscriber } from 'svelte/store'
+import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration'
 
 export async function migrateRemote(
   db: LibSQLDatabase,
@@ -46,40 +61,29 @@ export async function migrateRemote(
   }
 }
 
-export type DbStoreReturn = [
-  'connected',
-  Readable<LibSQLDatabase>,
-] | [
-  ConnectionState,
-  null,
-]
+export type DbPair =
+  | ['connected', LibSQLDatabase,]
+  | [Omit<ConnectionState, 'connected'>, null]
 
-export async function createDbStore(settings: SettingsV2): Promise<DbStoreReturn> {
+export async function createDb(settings: SettingsV2): Promise<DbPair> {
   if (settings.dbURL === '') {
     return ['blank', null]
   }
   try {
-    const store = asyncDerived(
-      [],
-      async () => {
-        const config: {
-          url: string,
-          authToken: string | undefined,
-        } = {
-          url: settings.dbURL,
-          authToken: undefined,
-        }
-        if (settings.token !== '') {
-          config.authToken = settings.token
-        }
-        const client = createClient(config)
-        const db = drizzle(client)
-        await db.run(sql`SELECT 1`)
-        return db
-      }
-    )
-    await store.load()
-    return ['connected', store]
+    const config: {
+      url: string,
+      authToken: string | undefined,
+    } = {
+      url: settings.dbURL,
+      authToken: undefined,
+    }
+    if (settings.token !== '') {
+      config.authToken = settings.token
+    }
+    const client = createClient(config)
+    const db = drizzle(client)
+    await db.run(sql`SELECT 1`)
+    return ['connected', db]
   } catch (e: unknown) {
     if (e instanceof LibsqlError) {
       if (e.code === 'URL_INVALID') {
@@ -106,10 +110,10 @@ export async function createDbStore(settings: SettingsV2): Promise<DbStoreReturn
   }
 }
 
-export function createSnippetsStore(dbStore: Readable<LibSQLDatabase>, folderIdStore: Readable<string>): Reloadable<Snippet[]> {
+export function createSnippetsStore(db: LibSQLDatabase, folderId: string): Reloadable<Snippet[]> {
   return asyncDerived(
-    [dbStore, folderIdStore],
-    async ([db, folderId]) => {
+    [],
+    async () => {
       const dbSnippets = await querySnippetsByFolderId(db, folderId)
       const snippetIds = dbSnippets.map(snippet => snippet.id)
       const tags = await queryTagsBySnippetIds(db, snippetIds)
@@ -124,4 +128,230 @@ export function createSnippetsStore(dbStore: Readable<LibSQLDatabase>, folderIdS
       initial: [],
     }
   ) as Reloadable<Snippet[]>
+}
+
+export async function createRemoteSnippetsStore(
+  db: LibSQLDatabase | null,
+  folderId: string,
+): Promise<RemoteSnippetStore> {
+  const migrationStateStore = writable<MigrationState>('not-started')
+  await (async () => {
+    if (db === null) {
+      return
+    }
+    try {
+      migrationStateStore.set('running')
+      await migrateRemote(db, defaultMigrationQueryMap, defaultQueriesStringMap)
+      migrationStateStore.set('done')
+    } catch (e: unknown) {
+      console.error(e)
+      migrationStateStore.set('error')
+    }
+  })()
+
+  let snippetsStore: Reloadable<Snippet[]>
+  if (db === null) {
+    snippetsStore = asyncDerived(
+      [],
+      async () => {
+        return []
+      },
+      {
+        reloadable: true,
+      }
+    ) as Reloadable<Snippet[]>
+  } else {
+    // @ts-ignore
+    snippetsStore = createSnippetsStore(db, folderId)
+  }
+  await snippetsStore.load()
+
+  return {
+    subscribe: snippetsStore.subscribe,
+    async clone(snippet: Snippet): Promise<void> {
+      if (db === null) {
+        return
+      }
+
+      const clonedSnippet: Snippet = {
+        ...snippet,
+        id: crypto.randomUUID(),
+        position: get(snippetsStore).length + 1,
+        tags: snippet.tags.slice(),
+        createdAt: new Date().getTime(),
+        updatedAt: new Date().getTime(),
+      }
+      const dbSnippet = displaySnippetToDbSnippet(folderId, clonedSnippet)
+      await upsertSnippet(db, dbSnippet)
+      if (snippet.tags.length > 0) {
+        await upsertTags(db, clonedSnippet.id, snippet.tags)
+      }
+
+      await snippetsStore.reload()
+    },
+    async upsert(snippet: Snippet): Promise<void> {
+      if (db === null) {
+        return
+      }
+
+      const dbSnippet = displaySnippetToDbSnippet(folderId, snippet)
+      await upsertSnippet(db, dbSnippet)
+      if (snippet.tags && snippet.tags.length > 0) {
+        await clearTags(db, snippet.id)
+        await upsertTags(db, snippet.id, snippet.tags)
+      }
+      await snippetsStore.reload()
+    },
+    async remove(id: string): Promise<void> {
+      if (db === null) {
+        return
+      }
+
+      await deleteSnippet_(db, id)
+      await snippetsStore.reload()
+    },
+    async move(
+      movingSnippet: Snippet,
+      sourceFolderId: string,
+      destinationFolderId: string,
+    ) {
+      if (db === null) {
+        return
+      }
+
+      const dbSnippet = displaySnippetToDbSnippet(sourceFolderId, movingSnippet)
+      dbSnippet.folderId = destinationFolderId
+      await upsertSnippet(db, dbSnippet)
+
+      await snippetsStore.reload()
+    },
+    async clear() {
+      if (db === null) {
+        return
+      }
+      await deleteSnippetsByFolder(db, folderId)
+      await snippetsStore.reload()
+    },
+    async clearAll() {
+      if (db === null) {
+        return
+      }
+      await deleteAllSnippets(db)
+      await snippetsStore.reload()
+    },
+    async clearAllTags() {
+      if (db === null) {
+        return
+      }
+      await clearAllTags_(db)
+      await snippetsStore.reload()
+    },
+    async isAvailable(): Promise<boolean> {
+      return db !== null;
+    },
+    async refresh() {
+      await snippetsStore.reload()
+    },
+    migrationStateStore,
+  }
+}
+
+export async function createRemoteSnippetsStoreV2(
+  dbPairStore: Readable<DbPair>,
+  folderIdStore: Readable<string>,
+): Promise<RemoteSnippetStore> {
+  let store: RemoteSnippetStore = {
+    subscribe(run: Subscriber<Snippet[]>, invalidate?: Invalidator<Snippet[]>): Unsubscriber {
+      return () => {}
+    },
+    async clone(snippet: Snippet): Promise<void> {},
+    async remove(id: string): Promise<void> {},
+    async upsert(snippet: Snippet): Promise<void> {},
+    async move(movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string): Promise<void> {},
+    async clearAll(): Promise<void> {},
+    async clearAllTags(): Promise<void> {},
+    async clear(): Promise<void> {},
+    async isAvailable(): Promise<boolean> { return false },
+    async refresh(): Promise<void> {},
+    migrationStateStore: writable<MigrationState>('not-started'),
+  }
+  const deriver = asyncDerived(
+    [dbPairStore, folderIdStore],
+    ([dbPair, folderId]) => {
+      return createRemoteSnippetsStore(dbPair[1], folderId)
+    }
+  )
+  await deriver.load()
+  const unsubscribeFn = deriver.subscribe(value => store = value)
+
+  return {
+    ...store,
+  }
+}
+
+export function createFoldersStore(db: LibSQLDatabase): Reloadable<DisplayFolder[]> {
+  return asyncDerived(
+    [],
+    async () => {
+      const dbFolders = await queryFolders(db)
+      const folders = dbFolders.map(dbFolderToDisplayFolder)
+      return folders
+    },
+    {
+      reloadable: true,
+      initial: [],
+    }
+  ) as Reloadable<DisplayFolder[]>
+}
+
+export async function createRemoteFoldersStore(
+  db: LibSQLDatabase | null,
+  migrationState: MigrationState,
+): Promise<RemoteFoldersStore> {
+  let store: Reloadable<DisplayFolder[]>
+  if (db === null) {
+    store = asyncDerived(
+      [],
+      async () => {
+        return []
+      },
+      {
+        reloadable: true,
+      }
+    ) as Reloadable<DisplayFolder[]>
+  } else {
+    // @ts-ignore
+    store = createFoldersStore(db)
+  }
+  await store.load()
+
+  async function isAvailable() {
+    return db !== null && migrationState === 'done'
+  }
+
+  async function refresh() {
+    await store.reload()
+  }
+
+  return {
+    subscribe: store.subscribe,
+    async upsert(folder: DisplayFolder) {
+      if (!await isAvailable()) {
+        return
+      }
+
+      await upsertFolder(db!, displayFolderToDbFolder(folder))
+      await store.reload()
+    },
+    async delete(id: string) {
+      if (!await isAvailable()) {
+        return
+      }
+
+      await deleteFolder(db!, id)
+      await store.reload()
+    },
+    isAvailable,
+    refresh,
+  }
 }
