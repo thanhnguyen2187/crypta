@@ -4,6 +4,7 @@ import * as SQLite from 'wa-sqlite'
 import { IDBBatchAtomicVFS } from 'wa-sqlite/src/examples/IDBBatchAtomicVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
+import { drizzle } from 'drizzle-orm/sqlite-proxy';
 
 export type QueryExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -55,4 +56,14 @@ export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: stri
       await sqlite3.close(db)
     }
   }
+}
+
+export async function createDb(executor: QueryExecutor) {
+  return drizzle(async (queryString, params, method) => {
+    const result = await executor.execute(queryString, ...params)
+    if (method === 'get' && result.length > 0) {
+      return {rows: result[0]}
+    }
+    return {rows: result}
+  })
 }

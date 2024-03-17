@@ -1,4 +1,3 @@
-import type { QueryExecutor } from './query-executor'
 import { readCatalog, readSnippets } from '$lib/utitlities/persistence'
 import { sql } from 'drizzle-orm'
 import { folders, snippet_tags, snippets } from './schema'
