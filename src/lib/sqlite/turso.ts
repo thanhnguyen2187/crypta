@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm'
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 import { asyncDerived } from '@square/svelte-store'
 import type { Reloadable } from '@square/svelte-store'
-import type { Folder, RemoteFoldersStore, Snippet } from '$lib/utitlities/persistence'
+import type { RemoteFoldersStore, Snippet } from '$lib/utitlities/persistence'
 import {
   clearTags,
   deleteAllSnippets,
@@ -25,8 +25,8 @@ import type { ConnectionState, SettingsV2 } from '$lib/utitlities/ephemera'
 import { LibsqlError, createClient } from '@libsql/client'
 import { drizzle } from 'drizzle-orm/libsql'
 import type { RemoteSnippetStore } from '$lib/sqlite/sqliterg'
-import { get, writable } from 'svelte/store'
-import type { Readable, Invalidator, Subscriber, Unsubscriber } from 'svelte/store'
+import { derived, get, writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration'
 
 export async function migrateRemote(
@@ -260,10 +260,8 @@ export async function createRemoteSnippetsStoreV2(
   dbPairStore: Readable<DbPair>,
   folderIdStore: Readable<string>,
 ): Promise<RemoteSnippetStore> {
-  let store: RemoteSnippetStore = {
-    subscribe(run: Subscriber<Snippet[]>, invalidate?: Invalidator<Snippet[]>): Unsubscriber {
-      return () => {}
-    },
+  let underlyingStore: RemoteSnippetStore = {
+    subscribe() { return () => {} },
     async clone(snippet: Snippet): Promise<void> {},
     async remove(id: string): Promise<void> {},
     async upsert(snippet: Snippet): Promise<void> {},
@@ -282,10 +280,42 @@ export async function createRemoteSnippetsStoreV2(
     }
   )
   await deriver.load()
-  const unsubscribeFn = deriver.subscribe(value => store = value)
+  const unsubscribeFn = deriver.subscribe(value => underlyingStore = value)
 
   return {
-    ...store,
+    subscribe() {
+      return () => {
+        unsubscribeFn()
+      }
+    },
+    async clone(snippet: Snippet): Promise<void> {
+      await underlyingStore.clone(snippet)
+    },
+    async remove(id: string): Promise<void> {
+      await underlyingStore.remove(id)
+    },
+    async upsert(snippet: Snippet): Promise<void> {
+      await underlyingStore.upsert(snippet)
+    },
+    async move(movingSnippet: Snippet, sourceFolderId: string, destinationFolderId: string): Promise<void> {
+      await underlyingStore.move(movingSnippet, sourceFolderId, destinationFolderId)
+    },
+    async clearAll(): Promise<void> {
+      await underlyingStore.clearAll()
+    },
+    async clearAllTags(): Promise<void> {
+      await underlyingStore.clearAllTags()
+    },
+    async clear(): Promise<void> {
+      await underlyingStore.clear()
+    },
+    async isAvailable(): Promise<boolean> {
+      return await underlyingStore.isAvailable()
+    },
+    async refresh(): Promise<void> {},
+    get migrationStateStore() {
+      return underlyingStore.migrationStateStore
+    },
   }
 }
 
@@ -353,5 +383,31 @@ export async function createRemoteFoldersStore(
     },
     isAvailable,
     refresh,
+  }
+}
+
+export async function createRemoteFoldersStoreV2(
+  dbPairStore: Readable<DbPair>,
+  migrationStateStore: Readable<MigrationState>,
+): Promise<RemoteFoldersStore> {
+  let store: RemoteFoldersStore = {
+    subscribe() {return () => {}},
+    upsert: async () => {},
+    delete: async () => {},
+    isAvailable: async () => false,
+    refresh: async () => {},
+  }
+  const dbStore = derived(
+    [dbPairStore, migrationStateStore],
+    ([dbPair, migrationState]) => dbPair[1]
+  )
+  dbStore.subscribe(
+    db => {
+      store = createRemoteFoldersStore(db, get(migrationStateStore))
+    }
+  )
+
+  return {
+    ...store
   }
 }
