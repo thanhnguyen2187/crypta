@@ -4,14 +4,24 @@
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
   import { onMount } from 'svelte'
   import { remoteDbPairStore } from '$lib/sqlite/global'
+  import type { SettingsV2 } from '$lib/utitlities/ephemera';
 
   const modalStore = getModalStore()
 
   let currentTab: 'connection' = 'connection'
   onMount(async () => {
+    await reload()
+  })
+
+  async function reload() {
     // @ts-ignore
     await remoteDbPairStore.reload()
-  })
+  }
+
+  function handleChange(e: Event, property: (keyof SettingsV2)) {
+    // @ts-ignore
+    $settingsV2Store[property] = (e?.target as HTMLInputElement).value
+  }
 
 </script>
 
@@ -41,7 +51,8 @@
         <input
           class="input"
           spellcheck="false"
-          bind:value={$settingsV2Store.dbURL}
+          value={$settingsV2Store.dbURL}
+          on:change={e => handleChange(e, 'dbURL')}
         />
       </label>
       <label class="label">
@@ -49,7 +60,7 @@
         <input
           class="input"
           spellcheck="false"
-          bind:value={$settingsV2Store.token}
+          on:change={e => handleChange(e, 'token')}
         />
       </label>
       <aside
@@ -69,13 +80,9 @@
     {#if currentTab === 'connection'}
       <button
         class="btn variant-ghost"
+        on:click={reload}
       >
         Refresh
-      </button>
-      <button
-        class="btn variant-filled"
-      >
-        Save
       </button>
     {/if}
   </footer>
