@@ -749,6 +749,13 @@
   resolved "https://registry.yarnpkg.com/@skeletonlabs/tw-plugin/-/tw-plugin-0.2.4.tgz#6b8c926a272445237ee64d27d1017f66d24d8132"
   integrity sha512-DmOFMV6jhhvnub/TANB62nJJqxfMBby5Kxwe/Mn3DTxHuJLZj8B47Ta2K5sl/or2B8MaMfny8ocvPAzd6lrMtQ==
 
+"@square/svelte-store@^1.0.18":
+  version "1.0.18"
+  resolved "https://registry.yarnpkg.com/@square/svelte-store/-/svelte-store-1.0.18.tgz#42aacb3b0b9f47d904e7ec63d12a65748cea3f82"
+  integrity sha512-BCiUhDlF2XSY6P+MLvJTA7mh15yAXcuNDtf/GTG0XWSjatW0+4wQv++uijz14L0Bc+KKAGXz4T6/9N+JrTfAAA==
+  dependencies:
+    cookie-storage "^6.1.0"
+
 "@sveltejs/adapter-auto@^2.0.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@sveltejs/adapter-auto/-/adapter-auto-2.1.0.tgz#cb36fd7081e3c4b1c9a9192b1a23c8c82dce8a1b"
@@ -1532,6 +1539,11 @@ constants-browserify@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/constants-browserify/-/constants-browserify-1.0.0.tgz#c20b96d8c617748aaf1c16021760cd27fcb8cb75"
   integrity sha512-xFxOwqIzR/e1k1gLiWEophSCMqXcwVHIH7akf7b/vxcUeGunlj3hvZaaqxwHsTgn+IndtkQJgSztIDWeumWJDQ==
+
+cookie-storage@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/cookie-storage/-/cookie-storage-6.1.0.tgz#291b2f662d961be44f999626593421cbfcf23790"
+  integrity sha512-HeVqbVy8BjXhAAuFtL6MTG+witHoLbxfky2jgVh9FmxmyL6IKa9gSSyPNjevXCCCxPu6Tzd9J8+eXTRQzYU/cg==
 
 cookie@^0.5.0:
   version "0.5.0"

@@ -1,4 +1,6 @@
-import { writable } from 'svelte/store'
+import { derived, writable } from 'svelte/store'
+import type { Readable } from 'svelte/store'
+import { remoteDbPairStore } from '$lib/sqlite/global';
 
 export type InputState = {
   display: 'none' | 'warning' | 'error' | 'success'
@@ -10,4 +12,45 @@ export const defaultInputState: InputState = {
   message: '',
 }
 
-export const inputStateStore = writable<InputState>(defaultInputState)
+export const inputStateStore = derived(
+  remoteDbPairStore,
+  ([state]) => {
+    let display = ''
+    let message = ''
+    switch (state) {
+      case 'blank':
+        display = 'none'
+        message = ''
+        break
+      case 'connected':
+        display = 'success'
+        message = 'Connected successfully!'
+        break
+      case 'error-unreachable':
+        display = 'warning'
+        message = 'Please check if the designated URL is reachable.'
+        break
+      case 'error-invalid-endpoint':
+        display = 'warning'
+        message = 'Please check if the designated URL is valid.'
+        break
+      case 'error-unauthenticated':
+        display = 'warning'
+        message = 'Please check your token.'
+        break
+      case 'error-unknown':
+        display = 'error'
+        message = 'An unknown error happened. Please inform the developer about it.'
+        break
+      default:
+        display = 'error'
+        message = 'Unreachable code'
+        break
+    }
+
+    return {
+      display,
+      message,
+    }
+  }
+) as Readable<InputState>

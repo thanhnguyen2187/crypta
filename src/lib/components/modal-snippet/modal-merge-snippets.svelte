@@ -9,8 +9,8 @@
     setOne,
   } from './store'
   import { format } from '$lib/utitlities/date'
-  import { dataManager } from '$lib/sqlite/global'
   import { getModalStore } from '@skeletonlabs/skeleton'
+  import { dataManager } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 

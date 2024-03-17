@@ -1,33 +1,26 @@
 <script lang="ts">
-  import { settingsStore } from '$lib/utitlities/global'
+  import { settingsV2Store } from '$lib/utitlities/global'
   import { inputStateStore } from './store'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
-  import { sqlitergExecutorStore } from '$lib/sqlite/global'
+  import { onMount } from 'svelte'
+  import { remoteDbPairStore } from '$lib/sqlite/global'
+  import type { SettingsV2 } from '$lib/utitlities/ephemera'
 
   const modalStore = getModalStore()
 
   let currentTab: 'connection' = 'connection'
-  $: {
-    (async () => {
-      if ($settingsStore.serverURL === '') {
-        $inputStateStore.display = 'none'
-        $inputStateStore.message = ''
-        return
-      }
-      if (!await $sqlitergExecutorStore.isReachable()) {
-        $inputStateStore.display = 'warning'
-        $inputStateStore.message = 'Could not connect to the designated URL!'
-        return
-      }
-      if (!await $sqlitergExecutorStore.isAuthenticated()) {
-        $inputStateStore.display = 'warning'
-        $inputStateStore.message = 'Wrong user name or password!'
-        return
-      }
+  onMount(async () => {
+    await reload()
+  })
 
-      $inputStateStore.display = 'success'
-      $inputStateStore.message = 'Connected successfully.'
-    })()
+  async function reload() {
+    // @ts-ignore
+    await remoteDbPairStore.reload()
+  }
+
+  function handleChange(e: Event, property: (keyof SettingsV2)) {
+    // @ts-ignore
+    $settingsV2Store[property] = (e?.target as HTMLInputElement).value
   }
 
 </script>
@@ -54,30 +47,22 @@
   <section class="p-6 flex flex-col gap-2">
     {#if currentTab === 'connection'}
       <label class="label">
-          <span>Server URL</span>
-          <input
-            class="input"
-            spellcheck="false"
-            bind:value={$settingsStore.serverURL}
-          />
-          </label>
+        <span>Database URL</span>
+        <input
+          class="input"
+          spellcheck="false"
+          value={$settingsV2Store.dbURL}
+          on:change={e => handleChange(e, 'dbURL')}
+        />
+      </label>
       <label class="label">
-          <span>Username</span>
-          <input
-            class="input"
-            spellcheck="false"
-            bind:value={$settingsStore.username}
-          />
-          </label>
-      <label class="label">
-          <span>Password</span>
-          <input
-            class="input"
-            type="password"
-            spellcheck="false"
-            bind:value={$settingsStore.password}
-          />
-          </label>
+        <span>Token</span>
+        <input
+          class="input"
+          spellcheck="false"
+          on:change={e => handleChange(e, 'token')}
+        />
+      </label>
       <aside
         class="mt-4 alert"
         class:hidden={$inputStateStore.display === 'none'}
@@ -92,5 +77,13 @@
     {/if}
   </section>
   <footer class="card-footer flex gap-2 justify-end">
+    {#if currentTab === 'connection'}
+      <button
+        class="btn variant-ghost"
+        on:click={reload}
+      >
+        Refresh
+      </button>
+    {/if}
   </footer>
 </div>
