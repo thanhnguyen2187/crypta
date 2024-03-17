@@ -2,11 +2,16 @@
   import { settingsV2Store } from '$lib/utitlities/global'
   import { inputStateStore } from './store'
   import { getModalStore, Tab, TabGroup } from '@skeletonlabs/skeleton'
+  import { onMount } from 'svelte'
+  import { remoteDbPairStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
 
   let currentTab: 'connection' = 'connection'
-  $: {}
+  onMount(async () => {
+    // @ts-ignore
+    await remoteDbPairStore.reload()
+  })
 
 </script>
 

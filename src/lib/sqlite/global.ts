@@ -5,18 +5,9 @@ import {
   createQueryExecutor,
   createSQLiteAPIV2
 } from './wa-sqlite'
-import { derived } from 'svelte/store'
-import { globalStateStore, settingsStore, settingsV2Store } from '$lib/utitlities/global'
-import { createRemoteFoldersStore, createRemoteSnippetStore, createSqlitergExecutor } from '$lib/sqlite/sqliterg'
-import {
-  createHigherFoldersStore,
-  createHigherSnippetsStore,
-  createSnippetsDataManager,
-  createSnippetsDataStateStore, reloadRemoteFoldersStore
-} from '$lib/utitlities/synchronization'
-import { waitUntil } from '$lib/utitlities/wait-until'
-import { createDbStore } from '$lib/sqlite/turso';
-import { asyncDerived } from '@square/svelte-store';
+import { globalStateStore, settingsV2Store } from '$lib/utitlities/global'
+import { createDbStore } from '$lib/sqlite/turso'
+import { asyncDerived } from '@square/svelte-store'
 
 export const sqlite3 = await createSQLiteAPIV2()
 export const executor = await createQueryExecutor(sqlite3, 'crypta')
@@ -41,6 +32,9 @@ export const remoteDbPairStore = asyncDerived(
   [settingsV2Store],
   async ([settings]) => {
     return createDbStore(settings)
+  },
+  {
+    reloadable: true,
   }
 )
 await remoteDbPairStore.load()
