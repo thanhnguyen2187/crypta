@@ -275,19 +275,15 @@ export async function createRemoteSnippetsStoreV2(
   }
   const deriver = asyncDerived(
     [dbPairStore, folderIdStore],
-    ([dbPair, folderId]) => {
-      return createRemoteSnippetsStore(dbPair[1], folderId)
+    async ([dbPair, folderId]) => {
+      return await createRemoteSnippetsStore(dbPair[1], folderId)
     }
   )
   await deriver.load()
   const unsubscribeFn = deriver.subscribe(value => underlyingStore = value)
 
   return {
-    subscribe() {
-      return () => {
-        unsubscribeFn()
-      }
-    },
+    subscribe: underlyingStore.subscribe,
     async clone(snippet: Snippet): Promise<void> {
       await underlyingStore.clone(snippet)
     },
@@ -386,28 +382,28 @@ export async function createRemoteFoldersStore(
   }
 }
 
-export async function createRemoteFoldersStoreV2(
-  dbPairStore: Readable<DbPair>,
-  migrationStateStore: Readable<MigrationState>,
-): Promise<RemoteFoldersStore> {
-  let store: RemoteFoldersStore = {
-    subscribe() {return () => {}},
-    upsert: async () => {},
-    delete: async () => {},
-    isAvailable: async () => false,
-    refresh: async () => {},
-  }
-  const dbStore = derived(
-    [dbPairStore, migrationStateStore],
-    ([dbPair, migrationState]) => dbPair[1]
-  )
-  dbStore.subscribe(
-    db => {
-      store = createRemoteFoldersStore(db, get(migrationStateStore))
-    }
-  )
-
-  return {
-    ...store
-  }
-}
+// export async function createRemoteFoldersStoreV2(
+//   dbPairStore: Readable<DbPair>,
+//   migrationStateStore: Readable<MigrationState>,
+// ): Promise<RemoteFoldersStore> {
+//   let store: RemoteFoldersStore = {
+//     subscribe() {return () => {}},
+//     upsert: async () => {},
+//     delete: async () => {},
+//     isAvailable: async () => false,
+//     refresh: async () => {},
+//   }
+//   const dbStore = derived(
+//     [dbPairStore, migrationStateStore],
+//     ([dbPair, migrationState]) => dbPair[1]
+//   )
+//   dbStore.subscribe(
+//     db => {
+//       store = createRemoteFoldersStore(db, get(migrationStateStore))
+//     }
+//   )
+//
+//   return {
+//     ...store
+//   }
+// }
