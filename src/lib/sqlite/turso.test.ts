@@ -4,7 +4,6 @@ import { createClient } from '@libsql/client'
 import { sql } from 'drizzle-orm'
 import { createDbStore, createSnippetsStore, migrateRemote } from './turso'
 import { defaultMigrationQueryMap, defaultQueriesStringMap } from '$lib/sqlite/migration';
-import { createLocalFoldersStore } from '$lib/sqlite/wa-sqlite';
 import { get, writable } from 'svelte/store'
 import { deleteSnippet, upsertSnippet } from '$lib/sqlite/queries';
 import { createDummySnippet } from '$lib/utitlities/testing';

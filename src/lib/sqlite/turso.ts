@@ -96,6 +96,12 @@ export async function createDbStore(settings: SettingsV2): Promise<DbStoreReturn
         }
       }
     }
+    if (e instanceof TypeError) {
+      if (e.message.startsWith('NetworkError')) {
+        return ['error-invalid-endpoint', null]
+      }
+    }
+    console.error(e)
     throw e
   }
 }

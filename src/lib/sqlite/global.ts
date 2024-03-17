@@ -6,7 +6,7 @@ import {
   createSQLiteAPIV2
 } from './wa-sqlite'
 import { derived } from 'svelte/store'
-import { globalStateStore, settingsStore } from '$lib/utitlities/global'
+import { globalStateStore, settingsStore, settingsV2Store } from '$lib/utitlities/global'
 import { createRemoteFoldersStore, createRemoteSnippetStore, createSqlitergExecutor } from '$lib/sqlite/sqliterg'
 import {
   createHigherFoldersStore,
@@ -15,20 +15,12 @@ import {
   createSnippetsDataStateStore, reloadRemoteFoldersStore
 } from '$lib/utitlities/synchronization'
 import { waitUntil } from '$lib/utitlities/wait-until'
+import { createDbStore } from '$lib/sqlite/turso';
+import { asyncDerived } from '@square/svelte-store';
 
 export const sqlite3 = await createSQLiteAPIV2()
 export const executor = await createQueryExecutor(sqlite3, 'crypta')
 export const localDb = createLocalDb(executor)
-export const sqlitergExecutorStore = derived(
-  settingsStore,
-  (settings) => {
-    return createSqlitergExecutor(
-      settings.serverURL,
-      settings.username,
-      settings.password,
-    )
-  }
-)
 export const localSnippetsStore = await createLocalSnippetsStore(executor, globalStateStore)
 // export const remoteSnippetsStore = await createRemoteSnippetStore(globalStateStore, sqlitergExecutorStore)
 // await waitUntil(remoteSnippetsStore.isAvailable, 100, 1000)
@@ -44,3 +36,11 @@ export const localFoldersStore = await createLocalFoldersStore(localDb, higherSn
 // export const higherFoldersStore = createHigherFoldersStore(localFoldersStore, remoteFoldersStore)
 export const higherFoldersStore = localFoldersStore
 // reloadRemoteFoldersStore(localFoldersStore, remoteFoldersStore, 3_000)
+
+export const remoteDbPairStore = asyncDerived(
+  [settingsV2Store],
+  async ([settings]) => {
+    return createDbStore(settings)
+  }
+)
+await remoteDbPairStore.load()
