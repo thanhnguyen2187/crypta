@@ -11,7 +11,7 @@
   import { globalStateStore } from '$lib/utitlities/global'
   import { lockerShowWarningStore } from '$lib/components/modal-locker/store'
   import { getFromClipboard } from '$lib/utitlities/clipboard'
-  import { higherSnippetsStore } from '$lib/sqlite/global'
+  import { dataStateStore, higherSnippetsStore } from '$lib/sqlite/global'
 
   const modalStore = getModalStore()
   let state: 'default' | 'locked' | 'unlocked' = 'default'
@@ -19,8 +19,10 @@
   let hiddenCopyClass = 'fa-copy'
   let synchronizationState = 'synchronized'
   $: {
-    // synchronizationState = $dataStateStore[snippet.id]
+    synchronizationState = $dataStateStore[snippet.id]
   }
+  const localMap = dataStateStore.localMap
+  const remoteMap = dataStateStore.remoteMap
 
   export let snippet: Snippet = {
     id: '',
@@ -211,8 +213,8 @@
   }
 
   function toggleMergeModal() {
-    const localSnippet = {}
-    const remoteSnippet = {}
+    const localSnippet = $localMap[snippet.id]
+    const remoteSnippet = $remoteMap[snippet.id]
 
     mergeLocalSnippetStore.set(localSnippet)
     mergeRemoteSnippetStore.set(remoteSnippet)
