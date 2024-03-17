@@ -9,7 +9,7 @@ import { MemoryVFS } from 'wa-sqlite/src/examples/MemoryVFS.js'
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
 
-export type QueryExecutor = {
+export type WASQLiteExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
   close(): Promise<void>
 }
@@ -63,7 +63,22 @@ export async function createSQLiteAPI(
   return sqlite3
 }
 
-export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: string): Promise<QueryExecutor> {
+/**
+ * Create a query executor for the given database.
+ *
+ * @param sqlite3 an `SQLiteAPI` instance of `wa-sqlite`.
+ * @param databaseName the database's name.
+ * @param locking indicates whether locking for each query is needed; defaults
+ * to `true`. It should only be set to `false` when testing, as mocking Web
+ * Locks API that it uses is troubling. In case it is set to `false`, the
+ * corresponding `sqlite3`'s VFS should be a sync one (`MemoryVFS`, not
+ * `MemoryAsyncVFS` for example).
+ * */
+export async function createQueryExecutor(
+  sqlite3: SQLiteAPI,
+  databaseName: string,
+  locking: boolean = true,
+): Promise<WASQLiteExecutor> {
   const db = await sqlite3.open_v2(databaseName)
   async function executeFn(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]> {
     const rows = []
@@ -75,21 +90,30 @@ export async function createQueryExecutor(sqlite3: SQLiteAPI, databaseName: stri
     }
     return rows
   }
-  return {
-    async execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]> {
-      // We split to an `executeFn` and use Web Locks API since `wa-sqlite`
-      // doesn't allow concurrent usage of `SQLiteESMFactory`.
-      //
-      // Also see this issue: https://github.com/rhashimoto/wa-sqlite/issues/139
-      return navigator.locks.request('crypta_executor', (lock) => executeFn(query, ...params))
-    },
-    async close() {
-      await sqlite3.close(db)
+  async function close() {
+    await sqlite3.close(db)
+  }
+  async function executeLocking(query: string, ...params: SQLiteCompatibleType[]) {
+    return await navigator.locks.request('crypta_executor', (lock) => executeFn(query, ...params))
+  }
+  async function executeWithoutLocking(query: string, ...params: SQLiteCompatibleType[]) {
+    return await executeFn(query, ...params)
+  }
+
+  if (locking) {
+    return {
+      execute: executeLocking,
+      close,
+    }
+  } else {
+    return {
+      execute: executeWithoutLocking,
+      close,
     }
   }
 }
 
-export async function createDb(executor: QueryExecutor) {
+export function createDb(executor: WASQLiteExecutor) {
   return drizzle(async (queryString, params, method) => {
     const result = await executor.execute(queryString, ...params)
     if (method === 'get' && result.length > 0) {
