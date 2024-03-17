@@ -30,6 +30,7 @@ export type ConnectionState =
   | 'error-unreachable'
   | 'error-invalid-endpoint'
   | 'error-unauthenticated'
+  | 'error-unknown'
   | 'connected'
 
 export type SettingsStore = Writable<Settings>

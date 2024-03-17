@@ -102,7 +102,7 @@ export async function createDbStore(settings: SettingsV2): Promise<DbStoreReturn
       }
     }
     console.error(e)
-    throw e
+    return ['error-unknown', null]
   }
 }
 
