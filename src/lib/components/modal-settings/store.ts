@@ -38,6 +38,10 @@ export const inputStateStore = derived(
         display = 'warning'
         message = 'Please check your token.'
         break
+      case 'error-unknown':
+        display = 'error'
+        message = 'An unknown error happened. Please inform the developer about it.'
+        break
       default:
         display = 'error'
         message = 'Unreachable code'
