@@ -1,22 +1,25 @@
+import type { Readable, Writable } from 'svelte/store'
 import { derived, writable } from 'svelte/store'
-import type { Writable, Readable } from 'svelte/store'
 import { aesGcmDecrypt, aesGcmEncrypt } from '$lib/utitlities/encryption'
 import { globalStateStore } from '$lib/utitlities/ephemera'
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 import type { MigrationState } from '$lib/sqlite/migration'
 import {
+  clearTags,
+  deleteSnippet as deleteSnippet_,
   querySnippetsByFolderId,
   queryTagsBySnippetIds,
   upsertSnippet,
-  deleteSnippet as deleteSnippet_,
   upsertTags,
-  clearTags,
 } from '$lib/sqlite/queries';
 import {
   buildTagsMap,
   dbSnippetToDisplaySnippet,
   displaySnippetToDbSnippet
 } from '$lib/utitlities/data-transformation';
+import { folders, snippet_tags, snippets } from '$lib/sqlite/schema';
+import { sql } from 'drizzle-orm/index';
 
 export type Snippet = {
   id: string
@@ -260,4 +263,50 @@ export async function writeGlobalState(state: GlobalState) {
   const writeable = await fileHandle.createWritable()
   await writeable.write(JSON.stringify(state))
   await writeable.close()
+}
+
+export async function v0DataImport(db: SqliteRemoteDatabase) {
+  const catalog = await readCatalog()
+  const folderRecords = Object.entries(catalog).map(
+    ([folderId, folder], index) => {
+      return {
+        id: folderId,
+        name: folder.displayName,
+        position: index,
+      }
+    }
+  )
+  for (const record of folderRecords) {
+    await db
+    .insert(folders)
+    .values(record)
+    .onConflictDoNothing()
+  }
+
+  for (const folderRecord of folderRecords) {
+    const snippetRecords = await readSnippets(folderRecord.id)
+    for (const snippetRecord of snippetRecords) {
+      await db
+      .insert(snippets)
+      .values({
+        ...snippetRecord,
+        folderId: folderRecord.id,
+        // We need to divide by 1000 since JavaScript's timestamp is in
+        // nanosecond instead of millisecond.
+        createdAt: sql`DATETIME(${(snippetRecord.createdAt / 1000).toFixed()}, 'unixepoch')`,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .onConflictDoNothing()
+
+      for (const tag of snippetRecord.tags) {
+        await db
+        .insert(snippet_tags)
+        .values({
+          snippetId: snippetRecord.id,
+          tagText: tag,
+        })
+        .onConflictDoNothing()
+      }
+    }
+  }
 }
