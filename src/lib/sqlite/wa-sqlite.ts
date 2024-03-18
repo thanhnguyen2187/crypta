@@ -8,6 +8,9 @@ import { MemoryVFS } from 'wa-sqlite/src/examples/MemoryVFS.js'
 // @ts-ignore
 import { OriginPrivateFileSystemVFS } from 'wa-sqlite/src/examples/OriginPrivateFileSystemVFS.js'
 import { drizzle } from 'drizzle-orm/sqlite-proxy'
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy'
+import { sql } from 'drizzle-orm'
+import type { MigrationQueryMap, QueriesStringMap } from '$lib/sqlite/migration';
 
 export type WASQLiteExecutor = {
   execute(query: string, ...params: SQLiteCompatibleType[]): Promise<SQLiteCompatibleType[][]>
@@ -121,4 +124,36 @@ export function createDb(executor: WASQLiteExecutor) {
     }
     return {rows: result}
   })
+}
+
+export async function migrate(
+  db: SqliteRemoteDatabase,
+  dataImportFn: (db: SqliteRemoteDatabase) => Promise<void>,
+  migrationQueryMap: MigrationQueryMap,
+  queriesStringMap: QueriesStringMap,
+) {
+  let [currentUserVersion] = await db.get<[number]>(sql`PRAGMA user_version`)
+  while (migrationQueryMap[currentUserVersion]) {
+    const migrationQueryPath = migrationQueryMap[currentUserVersion]
+    const migrationQueryString = queriesStringMap[migrationQueryPath]
+    if (!migrationQueryString) {
+      console.error(`migrate: could not find query string of ${migrationQueryPath}`)
+      return
+    }
+    await db.run(sql.raw(migrationQueryString))
+    if (currentUserVersion === 0) {
+      try {
+        await dataImportFn(db)
+      } catch (e) {
+        console.error('migrate: unable to import v0 data')
+        console.error(e)
+      }
+      const path = '/db/0000_seed_default_folder.sql'
+      const seedFolderQuery = queriesStringMap[path]
+      await db.run(sql.raw(seedFolderQuery))
+    }
+    // TODO: investigate why using `?` within the query doesn't work
+    currentUserVersion += 1
+    await db.run(sql.raw(`PRAGMA user_version = ${currentUserVersion}`))
+  }
 }

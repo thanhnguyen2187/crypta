@@ -34,13 +34,19 @@
     moveSnippet: {ref: ModalMoveSnippet},
   }
 
-  import { migrate, defaultMigrationQueryMap } from '$lib/sqlite/migration'
+  // import { migrate, defaultMigrationQueryMap, v0DataImport } from '$lib/sqlite/migration'
   import { executor, localDb } from '$lib/sqlite/global'
-  import { defaultQueriesStringMap, migrationStateStore } from '$lib/sqlite/migration'
+  // import { defaultQueriesStringMap, migrationStateStore } from '$lib/sqlite/migration'
   import { onDestroy, onMount } from 'svelte'
 
   onMount(async () => {
-    await migrate(localDb, migrationStateStore, defaultMigrationQueryMap, defaultQueriesStringMap)
+    // await migrate(
+    //   localDb,
+    //   migrationStateStore,
+    //   v0DataImport,
+    //   defaultMigrationQueryMap,
+    //   defaultQueriesStringMap,
+    // )
   })
   onDestroy(async () => {
     await executor.close()
