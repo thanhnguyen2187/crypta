@@ -1,6 +1,11 @@
 # Crypta
 
-> (n.) an underground vault or chamber, especially one beneath a church that is used as a burial place.
+> (n.) an underground vault or chamber, especially one beneath a church that is
+> used as a burial place.
+
+IMPORTANT: Crypta has its second version available at
+[Cryptaa](https://github.com/thanhnguyen2187/cryptaa). This repostory exists for
+archival purposes only.
 
 Or a personal vault for code snippets (or text) storing, with encryption to
 handle sensitive data. Latest development version at:
